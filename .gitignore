@@ -1,6 +1,7 @@
 node_modules
-.idea
 api
 npm-debug.log
 .DS_Store
 testdb/*
+plan.txt
+old

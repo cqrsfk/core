@@ -13,7 +13,8 @@
   "keywords": [
     "ddd",
     "cqrs",
-    "domain"
+    "domain",
+    "distributed"
   ],
   "author": "Liang Zeng",
   "license": "MIT",
@@ -22,11 +23,15 @@
   },
   "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
+    "class-di": "0.0.1",
     "co": "^4.4.0",
     "debug": "^2.1.0",
     "is-generator": "^1.0.2",
     "lodash": "^3.9.1",
     "nedb": "^1.8.0",
+    "protobufjs": "^6.7.3",
+    "socket.io": "^1.7.3",
+    "socket.io-client": "^1.7.3",
     "thunkify": "^2.1.2",
     "tingodb": "^0.4.2",
     "uuid": "^2.0.1"

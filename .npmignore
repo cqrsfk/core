@@ -4,3 +4,5 @@ api
 npm-debug.log
 .DS_Store
 testdb/*
+plan.txt
+old
