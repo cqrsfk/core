@@ -6,7 +6,7 @@ Roadmap
 =======
 + preview core (can't run)
 + ~~use ES7 rewrite core (can run)~~
-+ ~~join the distributed system~~
++ ~~join the distributed system~~
 + ~~use protobuf message~~
 
 LICENSE
