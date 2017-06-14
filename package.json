@@ -2,9 +2,11 @@
   "name": "cqrs",
   "version": "1.0.7-pre",
   "description": "cqrs for javascript",
-  "main": "lib/Domain.js",
+  "main": "dist/lib/domain.js",
+  "types":"dist/lib/domain.d.ts",
   "scripts": {
-    "test": "mocha"
+    "test": "tsc && mocha --require source-map-support/register dist/test ",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -24,25 +26,20 @@
   "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
     "class-di": "0.0.1",
-    "co": "^4.4.0",
-    "debug": "^2.1.0",
-    "is-generator": "^1.0.2",
-    "lodash": "^3.9.1",
-    "nedb": "^1.8.0",
+    "lokijs": "^1.4.3",
+    "mongoose": "^4.10.5",
+    "nedb-promise": "^2.0.1",
+    "promisify-node": "^0.4.0",
     "protobufjs": "^6.7.3",
     "socket.io": "^1.7.3",
     "socket.io-client": "^1.7.3",
-    "thunkify": "^2.1.2",
-    "tingodb": "^0.4.2",
-    "uuid": "^2.0.1"
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
-    "debug": "^2.2.0",
-    "mocha": "^2.0.1",
-    "should": "^4.3.0"
-  },
-  "directories": {
-    "example": "example",
-    "test": "test"
+    "@types/mocha": "^2.2.41",
+    "mocha": "^2.5.3",
+    "should": "^4.3.0",
+    "source-map-support": "^0.4.15",
+    "typescript": "^2.3.4"
   }
 }
