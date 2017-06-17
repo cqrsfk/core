@@ -2,8 +2,8 @@
   "name": "cqrs",
   "version": "1.0.7-pre",
   "description": "cqrs for javascript",
-  "main": "dist/lib/domain.js",
-  "types":"dist/lib/domain.d.ts",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "scripts": {
     "test": "tsc && mocha --require source-map-support/register dist/test ",
     "build": "tsc"

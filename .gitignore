@@ -1,7 +1,4 @@
 node_modules
-api
+.idea
 npm-debug.log
 .DS_Store
-testdb/*
-plan.txt
-.core.1
