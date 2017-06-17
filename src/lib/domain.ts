@@ -4,47 +4,55 @@ import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
 const di = require("class-di")
-const eventstore = new EventStore();
-const bus = new EventBus(eventstore);
-const ActorClassMap: Map<string, ActorConstructor> = new Map();
-const repositorieMap: Map<ActorConstructor, Repository> = new Map();
 
-async function getActorProxy(type: string, id: string, sagaId?: string) {
-    const actor = await getNativeActor(type, id);
-    const proxy = new Proxy(actor, {
-        get(target, prop: string) {
-            return new Proxy(actor[prop], {
-                apply(target, cxt, args) {
-                    cxt = { service: new Service(target, bus, getNativeActor, getActorProxy, prop, sagaId) };
-                    cxt.__proto__ = proxy;
-                    return target.call(cxt, ...args);
-                }
-            });
-        }
-    })
-    return proxy;
-}
+export default class Domain {
 
-async function nativeCreateActor(type, data) {
-    const ActorClass = ActorClassMap.get(type);
-    const repo = repositorieMap.get(ActorClass);
+    private eventstore;
+    private bus;
+    private ActorClassMap: Map<string, ActorConstructor>;
+    private repositorieMap: Map<ActorConstructor, Repository>;
 
-    if (ActorClass.createBefor) {
-        try {
-            let result = await ActorClass.createBefor(data);
-        } catch (err) {
-            throw err;
-        }
+    constructor() {
+        this.eventstore = new EventStore();
+        this.bus = new EventBus(this.eventstore);
+        this.ActorClassMap = new Map();
+        this.repositorieMap = new Map();
     }
-    return (await repo.create(data)).json;
-}
 
-async function getNativeActor(type: string, id: string): Promise<any> {
-    let repo = repositorieMap.get(ActorClassMap.get(type));
-    return await repo.get(id);
-}
+    private async getNativeActor(type: string, id: string): Promise<any> {
+        let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
+        return await repo.get(id);
+    }
 
-var domain = {
+    private async  nativeCreateActor(type, data) {
+        const ActorClass = this.ActorClassMap.get(type);
+        const repo = this.repositorieMap.get(ActorClass);
+
+        if (ActorClass.createBefor) {
+            try {
+                let result = await ActorClass.createBefor(data);
+            } catch (err) {
+                throw err;
+            }
+        }
+        return (await repo.create(data)).json;
+    }
+
+    private async  getActorProxy(type: string, id: string, sagaId?: string) {
+        const actor = await this.getNativeActor(type, id);
+        const proxy = new Proxy(actor, {
+            get(target, prop: string) {
+                return new Proxy(actor[prop], {
+                    apply(target, cxt, args) {
+                        cxt = { service: new Service(target, this.bus, this.getNativeActor.bind(this), this.getActorProxy.bind(this), prop, sagaId) };
+                        cxt.__proto__ = proxy;
+                        return target.call(cxt, ...args);
+                    }
+                });
+            }
+        })
+        return proxy;
+    }
 
     register(Classes: ActorConstructor[] | ActorConstructor) {
 
@@ -53,28 +61,20 @@ var domain = {
         }
 
         for (let Class of Classes) {
-
-            // const ActorClass: ActorConstructor = di(Class, function (method, cxt, args, methodname, Class, newArgs) {
-            //     return { service: new Service(cxt, bus, domain, getActor, methodname) };
-            // });
-
-            ActorClassMap.set(Class.getType(), Class);
-            repositorieMap.set(Class, new Repository(Class, eventstore, ActorClassMap, this));
+            this.ActorClassMap.set(Class.getType(), Class);
+            this.repositorieMap.set(Class, new Repository(Class, this.eventstore));
         }
 
         return this;
 
-    },
+    }
 
     async create(type: string, data: any): Promise<any> {
-        return nativeCreateActor(type, data);
-    },
+        return this.nativeCreateActor(type, data);
+    }
 
     async get(type: string, id: string) {
-        return getActorProxy(type, id);
+        return this.getActorProxy(type, id);
     }
 
 }
-
-export default domain;
-export { Actor }

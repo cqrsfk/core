@@ -5,6 +5,7 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
+const $when = Symbol.for("when");
 
 export class Actor {
 
@@ -13,7 +14,7 @@ export class Actor {
     private latestLockTime: Date;
 
     // framework provider 
-    private service: Service;
+    protected service: Service;
 
     constructor(data = {}) {
         this[uncommittedEvents] = [];
@@ -33,8 +34,12 @@ export class Actor {
     }
 
     [loadEvents](events: Event[]) {
+        let data;
         events.forEach(event => {
-            this.when(event);
+            data = this.when(event);
+            if (!data) {
+                data = this.data;
+            }
         });
     }
 
@@ -86,7 +91,7 @@ export class Actor {
         this.service.apply("unlock", key);
     }
 
-    when(event: Event) {
+    protected when(event: Event) {
         switch (event.type) {
             case 'remove':
                 return Object.assign({}, this.data, { isAlive: false });
@@ -95,6 +100,8 @@ export class Actor {
                     { isLock: true, key: event.data.key, timeout: event.data.timeout });
             case 'unlock':
                 return Object.assign({}, this.data, { isLock: false, key: event.data });
+            default:
+                return this.data;
         }
     }
 
@@ -104,6 +111,10 @@ export class Actor {
 
     static parse(json) {
         return new Actor(json);
+    }
+
+    [$when](event) {
+        return this.when(event);
     }
 
     static get version() {

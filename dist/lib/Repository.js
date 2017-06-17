@@ -1,77 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Actor_1 = require("./Actor");
+const Snap_1 = require("./Snap");
+const reborn_1 = require("./reborn");
 class Repository {
-    constructor(ActorClass, eventstore, ActorClasses, domain) {
+    constructor(ActorClass, eventstore) {
+        this.ActorClass = ActorClass;
+        this.eventstore = eventstore;
+        this.cache = new Map();
     }
     async create(data) {
-        return Promise.resolve(new Actor_1.Actor());
+        const actor = new this.ActorClass(data);
+        const snap = new Snap_1.default(actor);
+        await this.eventstore.createSnap(snap);
+        this.cache.set(actor.id, actor);
+        return actor;
     }
-    async createSnap(actor) {
-        // let newSnap = {
-        //     id: uuid(),
-        //     index: 0,
-        //     latestEventIndex: 0,
-        //     date: Date.now(),
-        //     data: actor._data,
-        //     actorId: actor.id,
-        //     actorType: actor.type,
-        //     actorVersion: actor.constructor.version
-        // };
-        // yield this[es].createSnap(newSnap);
-        // return newSnap;
-    }
-    // create(data, cb) {
-    //     let actor = new this[ActorKey](data);
-    //     co(function* () {
-    //         try {
-    //             yield this.createSnap(actor);
-    //             this[cacheKey][actor.id] = actor;
-    //             cb(null, actor.json);
-    //         } catch (err) {
-    //             cb(err);
-    //         }
-    //     }.bind(this));
-    // }
     clear(id) {
-        // this[cacheKey][id] = null;
+        this.cache.delete(id);
     }
     getFromCache(id) {
-        // return this[cacheKey][id];
+        this.cache.get(id);
     }
     async get(id) {
-        return Promise.resolve(new Actor_1.Actor);
-        // co(function* () {
-        //     if (Array.isArray(this[cacheKey][id])) {
-        //         this[cacheKey][id].push(cb);
-        //     } else if (!this[cacheKey][id]) {
-        //         this[cacheKey][id] = [];
-        //         let snap = yield this[es].getLatestSnapshot(id);
-        //         if (snap) {
-        //             let events = yield this[es].getEventsBySnapshot(snap.id);
-        //             let actor = reborm(this[Actors][snap.actorVersion], snap, events);
-        //             if (this[ActorKey].version !== snap.actorVersion) {
-        //                 let newSnap = yield this.createSnap(actor);
-        //                 actor = reborm(this[ActorKey], newSnap, []);
-        //             }
-        //             this.domain.call(actor, "upgrade");
-        //             cb(null, actor);
-        //             this[cacheKey][id].forEach(callback => {
-        //                 callback(null, actor);
-        //             });
-        //             this[cacheKey][id] = actor;
-        //         } else {
-        //             cb(null, null);
-        //         }
-        //     } else {
-        //         cb(null, this[cacheKey][id]);
-        //     }
-        // }.bind(this)).catch(function (err) {
-        //     console.log(err.stack);
-        // });
+        let actor;
+        if (actor = this.getFromCache(id)) {
+            return actor;
+        }
+        else {
+            const snap = await this.eventstore.getLatestSnapshot(id);
+            if (snap) {
+                const events = await this.eventstore.getEventsBySnapshot(snap.id);
+                const actor = reborn_1.default(this.ActorClass, snap, events);
+                return actor;
+            }
+        }
     }
     exist(id) {
-        // return !!this[cacheKey];
+        return this.cache.has(id);
     }
 }
 exports.default = Repository;

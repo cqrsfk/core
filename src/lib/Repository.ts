@@ -10,9 +10,7 @@ export default class Repository {
 
     constructor(
         private ActorClass: ActorConstructor,
-        private eventstore: EventStore,
-        private ActorClasses: Map<string, ActorConstructor>,
-        private domain: any) { }
+        private eventstore: EventStore) { }
 
     async create(data: any) {
 
@@ -20,7 +18,7 @@ export default class Repository {
         const snap = new Snap(actor);
         await this.eventstore.createSnap(snap);
         this.cache.set(actor.id, actor);
-
+        return actor;
     }
 
     clear(id) {

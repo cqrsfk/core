@@ -4,6 +4,7 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
+const $when = Symbol.for("when");
 class Actor {
     constructor(data = {}) {
         this[uncommittedEvents] = [];
@@ -20,8 +21,12 @@ class Actor {
         return Actor.version;
     }
     [loadEvents](events) {
+        let data;
         events.forEach(event => {
-            this.when(event);
+            data = this.when(event);
+            if (!data) {
+                data = this.data;
+            }
         });
     }
     set [setdata](data) {
@@ -73,6 +78,8 @@ class Actor {
                 return Object.assign({}, this.data, { isLock: true, key: event.data.key, timeout: event.data.timeout });
             case 'unlock':
                 return Object.assign({}, this.data, { isLock: false, key: event.data });
+            default:
+                return this.data;
         }
     }
     static toJSON(actor) {
@@ -80,6 +87,9 @@ class Actor {
     }
     static parse(json) {
         return new Actor(json);
+    }
+    [$when](event) {
+        return this.when(event);
     }
     static get version() {
         return "1.0";

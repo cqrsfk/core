@@ -9,11 +9,7 @@ const setdata = Symbol.for("setdata");
  */
 class Service {
     constructor(actor, // proxy
-        bus, 
-        // type: string, id: string, sagaId?
-        getActor, 
-        // type , data , sagaId?
-        createActor, method, sagaId) {
+        bus, getActor, createActor, method, sagaId) {
         this.actor = actor;
         this.bus = bus;
         this.getActor = getActor;
@@ -27,7 +23,7 @@ class Service {
     apply(type, data) {
         if (this.actor.json.isAlive()) {
             const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId);
-            this.actor[setdata] = this.actor.when(event);
+            this.actor[setdata] = this.actor[Symbol.for("when")](event);
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
             this.actor[uncommittedEvents].push(event.json);
             this.bus.publish(this.actor);

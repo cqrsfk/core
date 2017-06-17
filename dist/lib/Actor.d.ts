@@ -1,9 +1,10 @@
 import Event from "./Event";
+import Service from "./Service";
 import LockDataType from "./types/LockDataType";
 export declare class Actor {
     private data;
     private latestLockTime;
-    private service;
+    protected service: Service;
     constructor(data?: {});
     readonly type: string;
     readonly version: string;
@@ -14,7 +15,7 @@ export declare class Actor {
     lock(data: LockDataType): boolean;
     unlock(key: any): void;
     relock(key: any): void;
-    when(event: Event): any;
+    protected when(event: Event): any;
     static toJSON(actor: Actor): any;
     static parse(json: any): Actor;
     static readonly version: string;
@@ -24,4 +25,5 @@ export interface ActorConstructor {
     getType(): string;
     version: string;
     createBefor?: (any) => Promise<any>;
+    parse: (any) => Actor;
 }
