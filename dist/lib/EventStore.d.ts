@@ -1,7 +1,8 @@
-import Snap from "./Snap";
 import Event from "./Event";
 interface EventStore {
-    createSnap(snap: Snap): Promise<any>;
+    on(string: any, Function: any): any;
+    once(string: any, Function: any): any;
+    createSnap(Snap: any): Promise<any>;
     saveEvents(events: Event[] | Event): Promise<any>;
     getLatestSnapshot(actorId: string): Promise<any>;
     getEvents(actorId: string): Promise<any>;
