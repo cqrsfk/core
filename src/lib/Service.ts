@@ -2,7 +2,6 @@ import { Actor } from "./Actor";
 import EventBus from "./EventBus";
 import EventType from "./EventType";
 import Event from "./Event";
-
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata")

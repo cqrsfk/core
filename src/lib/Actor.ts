@@ -115,5 +115,6 @@ export interface ActorConstructor {
     new (any): Actor
     getType(): string
     version: string,
-    createBefor?: (any) => Promise<any>
+    createBefor?: (any) => Promise<any>,
+    parse: (any) => Actor
 }
