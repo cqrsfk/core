@@ -66,7 +66,7 @@ export default class Transfer extends Actor {
             
             const $ = this.service;
 
-            $.lock(); // Lock operation user （Optional）
+            $.lock();  // Lock operation user （Optional）
             $.sagaBegin();  // sagaId , can rollback . （Optional）
 
             const fromUser = await $.get("User", fromUserId);
