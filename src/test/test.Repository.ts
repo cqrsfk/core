@@ -45,11 +45,8 @@ describe("Repository", function () {
     })
 
     it("#get", async function () {
-        console.log(repo.exist(actorId));
         repo.clear(actorId);
-        console.log(repo.exist(actorId));
         let actor = await repo.get(actorId);
-        console.log(actor instanceof Actor);
     })
 })
 

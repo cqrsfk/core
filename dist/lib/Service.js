@@ -20,13 +20,13 @@ class Service {
         this.sagaMode = false;
         this.key = uuid();
     }
-    apply(type, data) {
-        if (this.actor.json.isAlive()) {
+    async apply(type, data) {
+        if (this.actor.json.isAlive) {
             const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId);
-            this.actor[setdata] = this.actor[Symbol.for("when")](event);
+            this.actor[setdata] = this.actor[Symbol.for("when")](event) || this.actor.json;
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
-            this.actor[uncommittedEvents].push(event.json);
-            this.bus.publish(this.actor);
+            this.actor[uncommittedEvents].push(event);
+            await this.bus.publish(this.actor);
         }
     }
     lock() {

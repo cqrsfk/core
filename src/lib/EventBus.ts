@@ -10,7 +10,7 @@ export default class EventBus {
     private emitter = new EventEmitter();
     private lockSet = new Set();
     constructor(private eventstore: EventStore) {
-        this.eventstore.on("savaed events", events => {
+        this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = getAlias(event);
                 for (let name of alias) {
@@ -34,6 +34,7 @@ export default class EventBus {
     }
 
     on(event: EventType, cb: Function) {
+        console.log(getAlias(event));
         this.emitter.on(getAlias(event), function (event) {
             cb(event);
         });
@@ -52,7 +53,6 @@ export default class EventBus {
             evt.index = index + startIndex;
             return evt;
         });
-
         await this.eventstore.saveEvents(events);
         actor[uncommittedEvents] = [];
 
@@ -66,7 +66,7 @@ export default class EventBus {
         }
         this.lockSet.delete(actor.id);
         if (actor[uncommittedEvents].length) {
-            this.publish(actor);
+            await this.publish(actor);
         }
     }
 

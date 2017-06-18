@@ -15,7 +15,9 @@ class DefaultEventStore extends events_1.EventEmitter {
     }
     async saveEvents(events) {
         events = [].concat(events);
-        const eventsJSONArr = events.map(event => event.json);
+        const eventsJSONArr = events.map(event => {
+            return event.json || event;
+        });
         await this.events.insert(eventsJSONArr);
         this.emit('saved events', events);
     }
@@ -31,7 +33,7 @@ class DefaultEventStore extends events_1.EventEmitter {
     }
     async getLatestEvent(actorId) {
         let event = await this.events.cfind({ actorId }).sort({ index: -1, date: -1 }).limit(1).exec();
-        return Event_1.default.parse(event[0]);
+        return event.length ? Event_1.default.parse(event[0]) : null;
     }
     async getEventsBySnapshot(snapId) {
         const snap = await this.getSnapshotById(snapId);

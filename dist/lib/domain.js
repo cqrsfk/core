@@ -6,9 +6,9 @@ const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
 const di = require("class-di");
 class Domain {
-    constructor() {
-        this.eventstore = new DefaultEventStore_1.default();
-        this.bus = new EventBus_1.default(this.eventstore);
+    constructor(options = {}) {
+        this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }
@@ -27,19 +27,27 @@ class Domain {
                 throw err;
             }
         }
-        return (await repo.create(data)).json;
+        const actorId = (await repo.create(data)).json.id;
+        return await this.getActorProxy(type, actorId);
     }
     async getActorProxy(type, id, sagaId) {
+        const that = this;
         const actor = await this.getNativeActor(type, id);
         const proxy = new Proxy(actor, {
             get(target, prop) {
-                return new Proxy(actor[prop], {
-                    apply(target, cxt, args) {
-                        cxt = { service: new Service_1.default(target, this.bus, this.getNativeActor.bind(this), this.getActorProxy.bind(this), prop, sagaId) };
-                        cxt.__proto__ = proxy;
-                        return target.call(cxt, ...args);
-                    }
-                });
+                if (prop === "then") {
+                    return proxy;
+                }
+                ;
+                const method = actor[prop];
+                if (method && typeof method === "function")
+                    return new Proxy(actor[prop], {
+                        apply(target, cxt, args) {
+                            cxt = { service: new Service_1.default(actor, that.eventbus, (type, id) => that.getNativeActor(type, id), (type, id) => that.getActorProxy(type, id), prop, sagaId) };
+                            cxt.__proto__ = proxy;
+                            return target.call(cxt, ...args);
+                        }
+                    });
             }
         });
         return proxy;
@@ -55,10 +63,10 @@ class Domain {
         return this;
     }
     async create(type, data) {
-        return this.nativeCreateActor(type, data);
+        return await this.nativeCreateActor(type, data);
     }
     async get(type, id) {
-        return this.getActorProxy(type, id);
+        return await this.getActorProxy(type, id);
     }
 }
 exports.default = Domain;

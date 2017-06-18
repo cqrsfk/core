@@ -24,8 +24,10 @@ describe("EventStore", function () {
     let event:Event;
     it("#saveEvents", async function (done) {
         // let actor = new Actor({ name: "leo" });
-        event = new Event(actor, 1, { name: "zeng" }, "changename", "changename","sss");
-        let event2 = new Event(actor, 2, { name: "zeng2" }, "changename2", "changename");
+        event = new Event(actor,  { name: "zeng" }, "changename", "changename","sss");
+        event.index = 1
+        let event2 = new Event(actor, { name: "zeng2" }, "changename2", "changename");
+        event2.index = 2;
         es.once("saved events", function () { done() });
         let result = await es.saveEvents([event, event2]);
     });

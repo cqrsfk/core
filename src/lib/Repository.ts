@@ -12,7 +12,7 @@ export default class Repository {
         private ActorClass: ActorConstructor,
         private eventstore: EventStore) { }
 
-    async create(data: any) {
+    async create(data: any): Promise<Actor> {
 
         const actor = new this.ActorClass(data);
         const snap = new Snap(actor);

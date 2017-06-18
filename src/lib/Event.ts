@@ -24,10 +24,10 @@ export default class Event {
     readonly id: string
     readonly date: Date
     readonly alias: string[]
+    public index: number = 0;
 
     constructor(
         actor: Actor,
-        public readonly index:number,
         public readonly data: any,
         public readonly type: string,
         public readonly method: string,

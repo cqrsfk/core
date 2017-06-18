@@ -8,7 +8,7 @@ export function getAlias(event: Event | EventType):any {
             `${event.actorType}.${event.actorId}.${event.type}.${event.method}.`,
             `${event.actorType}.${event.actorId}.${event.type}..`,
             `${event.actorType}.${event.actorId}...`,
-            `.${event.actorId}...`,
+            `${event.actorType}..${event.type}..`,
             `${event.actorType}....`
         ]
     } else {

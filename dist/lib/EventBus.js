@@ -9,7 +9,7 @@ class EventBus {
         this.eventstore = eventstore;
         this.emitter = new events_1.EventEmitter();
         this.lockSet = new Set();
-        this.eventstore.on("savaed events", events => {
+        this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = eventAlias_1.getAlias(event);
                 for (let name of alias) {
@@ -31,6 +31,7 @@ class EventBus {
         });
     }
     on(event, cb) {
+        console.log(eventAlias_1.getAlias(event));
         this.emitter.on(eventAlias_1.getAlias(event), function (event) {
             cb(event);
         });
@@ -60,7 +61,7 @@ class EventBus {
         }
         this.lockSet.delete(actor.id);
         if (actor[uncommittedEvents].length) {
-            this.publish(actor);
+            await this.publish(actor);
         }
     }
     // todo

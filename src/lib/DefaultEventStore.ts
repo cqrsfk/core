@@ -21,7 +21,9 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
 
     async saveEvents(events: Event[] | Event) {
         events = [].concat(events);
-        const eventsJSONArr = events.map(event => event.json);
+        const eventsJSONArr = events.map(event => {
+            return event.json || event;
+        });
         await this.events.insert(eventsJSONArr);
         this.emit('saved events', events);
     }
@@ -40,7 +42,7 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
 
     async getLatestEvent(actorId) {
         let event = await this.events.cfind({ actorId }).sort({ index: -1, date: -1 }).limit(1).exec();
-        return Event.parse(event[0]);
+        return event.length ? Event.parse(event[0]) : null;
     }
 
     async getEventsBySnapshot(snapId: string): Promise<any> {

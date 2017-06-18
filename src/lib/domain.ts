@@ -7,14 +7,14 @@ const di = require("class-di")
 
 export default class Domain {
 
-    private eventstore;
-    private bus;
+    public eventstore: EventStore;
+    public eventbus: EventBus;
     private ActorClassMap: Map<string, ActorConstructor>;
     private repositorieMap: Map<ActorConstructor, Repository>;
 
-    constructor() {
-        this.eventstore = new EventStore();
-        this.bus = new EventBus(this.eventstore);
+    constructor(options: any = {}) {
+        this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }
@@ -24,7 +24,7 @@ export default class Domain {
         return await repo.get(id);
     }
 
-    private async  nativeCreateActor(type, data) {
+    private async nativeCreateActor(type, data) {
         const ActorClass = this.ActorClassMap.get(type);
         const repo = this.repositorieMap.get(ActorClass);
 
@@ -35,20 +35,25 @@ export default class Domain {
                 throw err;
             }
         }
-        return (await repo.create(data)).json;
+        const actorId = (await repo.create(data)).json.id;
+        return await this.getActorProxy(type, actorId);
     }
 
-    private async  getActorProxy(type: string, id: string, sagaId?: string) {
+    private async getActorProxy(type: string, id: string, sagaId?: string) {
+        const that = this;
         const actor = await this.getNativeActor(type, id);
         const proxy = new Proxy(actor, {
             get(target, prop: string) {
-                return new Proxy(actor[prop], {
-                    apply(target, cxt, args) {
-                        cxt = { service: new Service(target, this.bus, this.getNativeActor.bind(this), this.getActorProxy.bind(this), prop, sagaId) };
-                        cxt.__proto__ = proxy;
-                        return target.call(cxt, ...args);
-                    }
-                });
+                if (prop === "then") { return proxy };
+                const method = actor[prop];
+                if (method && typeof method === "function")
+                    return new Proxy(actor[prop], {
+                        apply(target, cxt, args) {
+                            cxt = { service: new Service(actor, that.eventbus, (type, id) => that.getNativeActor(type, id), (type, id) => that.getActorProxy(type, id), prop, sagaId) };
+                            cxt.__proto__ = proxy;
+                            return target.call(cxt, ...args);
+                        }
+                    });
             }
         })
         return proxy;
@@ -69,12 +74,12 @@ export default class Domain {
 
     }
 
-    async create(type: string, data: any): Promise<any> {
-        return this.nativeCreateActor(type, data);
+    async create(type: string, data: any) {
+        return await this.nativeCreateActor(type, data);
     }
 
     async get(type: string, id: string) {
-        return this.getActorProxy(type, id);
+        return await this.getActorProxy(type, id);
     }
 
 }

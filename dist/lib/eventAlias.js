@@ -8,7 +8,7 @@ function getAlias(event) {
             `${event.actorType}.${event.actorId}.${event.type}.${event.method}.`,
             `${event.actorType}.${event.actorId}.${event.type}..`,
             `${event.actorType}.${event.actorId}...`,
-            `.${event.actorId}...`,
+            `${event.actorType}..${event.type}..`,
             `${event.actorType}....`
         ];
     }

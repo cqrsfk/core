@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require('uuid').v1;
 const qs = require('querystring');
 class Event {
-    constructor(actor, index, data, type, method, sagaId) {
-        this.index = index;
+    constructor(actor, data, type, method, sagaId) {
         this.data = data;
         this.type = type;
         this.method = method;
         this.sagaId = sagaId;
+        this.index = 0;
         this.id = uuid();
         this.actorId = actor.id;
         this.actorType = actor.type;

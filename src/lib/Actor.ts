@@ -26,11 +26,11 @@ export class Actor {
     }
 
     get type(): string {
-        return Actor.getType();
+        return this.constructor["getType"]();
     }
 
     get version() {
-        return Actor.version
+        return this.constructor["version"]
     }
 
     [loadEvents](events: Event[]) {
@@ -110,7 +110,7 @@ export class Actor {
     }
 
     static parse(json) {
-        return new Actor(json);
+        return new this(json);
     }
 
     [$when](event) {

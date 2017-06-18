@@ -15,7 +15,7 @@ export default class Service {
     private sagaMode;
     private key;
     constructor(actor: Actor, bus: EventBus, getActor: any, createActor: any, method: string, sagaId?: string);
-    apply(type: string, data?: any): void;
+    apply(type: string, data?: any): Promise<void>;
     lock(): void;
     unlock(): void;
     sagaBegin(): Promise<void>;

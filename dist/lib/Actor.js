@@ -15,7 +15,7 @@ class Actor {
         }
     }
     get type() {
-        return Actor.getType();
+        return this.constructor["getType"]();
     }
     get version() {
         return Actor.version;
@@ -86,7 +86,7 @@ class Actor {
         return JSON.parse(JSON.stringify(actor.data));
     }
     static parse(json) {
-        return new Actor(json);
+        return new this(json);
     }
     [$when](event) {
         return this.when(event);

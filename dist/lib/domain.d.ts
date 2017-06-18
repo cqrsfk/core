@@ -1,10 +1,12 @@
 import { ActorConstructor } from "./Actor";
+import EventStore from "./DefaultEventStore";
+import EventBus from "./EventBus";
 export default class Domain {
-    private eventstore;
-    private bus;
+    eventstore: EventStore;
+    eventbus: EventBus;
     private ActorClassMap;
     private repositorieMap;
-    constructor();
+    constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
     private getActorProxy(type, id, sagaId?);
