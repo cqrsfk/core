@@ -50,21 +50,30 @@ export default class Domain {
                 const member = actor[prop];
 
                 if ("lock" === prop) {
-                    return member;
+                    return Reflect.get(target, prop);
                 }
 
                 if (typeof member === "function") {
 
                     return new Proxy(member, {
                         apply(target, cxt, args) {
-                            cxt = { service: new Service(actor, that.eventbus, (type, id) => that.getActorProxy(type, id), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
-                            cxt.__proto__ = proxy;
-                            return target.call(cxt, ...args);
 
+                            return new Promise(function (resolve, reject) {
+                                function run() {
+                                    if (actor[isLock](key)) {
+                                        console.log("#23233223")
+                                        setTimeout(run, 200);
+                                    } else {
+                                        cxt = { service: new Service(actor, that.eventbus, (type, id) => that.getActorProxy(type, id), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
+                                        cxt.__proto__ = proxy;
+                                        resolve(target.call(cxt, ...args))
+                                    }
+                                }
+                                run();
+                            });
                         }
                     });
-                }
-                else if (prop === "json") {
+                } else if (prop === "json") {
                     return member;
                 } else {
                     return (actor.json)[prop] || actor[prop]

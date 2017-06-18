@@ -115,16 +115,19 @@ describe("Domain", function () {
 
             const user1 = await domain.get("User", u1.id);
             const user2 = await domain.get("User", u2.id);
-            console.log(user1.json)
-            console.log(user2.json)
+            // console.log(user1.json)
+            // console.log(user2.json)
         }
 
         async function f2() {
 
-            await domain.get("User", u1.id);
-            
+            const u = await domain.get("User", u1.id);
+            u.jia(22);
 
         }
+
+        f1();
+        f2();
 
     })
 });

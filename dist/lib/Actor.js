@@ -49,6 +49,7 @@ class Actor {
         return data;
     }
     [isLock](key) {
+        console.log("is lock!");
         if (this.lockData.key === key) {
             return false;
         }

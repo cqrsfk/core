@@ -65,6 +65,7 @@ export class Actor {
     }
 
     [isLock](key) {
+        console.log("is lock!")
         if (this.lockData.key === key) {
             return false;
         }
