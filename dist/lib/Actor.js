@@ -80,6 +80,11 @@ class Actor {
             return true;
         }
     }
+    unlock(key) {
+        if (this.lockData.key === key) {
+            this.lockData.key = null;
+        }
+    }
     when(event) {
         switch (event.type) {
             case 'remove':

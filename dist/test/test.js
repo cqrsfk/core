@@ -39,7 +39,7 @@ class T extends Actor_1.Actor {
     async t(u1, u2, money) {
         try {
             const s = this.service;
-            // s.lock();
+            s.lock();
             s.sagaBegin();
             const user1 = await s.get("User", u1);
             const user2 = await s.get("User", u2);
@@ -48,7 +48,7 @@ class T extends Actor_1.Actor {
             user1.jia(20);
             user2.jian(20);
             s.sagaEnd();
-            // s.unlock();
+            s.unlock();
         }
         catch (e) {
             console.log(e);

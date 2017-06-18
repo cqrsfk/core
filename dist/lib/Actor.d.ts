@@ -14,6 +14,7 @@ export declare class Actor {
     static getType(): string;
     readonly json: any;
     lock(data: LockDataType): boolean;
+    unlock(key: any): void;
     protected when(event: Event): any;
     static toJSON(actor: Actor): any;
     static parse(json: any): Actor;
