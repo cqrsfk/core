@@ -5,6 +5,7 @@ const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
 const di = require("class-di");
+const isLock = Symbol.for("isLock");
 class Domain {
     constructor(options = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
@@ -30,7 +31,7 @@ class Domain {
         const actorId = (await repo.create(data)).json.id;
         return await this.getActorProxy(type, actorId);
     }
-    async getActorProxy(type, id, sagaId) {
+    async getActorProxy(type, id, sagaId, key) {
         const that = this;
         const actor = await this.getNativeActor(type, id);
         const proxy = new Proxy(actor, {
@@ -39,15 +40,25 @@ class Domain {
                     return proxy;
                 }
                 ;
-                const method = actor[prop];
-                if (method && typeof method === "function")
-                    return new Proxy(actor[prop], {
+                const member = actor[prop];
+                if ("lock" === prop) {
+                    return member;
+                }
+                if (typeof member === "function") {
+                    return new Proxy(member, {
                         apply(target, cxt, args) {
-                            cxt = { service: new Service_1.default(actor, that.eventbus, (type, id) => that.getNativeActor(type, id), (type, id) => that.getActorProxy(type, id), prop, sagaId) };
+                            cxt = { service: new Service_1.default(actor, that.eventbus, (type, id) => that.getActorProxy(type, id), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                             cxt.__proto__ = proxy;
                             return target.call(cxt, ...args);
                         }
                     });
+                }
+                else if (prop === "json") {
+                    return member;
+                }
+                else {
+                    return (actor.json)[prop] || actor[prop];
+                }
             }
         });
         return proxy;
@@ -67,6 +78,12 @@ class Domain {
     }
     async get(type, id) {
         return await this.getActorProxy(type, id);
+    }
+    on(event, handle) {
+        this.eventbus.on(event, handle);
+    }
+    once(event, handle) {
+        this.eventbus.on(event, handle);
     }
 }
 exports.default = Domain;

@@ -25,14 +25,13 @@ export default class Repository {
         this.cache.delete(id);
     }
 
-    getFromCache(id) {
-        this.cache.get(id);
+    getFromCache(id): Actor {
+        return this.cache.get(id);
     }
 
     async get(id): Promise<Actor> {
-
-        let actor;
-        if (actor = this.getFromCache(id)) {
+        let actor: Actor = this.getFromCache(id);
+        if (actor) {
             return actor;
         } else {
             const snap = await this.eventstore.getLatestSnapshot(id);

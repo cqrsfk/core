@@ -24,18 +24,12 @@ describe("EventStore", function () {
     }
     domain.register(User);
     it("#", async function (done) {
-        domain.eventbus.on({ actorType: "User", type: "change" }, function (event) {
-            // console.log(event);
+        domain.eventbus.once({ actorType: "User", type: "change" }, function (event) {
             done();
         });
-        try {
-            const actor = await domain.create("User", { name: "leoleo" });
-            // console.log(actor)
-            actor.changename("hhhhh");
-        }
-        catch (e) {
-            console.log(e);
-        }
+        const actor = await domain.create("User", { name: "leoleo" });
+        actor.changename("sir");
+        console.log(actor.name);
     });
 });
 //# sourceMappingURL=test.EventBus.js.map

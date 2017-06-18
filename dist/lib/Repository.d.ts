@@ -7,7 +7,7 @@ export default class Repository {
     constructor(ActorClass: ActorConstructor, eventstore: EventStore);
     create(data: any): Promise<Actor>;
     clear(id: any): void;
-    getFromCache(id: any): void;
+    getFromCache(id: any): Actor;
     get(id: any): Promise<Actor>;
     exist(id: any): boolean;
 }

@@ -62,7 +62,12 @@ class Service {
             // try lock actor
             tryLock();
             async function tryLock() {
-                let isLock = await actor.lock({ key: this.key });
+                try {
+                    var isLock = await actor.lock({ key: that.key });
+                }
+                catch (e) {
+                    console.log(e);
+                }
                 if (isLock)
                     resolve();
                 else {
@@ -74,7 +79,7 @@ class Service {
     async get(type, id) {
         if (id === this.actor.id)
             throw new Error("Don't be get self");
-        let proxy = await this.getActor(type, id, this.sagaId);
+        let proxy = await this.getActor(type, id, this.sagaId, this.key);
         if (!proxy)
             return null;
         if (this.lockMode) {

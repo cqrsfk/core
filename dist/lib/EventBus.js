@@ -31,7 +31,6 @@ class EventBus {
         });
     }
     on(event, cb) {
-        console.log(eventAlias_1.getAlias(event));
         this.emitter.on(eventAlias_1.getAlias(event), function (event) {
             cb(event);
         });

@@ -9,8 +9,10 @@ export default class Domain {
     constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
-    private getActorProxy(type, id, sagaId?);
+    private getActorProxy(type, id, sagaId?, key?);
     register(Classes: ActorConstructor[] | ActorConstructor): this;
     create(type: string, data: any): Promise<any>;
     get(type: string, id: string): Promise<any>;
+    on(event: any, handle: any): void;
+    once(event: any, handle: any): void;
 }

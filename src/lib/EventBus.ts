@@ -34,7 +34,6 @@ export default class EventBus {
     }
 
     on(event: EventType, cb: Function) {
-        console.log(getAlias(event));
         this.emitter.on(getAlias(event), function (event) {
             cb(event);
         });

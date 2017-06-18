@@ -19,11 +19,11 @@ class Repository {
         this.cache.delete(id);
     }
     getFromCache(id) {
-        this.cache.get(id);
+        return this.cache.get(id);
     }
     async get(id) {
-        let actor;
-        if (actor = this.getFromCache(id)) {
+        let actor = this.getFromCache(id);
+        if (actor) {
             return actor;
         }
         else {
