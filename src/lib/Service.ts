@@ -10,7 +10,7 @@ const setdata = Symbol.for("setdata")
  * When call actor's method , then DI service object.
  */
 export default class Service {
-
+    private timeout: number;
     private lockMode = false
     private sagaMode = false
     private key: string = uuid()
@@ -35,12 +35,14 @@ export default class Service {
         }
     }
 
-    lock() {
+    lock(timeout?: number) {
         this.lockMode = true;
+        this.timeout = timeout;
     }
 
     unlock() {
         this.lockMode = false;
+        this.actor.unlock(this.key)
     }
 
     async sagaBegin() {
@@ -66,7 +68,7 @@ export default class Service {
         }
     }
 
-    private actorLock(actor, timeout?: number): Promise<any> {
+    private actorLock(actor): Promise<any> {
         const that = this;
         return new Promise((resolve, reject) => {
 
@@ -74,15 +76,10 @@ export default class Service {
             tryLock();
 
             async function tryLock() {
-                try {
-                    var isLock = await actor.lock({ key: that.key });
-
-                } catch (e) {
-                    console.log(e);
-                }
+                var isLock = await actor.lock({ key: that.key, timeout: that.timeout });
                 if (isLock) resolve();
                 else {
-                    setTimeout(tryLock, timeout || 300);
+                    setTimeout(tryLock, 300);
                 }
             }
 
@@ -93,8 +90,7 @@ export default class Service {
     async get(type: string, id: string) {
 
         if (id === this.actor.id) throw new Error("Don't be get self");
-
-        let proxy = await this.getActor(type, id, this.sagaId, this.key);
+        let proxy = await this.getActor(type, id, this.sagaId || null, this.key);
         if (!proxy) return null;
 
         if (this.lockMode) {

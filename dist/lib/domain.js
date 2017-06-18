@@ -51,10 +51,11 @@ class Domain {
                                 function run() {
                                     const islock = actor[isLock](key);
                                     if (islock) {
+                                        console.log("islock");
                                         setTimeout(run, 2000);
                                     }
                                     else {
-                                        cxt = { service: new Service_1.default(actor, that.eventbus, (type, id, key) => that.getActorProxy(type, id, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
+                                        cxt = { service: new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                                         cxt.__proto__ = proxy;
                                         const result = target.call(cxt, ...args);
                                         if (result instanceof Promise) {

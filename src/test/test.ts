@@ -58,7 +58,7 @@ class T extends Actor {
     async t(u1, u2, money) {
         try {
             const s = this.service;
-            s.lock();
+            s.lock(200);
             s.sagaBegin();
 
             const user1 = await s.get("User", u1);
@@ -111,8 +111,8 @@ async function test() {
 
         const user1 = await domain.get("User", u1.id);
         const user2 = await domain.get("User", u2.id);
-        console.log(user1.json)
-        console.log(user2.json)
+        // console.log(user1.json)
+        // console.log(user2.json)
     }
 
     async function f2() {

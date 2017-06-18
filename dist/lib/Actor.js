@@ -54,7 +54,6 @@ class Actor {
                 return false;
             }
             else {
-                console.log(Date.now() - this.lockData.latestLockTime.getTime());
                 return this.lockData.isLock && Date.now() - this.lockData.latestLockTime.getTime() < this.lockData.timeout;
             }
         }
@@ -63,7 +62,6 @@ class Actor {
         }
     }
     lock(data) {
-        console.log("lock", this.type, this.id);
         if (this.lockData.key === data.key) {
             return true;
         }
@@ -71,9 +69,7 @@ class Actor {
             return false;
         }
         else {
-            if (!this.lockData.timeout) {
-                this.lockData.timeout = 2000;
-            }
+            this.lockData.timeout = data.timeout || 2000;
             this.lockData.key = data.key;
             this.lockData.isLock = true;
             this.lockData.latestLockTime = new Date();

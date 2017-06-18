@@ -29,11 +29,13 @@ class Service {
             await this.bus.publish(this.actor);
         }
     }
-    lock() {
+    lock(timeout) {
         this.lockMode = true;
+        this.timeout = timeout;
     }
     unlock() {
         this.lockMode = false;
+        this.actor.unlock(this.key);
     }
     async sagaBegin() {
         if (this.sagaId && !this.sagaMode) {
@@ -56,22 +58,17 @@ class Service {
             throw new Error("no saga");
         }
     }
-    actorLock(actor, timeout) {
+    actorLock(actor) {
         const that = this;
         return new Promise((resolve, reject) => {
             // try lock actor
             tryLock();
             async function tryLock() {
-                try {
-                    var isLock = await actor.lock({ key: that.key });
-                }
-                catch (e) {
-                    console.log(e);
-                }
+                var isLock = await actor.lock({ key: that.key, timeout: that.timeout });
                 if (isLock)
                     resolve();
                 else {
-                    setTimeout(tryLock, timeout || 300);
+                    setTimeout(tryLock, 300);
                 }
             }
         });
@@ -79,7 +76,7 @@ class Service {
     async get(type, id) {
         if (id === this.actor.id)
             throw new Error("Don't be get self");
-        let proxy = await this.getActor(type, id, this.sagaId, this.key);
+        let proxy = await this.getActor(type, id, this.sagaId || null, this.key);
         if (!proxy)
             return null;
         if (this.lockMode) {
