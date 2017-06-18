@@ -5,7 +5,7 @@
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "scripts": {
-    "test": "tsc && mocha --require source-map-support/register dist/test ",
+    "test": "tsc && node dist/test/test.js ",
     "build": "tsc"
   },
   "repository": {

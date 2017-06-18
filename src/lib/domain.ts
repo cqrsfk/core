@@ -60,13 +60,18 @@ export default class Domain {
 
                             return new Promise(function (resolve, reject) {
                                 function run() {
-                                    if (actor[isLock](key)) {
-                                        console.log("#23233223")
-                                        setTimeout(run, 200);
+                                    const islock = actor[isLock](key);
+                                    if (islock) {
+                                        setTimeout(run, 2000);
                                     } else {
-                                        cxt = { service: new Service(actor, that.eventbus, (type, id) => that.getActorProxy(type, id), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
+                                        cxt = { service: new Service(actor, that.eventbus, (type, id, key) => that.getActorProxy(type, id, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                                         cxt.__proto__ = proxy;
-                                        resolve(target.call(cxt, ...args))
+                                        const result = target.call(cxt, ...args);
+                                        if (result instanceof Promise) {
+                                            result.then(result => resolve(result));
+                                        } else {
+                                            resolve(result);
+                                        }
                                     }
                                 }
                                 run();

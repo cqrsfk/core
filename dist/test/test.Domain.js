@@ -13,10 +13,10 @@ describe("Domain", function () {
         changename(name) {
             this.service.apply("change", name);
         }
-        async jia(money) {
-            this.service.apply("jia", money);
-            return new Promise(function (resolve) {
-                setTimeout(resolve, 500);
+        jia(money) {
+            return new Promise((resolve) => {
+                this.service.apply("jia", money);
+                setTimeout(resolve, 1000);
             });
         }
         jian(money) {
@@ -49,7 +49,7 @@ describe("Domain", function () {
                 user1.jia(20);
                 user2.jian(20);
                 s.sagaEnd();
-                s.unlock();
+                // s.unlock();
             }
             catch (e) {
                 console.log(e);
@@ -58,22 +58,22 @@ describe("Domain", function () {
     }
     domain.register(User).register(T);
     let actorId;
-    it("#create", async function (done) {
-        domain.eventbus.once({ actorType: "User", type: "change" }, function (event) {
-            done();
-        });
-        const actor = await domain.create("User", { name: "leoleo" });
-        actor.changename("sir");
-        actorId = actor.id;
-    });
-    it("#get", async function (done) {
-        const actor = await domain.get("User", actorId);
-        domain.once({ actorType: "User", actorId }, function (e) {
-            done();
-        });
-        actor.changename("ccc");
-        assert.ok(actor.name === "ccc");
-    });
+    // it("#create", async function (done) {
+    //     domain.eventbus.once({ actorType: "User", type: "change" }, function (event) {
+    //         done()
+    //     });
+    //     const actor = await domain.create("User", { name: "leoleo" });
+    //     actor.changename("sir");
+    //     actorId = actor.id
+    // })
+    // it("#get", async function (done) {
+    //     const actor = await domain.get("User", actorId);
+    //     domain.once({ actorType: "User", actorId }, function (e) {
+    //         done();
+    //     });
+    //     actor.changename("ccc");
+    //     assert.ok(actor.name === "ccc");
+    // })
     let u1, u2, t;
     it("#init", async function (done) {
         u1 = await domain.create("User", { name: "u1" });
@@ -84,6 +84,7 @@ describe("Domain", function () {
     it("#saga", function () {
         async function f1() {
             await t.t(u1.id, u2.id, 15);
+            console.log("aaaaa");
             const user1 = await domain.get("User", u1.id);
             const user2 = await domain.get("User", u2.id);
             // console.log(user1.json)
@@ -91,7 +92,8 @@ describe("Domain", function () {
         }
         async function f2() {
             const u = await domain.get("User", u1.id);
-            u.jia(22);
+            await u.jian(22);
+            console.log('cccccc');
         }
         f1();
         f2();

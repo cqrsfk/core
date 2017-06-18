@@ -65,14 +65,21 @@ export class Actor {
     }
 
     [isLock](key) {
-        console.log("is lock!")
-        if (this.lockData.key === key) {
+        if (this.lockData.key) {
+            if (this.lockData.key === key) {
+                return false;
+            } else {
+                console.log(Date.now() - this.lockData.latestLockTime.getTime() );
+                return this.lockData.isLock && Date.now() - this.lockData.latestLockTime.getTime() < this.lockData.timeout
+            }
+        } else {
             return false;
         }
-        return this.lockData.isLock && Date.now() - this.lockData.latestLockTime.getTime() < this.lockData.timeout
+
     }
 
     lock(data: LockDataType) {
+        console.log("lock", this.type,this.id);
         if (this.lockData.key === data.key) {
             return true;
         }
@@ -82,6 +89,8 @@ export class Actor {
             if (!this.lockData.timeout) {
                 this.lockData.timeout = 2000
             }
+            this.lockData.key = data.key;
+            this.lockData.isLock = true;
             this.lockData.latestLockTime = new Date();
             return true;
         }
