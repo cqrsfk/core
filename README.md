@@ -11,6 +11,34 @@ Install
 
     npm install cqrs@2.0.0-pre --save
 
+Step
+====
+
+#### create Actor class
+
+```js
+const { Actor } = require("cqrs");
+class User extends Actor { /* see example */ }
+class Transfer extends Actor { /* see example */ }
+```
+#### register Actor class to domain
+
+```js
+const { domain } = require("cqrs"); // get default domain.
+domain.register(User).register(Transfer);
+```
+#### create/get an Actor instance
+```js
+
+// only javascript object
+
+const user = await domain.create("User", {name:"Leo"});
+user.json; // get actor instance data.
+user.deduct(120.00); // call instance method.
+
+const userInstance = await domain.get("User",userId); // get a User instance.
+```
+
 Preview Example 
 ===============
 
