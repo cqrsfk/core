@@ -18,7 +18,7 @@ see ES6 [Example](https://github.com/liangzeng/cqrs/tree/master/example)
 
 #### User.js
 ```js
-const { Actor } = require("..");
+const { Actor } = require("cqrs");
 
 module.exports = class User extends Actor {
 
@@ -56,7 +56,7 @@ module.exports = class User extends Actor {
 
 #### Transfer.js
 ```js
-const { Actor } = require("..");
+const { Actor } = require("cqrs");
 
 module.exports = class Transfer extends Actor {
 
@@ -94,7 +94,7 @@ module.exports = class Transfer extends Actor {
 
 #### main.js
 ```js
-const { domain, Actor } = require("..");
+const { domain, Actor } = require("cqrs");
 const User = require("./User");
 const Transfer = require("./Transfer");
 
