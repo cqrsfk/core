@@ -2,108 +2,136 @@ CQRS
 ====
 DDD-CQRS-Actor framework.
 
+Version
+=======
+    cqrs@2.0.0-pre
 
-Preview Example (can't run)
-===========================
+Install
+=======
 
-#### User.ts
-```ts
-import {Actor} from "cqrs";
+    npm install cqrs@2.0.0-pre --save
 
-export default class User extends Actor {
+Preview Example 
+===============
 
-    static readonly type: "User"
+see ES6 [Example](https://github.com/liangzeng/cqrs/tree/master/example)
+
+#### User.js
+```js
+const { Actor } = require("..");
+
+module.exports = class User extends Actor {
 
     constructor(data) {
-        super(data);
+        super({ money: data.money || 0, name: data.name });
     }
 
     changename(name) {
-        this.service.apply("change", name);
+        this.$(name);
     }
 
-    save(money: number) {
-        return new Promise((resolve) => {
-            this.service.apply("save", money);
-            setTimeout(resolve, 1000); // timeout
-        })
+    deduct(money) {
+        this.$("deduct", money);
     }
 
-    deduct(money: number) {
-        this.service.apply("deduct", money);
+    add(money) {
+        this.service.apply("add", money);
     }
 
-    
-    when(event: Event) {
-
-        let data = super.when(event);
-
+    when(event) {
+        const data = this.json;
         switch (event.type) {
-            case "change":
-                return Object.assign({}, data, { name: event.data });
-
-            case "save":
-                let money1 = data.money + event.data;
-                return Object.assign({}, data, { money: money1 });
-
+            case "changename":
+                return { name: event.name }
             case "deduct":
-                let money2 = data.money - event.data;
-                return Object.assign({}, data, { money: money2 });
+                return { money: data.money - event.data }
+            case "add":
+                return { money: data.money + event.data }
+        }
+    }
+
+}
+
+```
+
+#### Transfer.js
+```js
+const { Actor } = require("..");
+
+module.exports = class Transfer extends Actor {
+
+    constructor(data) {
+        super({ finish: false });
+    }
+
+    log(event) {
+        console.log(event);
+    }
+
+    async transfe(fromUserId, toUserId, money) {
+        const $ = this.$;
+        $.lock();
+        $.once({ actorType: "User", type: "add" }, "log");
+        const fromUser = await $.get("User", fromUserId);
+        const toUser = await $.get("User", toUserId);
+
+        fromUser.deduct(money);
+        toUser.add(money);
+
+        $.unlock();
+        $("finish", null);
+    }
+
+    when(event) {
+        switch (event.type) {
+            case "finish":
+                return { finish: true }
         }
     }
 
 }
 ```
 
-#### Transfer.ts
-```ts
-import {Actor} from "cqrs";
+#### main.js
+```js
+const { domain, Actor } = require("..");
+const User = require("./User");
+const Transfer = require("./Transfer");
 
-export default class Transfer extends Actor {
+domain.register(User).register(Transfer);
 
-    async transfer(fromUserId, toUserId, money) {
+async function main() {
 
-            
-            const $ = this.service;
+    let fromUser = await domain.create("User", { name: "fromUser" });
+    fromUser.add(100);
+    let toUser = await domain.create("User", { name: "toUser" });
+    const transfer = await domain.create("Transfer", {});
+    await transfer.transfe(fromUser.id, toUser.id, 15);
 
-            $.lock();  // Lock operation user （Optional）
-            $.sagaBegin();  // sagaId , can rollback . （Optional）
-
-            const fromUser = await $.get("User", fromUserId);
-            const toUser = await $.get("User", toUserId);
-            
-            // transfer money
-            fromUser.deduct(money);
-            toUser.jia(money);
-            
-            s.sagaEnd();
-            s.unlock();
-       
-
-    }
-}
-```
-
-#### run.ts
-```ts
-import User from "User";
-import Transfer from "Transfer";
-import {Domain} from "cqrs";
-
-const domain = new Domain();
-domain.register(Transfer).register(User);
-
-async function run(){
     
-    const fromUser = await domain.create("User",{name:"fromUser", money: 120});
-    const toUser = await domain.create("User",{name:"toUser", money: 0});
-    const transfer = await domain.create("Transfer");
-    await transfer.transfer(fromUser.id,toUser.id, 100); // finish!
-
+    fromUser = await domain.get("User", fromUser.id);
+    toUser = await domain.get("User", toUser.id);
+    console.log("fromUser's money is " , fromUser.json.money);
+    console.log("toUser's money is " , toUser.json.money);
 }
 
-run();
-
+main();
+```
+#### out
+```
+fromUser's money is  85
+toUser's money is  15
+Event {
+  data: 100,
+  type: 'add',
+  method: 'add',
+  sagaId: undefined,
+  index: 0,
+  id: '6459e760-558e-11e7-87a3-9b10ea692d1e',
+  actorId: '645887d0-558e-11e7-87a3-9b10ea692d1e',
+  actorType: 'User',
+  actorVersion: '1.0',
+  date: 2017-06-20T07:59:31.542Z }
 ```
 
 Roadmap
