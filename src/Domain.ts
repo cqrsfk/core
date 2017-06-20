@@ -67,11 +67,17 @@ export default class Domain {
                                     } else {
                                         const iservice = new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
 
-                                        const service = new Proxy(function service(type, data) { return iservice.apply(type, data) }, {
-                                            get(target, prop) {
-                                                return iservice[prop].bind(iservice);
+                                        const service = new Proxy(function service(type, data) {
+                                            if (arguments.length === 1) {
+                                                data = type;
+                                                type = prop;
                                             }
-                                        })
+                                            return iservice.apply(type, data)
+                                        }, {
+                                                get(target, prop) {
+                                                    return iservice[prop].bind(iservice);
+                                                }
+                                            })
                                         cxt = { service, $: service };
                                         // cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
 

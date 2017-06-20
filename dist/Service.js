@@ -20,10 +20,6 @@ class Service {
         this.key = uuid();
     }
     async apply(type, data) {
-        if (!data) {
-            data = type;
-            type = this.method;
-        }
         if (this.actor.json.isAlive) {
             const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId);
             this.actor[setdata] = Object.assign({}, this.actor.json, this.actor[Symbol.for("when")](event) || {});

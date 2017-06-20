@@ -2,10 +2,10 @@
   "name": "cqrs",
   "version": "1.0.7-pre",
   "description": "cqrs for javascript",
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "tsc && node dist/test/test.js ",
+    "test": "tsc && node example/main.js ",
     "build": "tsc"
   },
   "repository": {

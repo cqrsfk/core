@@ -55,7 +55,13 @@ class Domain {
                                     }
                                     else {
                                         const iservice = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
-                                        const service = new Proxy(function service(type, data) { return iservice.apply(type, data); }, {
+                                        const service = new Proxy(function service(type, data) {
+                                            if (arguments.length === 1) {
+                                                data = type;
+                                                type = prop;
+                                            }
+                                            return iservice.apply(type, data);
+                                        }, {
                                             get(target, prop) {
                                                 return iservice[prop].bind(iservice);
                                             }

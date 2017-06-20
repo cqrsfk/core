@@ -1,26 +1,32 @@
 const { Actor } = require("..");
 
-module.exports = class User {
-    constructor(name, money) {
-        super({ name, money });
+module.exports = class User extends Actor {
+
+    constructor(data) {
+        super({ money: data.money || 0, name: data.name });
     }
 
     changename(name) {
-        this.$.apply(name);
+        this.$(name);
     }
 
     deduct(money) {
-        this.$.apply("deduct", money);
+        this.$("deduct", money);
     }
 
-    add() {
-        const $ = this.service;
-        $.apply("add", money);
+    add(money) {
+        this.service.apply("add", money);
     }
 
     when(event) {
+        const data = this.json;
         switch (event.type) {
-            case ""
+            case "changename":
+                return { name: event.name }
+            case "deduct":
+                return { money: data.money - event.data }
+            case "add":
+                return { money: data.money + event.data }
         }
     }
 

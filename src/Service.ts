@@ -26,10 +26,7 @@ export default class Service {
     }
 
     async apply(type: string, data?: any) {
-        if (!data) {
-            data = type;
-            type = this.method;
-        }
+
         if (this.actor.json.isAlive) {
             const event = new Event(this.actor, data, type, this.method, this.sagaId);
             this.actor[setdata] = Object.assign({}, this.actor.json, this.actor[Symbol.for("when")](event) || {});
