@@ -4,7 +4,6 @@ const Service_1 = require("./Service");
 const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
-const di = require("class-di");
 const isLock = Symbol.for("isLock");
 class Domain {
     constructor(options = {}) {

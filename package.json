@@ -25,11 +25,7 @@
   },
   "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
-    "class-di": "0.0.1",
-    "lokijs": "^1.4.3",
-    "mongoose": "^4.10.5",
     "nedb-promise": "^2.0.1",
-    "promisify-node": "^0.4.0",
     "protobufjs": "^6.7.3",
     "socket.io": "^1.7.3",
     "socket.io-client": "^1.7.3",

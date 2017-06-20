@@ -3,7 +3,6 @@ import Service from "./Service";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
-const di = require("class-di")
 const isLock = Symbol.for("isLock");
 
 export default class Domain {
