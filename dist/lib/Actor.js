@@ -9,6 +9,7 @@ const isLock = Symbol.for("isLock");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
+        this.tags = new Set();
         this[uncommittedEvents] = [];
         this.data = data;
         this.data.isAlive = true;
@@ -85,9 +86,7 @@ class Actor {
     when(event) {
         switch (event.type) {
             case 'remove':
-                return Object.assign({}, this.data, { isAlive: false });
-            default:
-                return this.data;
+                return { isAlive: false };
         }
     }
     static toJSON(actor) {

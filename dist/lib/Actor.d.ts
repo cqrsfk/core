@@ -1,11 +1,12 @@
 import Event from "./Event";
-import Service from "./Service";
 import LockDataType from "./types/LockDataType";
 export declare class Actor {
     private data;
     private latestLockTime;
     private lockData;
-    protected service: Service;
+    protected service: any;
+    protected $: any;
+    tags: Set<string>;
     constructor(data?: {});
     readonly type: string;
     readonly version: any;

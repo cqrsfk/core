@@ -54,7 +54,14 @@ class Domain {
                                         setTimeout(run, 2000);
                                     }
                                     else {
-                                        cxt = { service: new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
+                                        const iservice = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
+                                        const service = new Proxy(function service(type, data) { return iservice.apply(type, data); }, {
+                                            get(target, prop) {
+                                                return iservice[prop].bind(iservice);
+                                            }
+                                        });
+                                        cxt = { service, $: service };
+                                        // cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                                         cxt.__proto__ = proxy;
                                         const result = target.call(cxt, ...args);
                                         if (result instanceof Promise) {
@@ -74,7 +81,13 @@ class Domain {
                     return member;
                 }
                 else {
-                    return (actor.json)[prop] || actor[prop];
+                    if (actor.tags.has(prop)) {
+                        const service = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
+                        service.apply(prop);
+                    }
+                    else {
+                        return (actor.json)[prop] || actor[prop];
+                    }
                 }
             }
         });

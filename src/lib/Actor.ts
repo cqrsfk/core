@@ -13,9 +13,12 @@ export class Actor {
     private latestLockTime: Date;
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
     // framework provider 
-    protected service: Service;
+    protected service: any;
+    protected $: any;
+    public tags = new Set<string>();
 
     constructor(data = {}) {
+
         this[uncommittedEvents] = [];
         this.data = data;
         this.data.isAlive = true;
@@ -99,12 +102,10 @@ export class Actor {
         }
     }
 
-    protected when(event: Event) {
+    protected when(event: Event):any {
         switch (event.type) {
             case 'remove':
-                return Object.assign({}, this.data, { isAlive: false });
-            default:
-                return this.data;
+                return { isAlive: false };
         }
     }
 

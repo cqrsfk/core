@@ -8,13 +8,14 @@ var domain = new Domain_1.default();
 class User extends Actor_1.Actor {
     constructor(data) {
         super(Object.assign({}, data, { money: 0.0 }));
+        this.tags.add("tttt");
     }
     changename(name) {
         this.service.apply("change", name);
     }
     jia(money) {
         return new Promise((resolve) => {
-            this.service.apply("jia", money);
+            this.$(money);
             setTimeout(resolve, 1000);
         });
     }
@@ -22,28 +23,29 @@ class User extends Actor_1.Actor {
         this.service.apply("jian", money);
     }
     when(event) {
-        let data = super.when(event);
+        super.when(event);
         switch (event.type) {
             case "change":
-                return Object.assign({}, data, { name: event.data });
+                return { name: event.data };
             case "jia":
-                let money1 = data.money + event.data;
-                return Object.assign({}, data, { money: money1 });
+                let money1 = this.json.money + event.data;
+                return { money: money1 };
             case "jian":
-                let money2 = data.money - event.data;
-                return Object.assign({}, data, { money: money2 });
+                let money2 = this.json.money - event.data;
+                return { money: money2 };
         }
     }
 }
 class T extends Actor_1.Actor {
     async t(u1, u2, money) {
-        this.service.once({ actorType: "User", actorId: u2 }, "log");
+        this.service.once({ actorType: "User", actorId: u2, type: "tttt" }, "log");
         try {
             const s = this.service;
             s.lock(200);
             s.sagaBegin();
             const user1 = await s.get("User", u1);
             const user2 = await s.get("User", u2);
+            user2.tttt();
             user1.jia(100);
             user2.jia(100);
             user1.jia(20);
