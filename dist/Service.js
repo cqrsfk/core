@@ -35,14 +35,14 @@ class Service {
     unlock() {
         this.lockMode = false;
     }
-    async sagaBegin() {
+    sagaBegin() {
         if (this.sagaId && !this.sagaMode) {
             throw new Error("Cannot include child Saga");
         }
         this.sagaMode = true;
         this.sagaId = uuid();
     }
-    async sagaEnd() {
+    sagaEnd() {
         if (this.sagaMode) {
             this.sagaMode = false;
             this.sagaId = null;

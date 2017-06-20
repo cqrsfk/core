@@ -19,8 +19,8 @@ export default class Service {
     apply(type: string, data?: any): Promise<void>;
     lock(timeout?: number): void;
     unlock(): void;
-    sagaBegin(): Promise<void>;
-    sagaEnd(): Promise<void>;
+    sagaBegin(): void;
+    sagaEnd(): void;
     rollback(): Promise<void>;
     private actorLock(actor);
     get(type: string, id: string): Promise<any>;
