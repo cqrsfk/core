@@ -11,6 +11,16 @@ Install
 
     npm install cqrs@2.0.0-pre --save
 
+Roadmap
+=======
++ preview core
++ use typescript rewrite core
++ ~~saga rollback~~
++ ~~actor GC~~
++ ~~join the distributed system~~
++ ~~use protobuf message~~
++ ~~system time travel~~
+
 Step
 ====
 
@@ -161,16 +171,6 @@ Event {
   actorVersion: '1.0',
   date: 2017-06-20T07:59:31.542Z }
 ```
-
-Roadmap
-=======
-+ preview core
-+ use typescript rewrite core
-+ ~~saga rollback~~
-+ ~~actor GC~~
-+ ~~join the distributed system~~
-+ ~~use protobuf message~~
-+ ~~system time travel~~
 
 LICENSE
 =======
