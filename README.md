@@ -164,10 +164,13 @@ Event {
 
 Roadmap
 =======
-+ preview core (can't run)
-+ use typescript rewrite core (can't run)
++ preview core
++ use typescript rewrite core
++ ~~saga rollback~~
++ ~~actor GC~~
 + ~~join the distributed system~~
 + ~~use protobuf message~~
++ ~~system time travel~~
 
 LICENSE
 =======
