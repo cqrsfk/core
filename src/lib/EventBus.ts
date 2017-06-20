@@ -4,18 +4,31 @@ import { Actor } from "./Actor";
 import EventStore from "./EventStore";
 import { getAlias } from "./eventAlias";
 import Snap from "./Snap";
+import Domain from "./Domain";
+
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 
 export default class EventBus {
     private emitter = new EventEmitter();
     private lockSet = new Set();
-    constructor(private eventstore: EventStore) {
+    private subscribeRepo = new Map<string, Set<{ actorType: string; actorId: string; method: string }>>();
+
+    constructor(private eventstore: EventStore, private domain: Domain) {
         this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = getAlias(event);
                 for (let name of alias) {
                     process.nextTick(() => {
                         this.emitter.emit(name, event);
+                        const s = this.subscribeRepo.get(name);
+                        if (s) {
+                            for (let handle of s) {
+                                this.domain.get(handle.actorType, handle.actorId).then(actor => {
+                                    actor[handle.method](event);
+                                });
+                            }
+                        }
+                        this.subscribeRepo.delete(name);
                     });
                 }
             }
@@ -31,6 +44,20 @@ export default class EventBus {
                 }
             });
         })
+    }
+
+    subscribe(event: EventType, { actorType, actorId, method }: { actorType: string; actorId: string; method: string }, timeout?: number) {
+        let eventname = getAlias(event);
+        let repo = this.subscribeRepo.get(eventname);
+        if (!repo) {
+            repo = new Set();
+            this.subscribeRepo.set(eventname, repo);
+        }
+        repo.add({ actorType, actorId, method });
+    }
+
+    unsubscribe() {
+        // this.subscribeRepo.delete(getAlias(event));
     }
 
     on(event: EventType, cb: Function) {

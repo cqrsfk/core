@@ -15,7 +15,7 @@ export default class Domain {
 
     constructor(options: any = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore);
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore, this);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }
@@ -65,7 +65,7 @@ export default class Domain {
                                     if (islock) {
                                         setTimeout(run, 2000);
                                     } else {
-                                        cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId,key) => that.getActorProxy(type, id,sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
+                                        cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                                         cxt.__proto__ = proxy;
                                         const result = target.call(cxt, ...args);
                                         if (result instanceof Promise) {

@@ -8,8 +8,7 @@ const setdata = Symbol.for("setdata");
  * When call actor's method , then DI service object.
  */
 class Service {
-    constructor(actor, // proxy
-        bus, getActor, createActor, method, sagaId) {
+    constructor(actor, bus, getActor, createActor, method, sagaId) {
         this.actor = actor;
         this.bus = bus;
         this.getActor = getActor;
@@ -35,7 +34,6 @@ class Service {
     }
     unlock() {
         this.lockMode = false;
-        this.actor.unlock(this.key);
     }
     async sagaBegin() {
         if (this.sagaId && !this.sagaMode) {
@@ -61,7 +59,6 @@ class Service {
     actorLock(actor) {
         const that = this;
         return new Promise((resolve, reject) => {
-            // try lock actor
             tryLock();
             async function tryLock() {
                 var isLock = await actor.lock({ key: that.key, timeout: that.timeout });
@@ -87,9 +84,8 @@ class Service {
     async create(type, data) {
         return this.createActor(...arguments, this.sagaId);
     }
-    once(event, hande, timeout) {
-    }
-    on(event, handle, timeout) {
+    once(event, handle, timeout) {
+        this.bus.subscribe(event, { actorType: this.actor.type, actorId: this.actor.id, method: handle }, timeout);
     }
 }
 exports.default = Service;

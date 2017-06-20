@@ -76,6 +76,7 @@ class Actor {
             return true;
         }
     }
+    // todo
     unlock(key) {
         if (this.lockData.key === key) {
             this.lockData.key = null;

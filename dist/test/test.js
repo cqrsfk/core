@@ -37,6 +37,7 @@ class User extends Actor_1.Actor {
 }
 class T extends Actor_1.Actor {
     async t(u1, u2, money) {
+        this.service.once({ actorType: "User", actorId: u2 }, "log");
         try {
             const s = this.service;
             s.lock(200);
@@ -53,6 +54,9 @@ class T extends Actor_1.Actor {
         catch (e) {
             console.log(e);
         }
+    }
+    log(event) {
+        console.log(event);
     }
 }
 domain.register(User).register(T);

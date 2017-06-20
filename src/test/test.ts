@@ -29,6 +29,7 @@ class User extends Actor {
             this.service.apply("jia", money);
             setTimeout(resolve, 1000);
         })
+
     }
 
     jian(money: number) {
@@ -56,6 +57,8 @@ class User extends Actor {
 class T extends Actor {
 
     async t(u1, u2, money) {
+        this.service.once({ actorType: "User", actorId: u2 }, "log");
+
         try {
             const s = this.service;
             s.lock(200);
@@ -75,6 +78,10 @@ class T extends Actor {
         }
 
 
+    }
+
+    log(event) {
+        console.log(event);
     }
 }
 

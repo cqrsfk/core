@@ -25,6 +25,5 @@ export default class Service {
     private actorLock(actor);
     get(type: string, id: string): Promise<any>;
     create(type: string, data: any): Promise<any>;
-    once(event: EventType, hande: string, timeout?: number): void;
-    on(event: EventType, handle: string, timeout?: number): void;
+    once(event: EventType, handle: string, timeout?: number): void;
 }

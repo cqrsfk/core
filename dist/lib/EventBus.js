@@ -5,16 +5,27 @@ const eventAlias_1 = require("./eventAlias");
 const Snap_1 = require("./Snap");
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 class EventBus {
-    constructor(eventstore) {
+    constructor(eventstore, domain) {
         this.eventstore = eventstore;
+        this.domain = domain;
         this.emitter = new events_1.EventEmitter();
         this.lockSet = new Set();
+        this.subscribeRepo = new Map();
         this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = eventAlias_1.getAlias(event);
                 for (let name of alias) {
                     process.nextTick(() => {
                         this.emitter.emit(name, event);
+                        const s = this.subscribeRepo.get(name);
+                        if (s) {
+                            for (let handle of s) {
+                                this.domain.get(handle.actorType, handle.actorId).then(actor => {
+                                    actor[handle.method](event);
+                                });
+                            }
+                        }
+                        this.subscribeRepo.delete(name);
                     });
                 }
             }
@@ -29,6 +40,18 @@ class EventBus {
                 }
             });
         });
+    }
+    subscribe(event, { actorType, actorId, method }, timeout) {
+        let eventname = eventAlias_1.getAlias(event);
+        let repo = this.subscribeRepo.get(eventname);
+        if (!repo) {
+            repo = new Set();
+            this.subscribeRepo.set(eventname, repo);
+        }
+        repo.add({ actorType, actorId, method });
+    }
+    unsubscribe() {
+        // this.subscribeRepo.delete(getAlias(event));
     }
     on(event, cb) {
         this.emitter.on(eventAlias_1.getAlias(event), function (event) {

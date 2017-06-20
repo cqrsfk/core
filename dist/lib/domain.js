@@ -9,7 +9,7 @@ const isLock = Symbol.for("isLock");
 class Domain {
     constructor(options = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore);
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore, this);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }
@@ -51,7 +51,6 @@ class Domain {
                                 function run() {
                                     const islock = actor[isLock](key);
                                     if (islock) {
-                                        console.log("islock");
                                         setTimeout(run, 2000);
                                     }
                                     else {

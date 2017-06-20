@@ -17,7 +17,7 @@ export default class Service {
 
 
     constructor(
-        private actor: Actor, // proxy
+        private actor: Actor,
         private bus: EventBus,
         private getActor,
         private createActor,
@@ -42,7 +42,6 @@ export default class Service {
 
     unlock() {
         this.lockMode = false;
-        this.actor.unlock(this.key)
     }
 
     async sagaBegin() {
@@ -72,7 +71,6 @@ export default class Service {
         const that = this;
         return new Promise((resolve, reject) => {
 
-            // try lock actor
             tryLock();
 
             async function tryLock() {
@@ -107,12 +105,8 @@ export default class Service {
         return this.createActor(...arguments, this.sagaId);
     }
 
-    once(event: EventType, hande: string, timeout?: number) {
-
-    }
-
-    on(event: EventType, handle: string, timeout?: number) {
-
+    once(event: EventType, handle: string, timeout?: number) {
+        this.bus.subscribe(event, { actorType: this.actor.type, actorId: this.actor.id, method: handle }, timeout);
     }
 
 }
