@@ -78,12 +78,20 @@ export default class Domain {
                                                 }
                                             })
                                         cxt = { service, $: service };
-                                        // cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
 
                                         cxt.__proto__ = proxy;
-                                        const result = target.call(cxt, ...args);
+                                        let result
+                                        try {
+                                            result = target.call(cxt, ...args);
+                                        } catch (err) {
+                                            that.eventbus.rollback(sagaId);
+                                            reject(err);
+                                        }
                                         if (result instanceof Promise) {
-                                            result.then(result => resolve(result));
+                                            result.then(result => resolve(result)).catch(err => {
+                                                that.eventbus.rollback(sagaId);
+                                                reject(err);
+                                            })
                                         } else {
                                             resolve(result);
                                         }

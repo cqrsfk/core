@@ -8,22 +8,6 @@ export default class Snap {
     readonly actorType: string;
     readonly actorVersion: String;
     readonly data: any;
-    /**
-     *
-     * id: uuid(),
-                        latestEventIndex: lastEvent.index,
-                        index: snap.index + 1,
-                        date: Date.now(),
-                        data: actor.json,
-                        actorId: actor.id,
-                        actorType: actor.type
-     id: uuid(),
-                index: 0,
-                date: Date.now(),
-                data: actor.json,
-                actorId: actor.id,
-                actorType: actor.type
-     */
     constructor(actor: Actor, index?: number, latestEventIndex?: number);
     readonly json: {
         id: string;

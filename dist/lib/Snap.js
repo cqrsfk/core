@@ -2,24 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require("uuid").v1;
 class Snap {
-    // readonly index:number
-    // readonly latestEventIndex:number
-    /**
-     *
-     * id: uuid(),
-                        latestEventIndex: lastEvent.index,
-                        index: snap.index + 1,
-                        date: Date.now(),
-                        data: actor.json,
-                        actorId: actor.id,
-                        actorType: actor.type
-     id: uuid(),
-                index: 0,
-                date: Date.now(),
-                data: actor.json,
-                actorId: actor.id,
-                actorType: actor.type
-     */
     constructor(actor, index = 0, latestEventIndex = 0) {
         this.index = index;
         this.latestEventIndex = latestEventIndex;
