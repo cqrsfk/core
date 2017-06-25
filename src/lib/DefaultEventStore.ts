@@ -120,7 +120,7 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
         }
     }
 
-    async findEventsBySagaId(sagaId):Promise<Event[]> {
+    async findEventsBySagaId(sagaId): Promise<Event[]> {
         let events = await this.events.cfind({ sagaId }).sort({ index: -1, date: -1 }).exec();
         return events.map(event => Event.parse(event));
     }

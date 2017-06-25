@@ -8,9 +8,9 @@ const isLock = Symbol.for("isLock");
 class Domain {
     constructor(options = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) : new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
     }
     async getNativeActor(type, id) {
         let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
@@ -72,13 +72,11 @@ class Domain {
                                             result = target.call(cxt, ...args);
                                         }
                                         catch (err) {
-                                            that.eventbus.rollback(sagaId);
-                                            reject(err);
+                                            that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                         }
                                         if (result instanceof Promise) {
                                             result.then(result => resolve(result)).catch(err => {
-                                                that.eventbus.rollback(sagaId);
-                                                reject(err);
+                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                             });
                                         }
                                         else {

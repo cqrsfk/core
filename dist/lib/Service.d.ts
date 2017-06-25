@@ -10,7 +10,7 @@ export default class Service {
     private getActor;
     private createActor;
     private method;
-    private sagaId;
+    sagaId: string;
     private timeout;
     private lockMode;
     private sagaMode;

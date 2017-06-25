@@ -14,9 +14,10 @@ export default class Domain {
 
     constructor(options: any = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) : new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
+
     }
 
     private async getNativeActor(type: string, id: string): Promise<any> {
@@ -84,13 +85,12 @@ export default class Domain {
                                         try {
                                             result = target.call(cxt, ...args);
                                         } catch (err) {
-                                            that.eventbus.rollback(sagaId);
-                                            reject(err);
+
+                                            that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                         }
                                         if (result instanceof Promise) {
                                             result.then(result => resolve(result)).catch(err => {
-                                                that.eventbus.rollback(sagaId);
-                                                reject(err);
+                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                             })
                                         } else {
                                             resolve(result);

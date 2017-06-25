@@ -22,7 +22,7 @@ export default class Service {
         private getActor,
         private createActor,
         private method: string,
-        private sagaId?: string) {
+        public sagaId?: string) {
     }
 
     async apply(type: string, data?: any) {
@@ -93,9 +93,7 @@ export default class Service {
         if (!proxy) return null;
 
         if (this.lockMode) {
-
             await this.actorLock(proxy);
-
         }
 
         return proxy;

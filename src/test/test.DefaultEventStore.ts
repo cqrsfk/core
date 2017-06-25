@@ -7,6 +7,7 @@ import { Actor } from "../lib/Actor";
 const es = new DefaultEventStore();
 
 describe("DefaultEventStore", function () {
+
     it("#saga", async function () {
         const sid = "001", sid2 = "002"
         ok(await es.existSaga(sid) === false);
