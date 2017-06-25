@@ -86,8 +86,8 @@ class EventBus {
             await this.publish(actor);
         }
     }
-    // todo
     async rollback(sagaId) {
+        this.eventstore.removeEventsBySagaId(sagaId);
     }
 }
 exports.default = EventBus;

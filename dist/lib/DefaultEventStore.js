@@ -9,6 +9,31 @@ class DefaultEventStore extends events_1.EventEmitter {
         super();
         this.events = nedb();
         this.snaps = nedb();
+        this.sagas = nedb();
+    }
+    async existSaga(sagaId) {
+        return !!await this.getSaga(sagaId);
+    }
+    async beginSaga(sagaId) {
+        const exist = await this.existSaga(sagaId);
+        if (!exist) {
+            return this.sagas.insert({ sagaId, done: false, alive: true });
+        }
+    }
+    async getSaga(sagaId) {
+        return await this.sagas.cfindOne({ sagaId, alive: true }).exec();
+    }
+    async killSaga(sagaId) {
+        return await this.sagas.update({ sagaId }, { alive: false });
+    }
+    async endSaga(sagaId) {
+        const exist = await this.existSaga(sagaId);
+        if (exist) {
+            return await this.sagas.update({ sagaId }, { done: true });
+        }
+    }
+    async findUndoneSaga() {
+        return await this.sagas.find({ done: false });
     }
     async createSnap(snap) {
         return await this.snaps.insert(snap.json);
@@ -68,15 +93,20 @@ class DefaultEventStore extends events_1.EventEmitter {
     }
     async getEventById(id) {
         let event = await this.events.cfindOne({ id }).exec();
-        return Event_1.default.parse(event);
+        if (event) {
+            return Event_1.default.parse(event);
+        }
+        else {
+            return null;
+        }
     }
     async findEventsBySagaId(sagaId) {
         let events = await this.events.cfind({ sagaId }).sort({ index: -1, date: -1 }).exec();
         return events.map(event => Event_1.default.parse(event));
     }
-    // rollback
     async removeEventsBySagaId(sagaId) {
-        return await this.events.remove({ sagaId });
+        await this.killSaga(sagaId);
+        await this.events.remove({ sagaId });
     }
 }
 exports.default = DefaultEventStore;

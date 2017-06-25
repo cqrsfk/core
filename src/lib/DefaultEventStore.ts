@@ -8,11 +8,43 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
 
     private events;
     private snaps;
+    private sagas;
 
     constructor() {
         super();
         this.events = nedb();
         this.snaps = nedb();
+        this.sagas = nedb();
+    }
+
+    async existSaga(sagaId: string): Promise<boolean> {
+        return !!await this.getSaga(sagaId);
+    }
+
+    async beginSaga(sagaId: string): Promise<any> {
+        const exist = await this.existSaga(sagaId);
+        if (!exist) {
+            return this.sagas.insert({ sagaId, done: false, alive: true });
+        }
+    }
+
+    async getSaga(sagaId: string): Promise<boolean> {
+        return await this.sagas.cfindOne({ sagaId, alive: true }).exec();
+    }
+
+    async killSaga(sagaId: string) {
+        return await this.sagas.update({ sagaId }, { alive: false });
+    }
+
+    async endSaga(sagaId): Promise<any> {
+        const exist = await this.existSaga(sagaId);
+        if (exist) {
+            return await this.sagas.update({ sagaId }, { done: true });
+        }
+    }
+
+    async findUndoneSaga(): Promise<string[]> {
+        return await this.sagas.find({ done: false });
     }
 
     async createSnap(snap: Snap) {
@@ -74,24 +106,28 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
         }
     }
 
-    async getSnapshotById(id): Promise<any> {
+    async getSnapshotById(id) {
         let snap = await this.snaps.cfindOne({ id }).exec();
         return Snap.parse(snap);
     }
 
-    async getEventById(id): Promise<any> {
+    async getEventById(id) {
         let event = await this.events.cfindOne({ id }).exec();
-        return Event.parse(event);
+        if (event) {
+            return Event.parse(event);
+        } else {
+            return null;
+        }
     }
 
-    async findEventsBySagaId(sagaId): Promise<any> {
+    async findEventsBySagaId(sagaId) {
         let events = await this.events.cfind({ sagaId }).sort({ index: -1, date: -1 }).exec();
         return events.map(event => Event.parse(event));
     }
 
-    // rollback
     async removeEventsBySagaId(sagaId: string) {
-        return await this.events.remove({ sagaId });
+        await this.killSaga(sagaId);
+        await this.events.remove({ sagaId });
     }
 
 }

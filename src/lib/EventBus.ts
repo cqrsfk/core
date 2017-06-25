@@ -96,8 +96,7 @@ export default class EventBus {
         }
     }
 
-    // todo
     async rollback(sagaId) {
-
+        this.eventstore.removeEventsBySagaId(sagaId);
     }
 }
