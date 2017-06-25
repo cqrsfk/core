@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import EventType from "./EventType";
-import { Actor } from "./Actor";
+import { Actor, ActorConstructor } from "./Actor";
+import Repository from "./Repository";
 import EventStore from "./EventStore";
 import { getAlias } from "./eventAlias";
 import Snap from "./Snap";
@@ -13,7 +14,12 @@ export default class EventBus {
     private lockSet = new Set();
     private subscribeRepo = new Map<string, Set<{ actorType: string; actorId: string; method: string }>>();
 
-    constructor(private eventstore: EventStore, private domain: Domain) {
+    constructor(
+        private eventstore: EventStore,
+        private domain: Domain,
+        private repositorieMap: Map<ActorConstructor, Repository>,
+        private ActorClassMap: Map<string, ActorConstructor>) {
+
         this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = getAlias(event);
@@ -97,6 +103,15 @@ export default class EventBus {
     }
 
     async rollback(sagaId) {
-        this.eventstore.removeEventsBySagaId(sagaId);
+        await this.eventstore.killSaga(sagaId);
+        const events = await this.eventstore.findEventsBySagaId(sagaId);
+        await this.eventstore.removeEventsBySagaId(sagaId);
+
+        events.forEach(event => {
+            const Class = this.ActorClassMap.get(event.actorType);
+            const repo = this.repositorieMap.get(Class);
+            repo.clear(event.actorId);
+        });
+
     }
 }

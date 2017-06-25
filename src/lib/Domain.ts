@@ -14,7 +14,7 @@ export default class Domain {
 
     constructor(options: any = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore, this);
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }

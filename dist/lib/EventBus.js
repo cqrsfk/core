@@ -5,9 +5,11 @@ const eventAlias_1 = require("./eventAlias");
 const Snap_1 = require("./Snap");
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 class EventBus {
-    constructor(eventstore, domain) {
+    constructor(eventstore, domain, repositorieMap, ActorClassMap) {
         this.eventstore = eventstore;
         this.domain = domain;
+        this.repositorieMap = repositorieMap;
+        this.ActorClassMap = ActorClassMap;
         this.emitter = new events_1.EventEmitter();
         this.lockSet = new Set();
         this.subscribeRepo = new Map();
@@ -87,7 +89,14 @@ class EventBus {
         }
     }
     async rollback(sagaId) {
-        this.eventstore.removeEventsBySagaId(sagaId);
+        await this.eventstore.killSaga(sagaId);
+        const events = await this.eventstore.findEventsBySagaId(sagaId);
+        await this.eventstore.removeEventsBySagaId(sagaId);
+        events.forEach(event => {
+            const Class = this.ActorClassMap.get(event.actorType);
+            const repo = this.repositorieMap.get(Class);
+            repo.clear(event.actorId);
+        });
     }
 }
 exports.default = EventBus;

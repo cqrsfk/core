@@ -8,7 +8,7 @@ const isLock = Symbol.for("isLock");
 class Domain {
     constructor(options = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore, this);
+        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore) : new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
     }
@@ -66,7 +66,6 @@ class Domain {
                                             }
                                         });
                                         cxt = { service, $: service };
-                                        // cxt = { service: new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId) };
                                         cxt.__proto__ = proxy;
                                         let result;
                                         try {

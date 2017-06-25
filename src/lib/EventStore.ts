@@ -21,11 +21,12 @@ interface EventStore {
     getSnapshotByLastIndex(actorId: string, index: number): Promise<any>;
     getSnapshotById(id: string): Promise<any>;
     getEventById(id: string): Promise<any>;
-    findEventsBySagaId(sagaId: string): Promise<any>;
+    findEventsBySagaId(sagaId: string): Promise<Event[]>;
     // findEvents(selector: {}): Promise<any>;
 
     // remove events
     removeEventsBySagaId(sagaId: string): Promise<any>;
+    killSaga(sagaId: string): Promise<any>
 }
 
 export default EventStore;
