@@ -37,5 +37,8 @@
     "should": "^4.3.0",
     "source-map-support": "^0.4.15",
     "typescript": "^2.3.4"
+  },
+  "engines": {
+    "node": ">=8.0.0"
   }
 }
