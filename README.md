@@ -16,6 +16,7 @@ Roadmap
 + preview core
 + use typescript rewrite core
 + saga rollback
++ ~~DCI support~~
 + ~~actor GC~~
 + ~~join the distributed system~~
 + ~~use protobuf message~~
