@@ -10,7 +10,9 @@ class Domain {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
-        this.eventbus = options.EventBus ? new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) : new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
+        this.eventbus = options.EventBus ?
+            new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
+            new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
     }
     async getNativeActor(type, id) {
         let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
@@ -21,7 +23,7 @@ class Domain {
         const repo = this.repositorieMap.get(ActorClass);
         if (ActorClass.createBefor) {
             try {
-                let result = await ActorClass.createBefor(data);
+                data = (await ActorClass.createBefor(data, this)) || data;
             }
             catch (err) {
                 throw err;

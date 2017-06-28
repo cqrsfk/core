@@ -33,7 +33,7 @@ export default class Domain {
 
         if (ActorClass.createBefor) {
             try {
-                let result = await ActorClass.createBefor(data);
+                data = (await ActorClass.createBefor(data, this)) || data;
             } catch (err) {
                 throw err;
             }

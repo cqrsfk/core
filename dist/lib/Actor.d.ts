@@ -25,6 +25,6 @@ export interface ActorConstructor {
     new (any: any): Actor;
     getType(): string;
     version: string;
-    createBefor?: (any) => Promise<any>;
+    createBefor?: (any, Domain) => Promise<any>;
     parse: (any) => Actor;
 }

@@ -7,6 +7,8 @@ const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
 const $when = Symbol.for("when");
 const isLock = Symbol.for("isLock");
+import Domain from "./Domain";
+
 export class Actor {
 
     private data: any;
@@ -130,6 +132,6 @@ export interface ActorConstructor {
     new (any): Actor
     getType(): string
     version: string,
-    createBefor?: (any) => Promise<any>,
+    createBefor?: (any,Domain) => Promise<any>,
     parse: (any) => Actor
 }

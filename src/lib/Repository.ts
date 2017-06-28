@@ -41,7 +41,6 @@ export default class Repository {
                 return actor;
             }
         }
-
     }
 
     exist(id) {
