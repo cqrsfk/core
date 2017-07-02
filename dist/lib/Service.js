@@ -18,6 +18,7 @@ class Service {
         this.lockMode = false;
         this.sagaMode = false;
         this.key = uuid();
+        this.applied = false;
     }
     async apply(type, data) {
         if (this.actor.json.isAlive) {
@@ -27,6 +28,7 @@ class Service {
             this.actor[uncommittedEvents].push(event);
             await this.bus.publish(this.actor);
         }
+        this.applied = true;
     }
     lock(timeout) {
         this.lockMode = true;

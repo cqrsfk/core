@@ -14,7 +14,7 @@ export default class Service {
     private lockMode = false
     private sagaMode = false
     private key: string = uuid()
-
+    public applied: boolean = false;
 
     constructor(
         private actor: Actor,
@@ -34,6 +34,8 @@ export default class Service {
             this.actor[uncommittedEvents].push(event);
             await this.bus.publish(this.actor);
         }
+
+        this.applied = true;
     }
 
     lock(timeout?: number) {

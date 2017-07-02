@@ -70,7 +70,10 @@ export default class Domain {
                                         const iservice = new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
 
                                         const service = new Proxy(function service(type, data) {
-                                            if (arguments.length === 1) {
+                                            if (arguments.length === 0) {
+                                                type = prop;
+                                                data = null;
+                                            } else if (arguments.length === 1) {
                                                 data = type;
                                                 type = prop;
                                             }
@@ -91,10 +94,20 @@ export default class Domain {
                                             that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                         }
                                         if (result instanceof Promise) {
-                                            result.then(result => resolve(result)).catch(err => {
-                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
-                                            })
+                                            result
+                                                .then(result => {
+                                                    if (!iservice.applied) {
+                                                        iservice.apply(prop, {});
+                                                    }
+                                                    resolve(result)
+
+                                                }).catch(err => {
+                                                    that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                })
                                         } else {
+                                            if (!iservice.applied) {
+                                                iservice.apply(prop, {});
+                                            }
                                             resolve(result);
                                         }
                                     }
