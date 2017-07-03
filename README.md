@@ -1,7 +1,7 @@
 CQRS
 ====
 DDD-CQRS-Actor framework.
-### document [chinese](https://github.com/liangzeng/cqrs/wiki)
+### Document [ [chinese](https://github.com/liangzeng/cqrs/wiki) ]
 
 Version
 =======
