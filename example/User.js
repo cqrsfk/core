@@ -7,11 +7,7 @@ module.exports = class User extends Actor {
         super({ money: data.money || 0, name: data.name });
     }
 
-    //
     changename(name) {
-
-        this.$("changename", { name }, true);  // direct
-        this.service.apply("changename", name);
         this.$.apply("changename", name);
     }
 

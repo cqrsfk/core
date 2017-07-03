@@ -70,7 +70,7 @@ class Actor {
             return false;
         }
         else {
-            this.lockData.timeout = data.timeout || 2000;
+            this.lockData.timeout = data.timeout || 200;
             this.lockData.key = data.key;
             this.lockData.isLock = true;
             this.lockData.latestLockTime = new Date();
