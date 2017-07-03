@@ -26,6 +26,6 @@ async function main(money) {
     console.log("toUser's money is ", toUser.json.money);
 }
 
-// main(15);
+main(15);
 
-main(220);
+// main(220);

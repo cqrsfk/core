@@ -4,6 +4,7 @@ import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
 const isLock = Symbol.for("isLock");
+const debug = require('debug')('domain');
 
 export default class Domain {
 
@@ -23,11 +24,15 @@ export default class Domain {
     }
 
     private async getNativeActor(type: string, id: string): Promise<any> {
+        debug("BEGIN getNativeActor(type=%s , id=%s)", type, id);
         let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
-        return await repo.get(id);
+        const actor = await repo.get(id);
+        debug("END getNativeActor");
+        return actor;
     }
 
     private async nativeCreateActor(type, data) {
+        debug("BEGIN nativeCreateActor(type=%s , data=%s)",type,data);
         const ActorClass = this.ActorClassMap.get(type);
         const repo = this.repositorieMap.get(ActorClass);
 
@@ -39,10 +44,14 @@ export default class Domain {
             }
         }
         const actorId = (await repo.create(data)).json.id;
-        return await this.getActorProxy(type, actorId);
+        const actor = await this.getActorProxy(type, actorId);
+        debug("END nativeCreateActor");
+        return actor;
+
     }
 
     private async getActorProxy(type: string, id: string, sagaId?: string, key?: string) {
+        
         const that = this;
         const actor: Actor = await this.getNativeActor(type, id);
         const proxy = new Proxy(actor, {

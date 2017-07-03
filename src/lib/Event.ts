@@ -4,17 +4,17 @@ import { Actor } from "./Actor";
 const uuid = require('uuid').v1;
 const qs = require('querystring');
 
-type EventData = {
-    actorId: string
-    actorType: string
-    actorVersion: string
-    id: string
-    type: string
-    method: string
-    sagaId: string
-    date: Date
-    data: any
-}
+// type EventData = {
+//     actorId: string
+//     actorType: string
+//     actorVersion: string
+//     id: string
+//     type: string
+//     method: string
+//     sagaId: string
+//     date: Date
+//     data: any
+// }
 
 export default class Event {
 
@@ -31,7 +31,9 @@ export default class Event {
         public readonly data: any,
         public readonly type: string,
         public readonly method: string,
-        public readonly sagaId?: string
+        public readonly sagaId?: string,
+        public readonly direct: boolean = false,
+
     ) {
 
         this.id = uuid();

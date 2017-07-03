@@ -1,6 +1,6 @@
 {
   "name": "cqrs",
-  "version": "2.0.0-pre",
+  "version": "2.0.1-pre",
   "description": "cqrs for javascript",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
+    "debug": "^2.6.8",
     "nedb-promise": "^2.0.1",
     "protobufjs": "^6.7.3",
     "socket.io": "^1.7.3",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
+    "browserify": "^14.4.0",
     "mocha": "^2.5.3",
     "should": "^4.3.0",
     "source-map-support": "^0.4.15",

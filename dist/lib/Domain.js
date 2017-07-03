@@ -5,6 +5,7 @@ const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
 const isLock = Symbol.for("isLock");
+const debug = require('debug')('domain');
 class Domain {
     constructor(options = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
@@ -15,10 +16,14 @@ class Domain {
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
     }
     async getNativeActor(type, id) {
+        debug("BEGIN getNativeActor(type=%s , id=%s)", type, id);
         let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
-        return await repo.get(id);
+        const actor = await repo.get(id);
+        debug("END getNativeActor");
+        return actor;
     }
     async nativeCreateActor(type, data) {
+        debug("BEGIN nativeCreateActor(type=%s , data=%s)", type, data);
         const ActorClass = this.ActorClassMap.get(type);
         const repo = this.repositorieMap.get(ActorClass);
         if (ActorClass.createBefor) {
@@ -30,7 +35,9 @@ class Domain {
             }
         }
         const actorId = (await repo.create(data)).json.id;
-        return await this.getActorProxy(type, actorId);
+        const actor = await this.getActorProxy(type, actorId);
+        debug("END nativeCreateActor");
+        return actor;
     }
     async getActorProxy(type, id, sagaId, key) {
         const that = this;

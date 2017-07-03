@@ -89,7 +89,7 @@ export class Actor {
         if (this.lockData.isLock && Date.now() - this.lockData.latestLockTime.getTime() < this.lockData.timeout) {
             return false
         } else {
-            this.lockData.timeout = data.timeout || 2000;
+            this.lockData.timeout = data.timeout || 200;
             this.lockData.key = data.key;
             this.lockData.isLock = true;
             this.lockData.latestLockTime = new Date();

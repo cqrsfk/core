@@ -10,25 +10,25 @@ module.exports = class Transfer extends Actor {
         console.log(event);
     }
 
-    async transfe(fromUserId, toUserId, money) {
-        const $ = this.$;
-        $.sagaBegin();
-        $.lock();
-        $.once({ actorType: "User", type: "add" }, "log");
-        const fromUser = await $.get("User", fromUserId);
-        const toUser = await $.get("User", toUserId);
+async transfe(fromUserId, toUserId, money) {
+    const $ = this.$;
+    $.sagaBegin();
+    $.lock();
+    $.once({ actorType: "User", type: "add" }, "log");
+    const fromUser = await $.get("User", fromUserId);
+    const toUser = await $.get("User", toUserId);
 
-        fromUser.deduct(money);
-        toUser.add(money);
+    fromUser.deduct(money);
+    toUser.add(money);
 
-        if (money > 100)
-            throw new Error("hhhh")
+    if (money > 100)
+        throw new Error("hhhh")
 
-        $.unlock();
-        $.sagaEnd();
+    $.unlock();
+    $.sagaEnd();
 
-        $("finish", null);
-    }
+    $("finish", null);
+}
 
     when(event) {
         switch (event.type) {

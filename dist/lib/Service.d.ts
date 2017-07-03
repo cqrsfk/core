@@ -17,7 +17,7 @@ export default class Service {
     private key;
     applied: boolean;
     constructor(actor: Actor, bus: EventBus, getActor: any, createActor: any, method: string, sagaId?: string);
-    apply(type: string, data?: any): Promise<void>;
+    apply(type: string, data?: any, direct?: boolean): Promise<void>;
     lock(timeout?: number): void;
     unlock(): void;
     sagaBegin(): void;

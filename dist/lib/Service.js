@@ -20,10 +20,10 @@ class Service {
         this.key = uuid();
         this.applied = false;
     }
-    async apply(type, data) {
+    async apply(type, data, direct) {
         if (this.actor.json.isAlive) {
-            const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId);
-            this.actor[setdata] = Object.assign({}, this.actor.json, this.actor[Symbol.for("when")](event) || {});
+            const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false);
+            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, this.actor[Symbol.for("when")](event) || {});
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
             this.actor[uncommittedEvents].push(event);
             await this.bus.publish(this.actor);

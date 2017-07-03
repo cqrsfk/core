@@ -25,11 +25,11 @@ export default class Service {
         public sagaId?: string) {
     }
 
-    async apply(type: string, data?: any) {
+    async apply(type: string, data?: any, direct?: boolean) {
 
         if (this.actor.json.isAlive) {
-            const event = new Event(this.actor, data, type, this.method, this.sagaId);
-            this.actor[setdata] = Object.assign({}, this.actor.json, this.actor[Symbol.for("when")](event) || {});
+            const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false);
+            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, this.actor[Symbol.for("when")](event) || {});
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
             this.actor[uncommittedEvents].push(event);
             await this.bus.publish(this.actor);
@@ -45,6 +45,7 @@ export default class Service {
 
     unlock() {
         this.lockMode = false;
+        // todo
     }
 
     sagaBegin() {

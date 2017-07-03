@@ -1,15 +1,16 @@
 CQRS
 ====
 DDD-CQRS-Actor framework.
+### document [chinese](https://github.com/liangzeng/cqrs/wiki)
 
 Version
 =======
-    cqrs@2.0.0-pre
+    cqrs@2.0.1-pre
 
 Install
 =======
 
-    npm install cqrs@2.0.0-pre --save
+    npm install cqrs@2.0.1-pre --save
 
 Roadmap
 =======
