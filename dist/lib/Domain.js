@@ -117,6 +117,7 @@ class Domain {
                 else {
                     if (actor.tags.has(prop)) {
                         const service = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
+                        console.log(type, "apply 5");
                         service.apply(prop);
                     }
                     else {

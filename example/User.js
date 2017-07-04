@@ -19,7 +19,7 @@ module.exports = class User extends Actor {
         this.service.apply("add", money);
     }
 
-    when(event) { // reduct react
+    when(event) {
         const data = this.json;
         switch (event.type) {
             case "changename":

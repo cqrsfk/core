@@ -25,17 +25,17 @@ export default class Service {
         public sagaId?: string) {
     }
 
-    async apply(type: string, data?: any, direct?: boolean) {
-
+    apply(type: string, data?: any, direct?: boolean) {
         if (this.actor.json.isAlive) {
             const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false);
             this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, this.actor[Symbol.for("when")](event) || {});
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
             this.actor[uncommittedEvents].push(event);
-            await this.bus.publish(this.actor);
+            this.bus.publish(this.actor);
         }
 
         this.applied = true;
+
     }
 
     lock(timeout?: number) {

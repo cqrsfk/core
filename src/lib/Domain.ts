@@ -32,7 +32,7 @@ export default class Domain {
     }
 
     private async nativeCreateActor(type, data) {
-        debug("BEGIN nativeCreateActor(type=%s , data=%s)",type,data);
+        debug("BEGIN nativeCreateActor(type=%s , data=%s)", type, data);
         const ActorClass = this.ActorClassMap.get(type);
         const repo = this.repositorieMap.get(ActorClass);
 
@@ -51,7 +51,7 @@ export default class Domain {
     }
 
     private async getActorProxy(type: string, id: string, sagaId?: string, key?: string) {
-        
+
         const that = this;
         const actor: Actor = await this.getNativeActor(type, id);
         const proxy = new Proxy(actor, {
@@ -68,7 +68,6 @@ export default class Domain {
 
                     return new Proxy(member, {
                         apply(target, cxt, args) {
-
                             return new Promise(function (resolve, reject) {
                                 function run() {
                                     const islock = actor[isLock](key);
@@ -76,7 +75,10 @@ export default class Domain {
                                     if (islock) {
                                         setTimeout(run, 2000);
                                     } else {
-                                        const iservice = new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
+                                        const iservice = new Service(actor, that.eventbus,
+                                            (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key),
+                                            (type, data) => that.nativeCreateActor(type, id),
+                                            prop, sagaId);
 
                                         const service = new Proxy(function service(type, data) {
                                             if (arguments.length === 0) {
@@ -130,6 +132,8 @@ export default class Domain {
                 } else {
                     if (actor.tags.has(prop)) {
                         const service = new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
+                        console.log(type, "apply 5")
+
                         service.apply(prop);
                     } else {
                         return (actor.json)[prop] || actor[prop];
