@@ -10,9 +10,11 @@ export default class DomainProxy extends EventEmitter {
     private isURL: boolean;
     private _connected: boolean;
     private actorIds: Set<string>;
+    private initialized: boolean = false;
 
     constructor(public readonly url: any) {
         super();
+        const that = this;
         this._id = uid();
         this.isURL = typeof url === "string";
         this.socket = this.isURL ? io(url) : url;
@@ -24,13 +26,35 @@ export default class DomainProxy extends EventEmitter {
         } else {
             this._connected = true;
         }
+
+        this.socket.on("remove", function (actorId) {
+            that.actorIds.delete(actorId);
+        });
+
+        this.socket.on("add", function (actorId) {
+            that.actorIds.add(actorId);
+        });
     }
 
     private init() {
-        this.socket.emit("init", (actorIds: string[]) => {
+        this.socket.emit("getActorIds", (actorIds: string[]) => {
             this.actorIds = new Set(actorIds);
-            this.emit("init");
+            this.initialized = true;
+            this.emit("initialized");
         })
+    }
+
+    async refresh() {
+        new Promise(function (resolve, reject) {
+            this.socket.emit("getActorIds", (actorIds: string[]) => {
+                this.actorIds = new Set(actorIds);
+                resolve();
+            });
+        })
+    }
+
+    has(actorId) {
+        return this.actorIds.has(actorId);
     }
 
     get id(): string {
