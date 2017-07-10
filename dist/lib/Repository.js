@@ -2,8 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Snap_1 = require("./Snap");
 const reborn_1 = require("./reborn");
-class Repository {
+const events_1 = require("events");
+class Repository extends events_1.EventEmitter {
     constructor(ActorClass, eventstore) {
+        super();
         this.ActorClass = ActorClass;
         this.eventstore = eventstore;
         this.cache = new Map();
@@ -16,7 +18,10 @@ class Repository {
         return actor;
     }
     clear(id) {
-        this.cache.delete(id);
+        if (this.cache.has(id)) {
+            this.cache.delete(id);
+            this.emit("clear", id);
+        }
     }
     getFromCache(id) {
         return this.cache.get(id);

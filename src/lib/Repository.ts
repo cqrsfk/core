@@ -3,14 +3,17 @@ import EventStore from "./DefaultEventStore";
 import Snap from "./Snap";
 import uuid from "uuid/v4";
 import reborn from "./reborn";
+import { EventEmitter } from "events";
 
-export default class Repository {
+export default class Repository extends EventEmitter {
 
     private cache: Map<string, Actor> = new Map();
 
     constructor(
         private ActorClass: ActorConstructor,
-        private eventstore: EventStore) { }
+        private eventstore: EventStore) {
+        super();
+    }
 
     async create(data: any): Promise<Actor> {
 
@@ -22,7 +25,10 @@ export default class Repository {
     }
 
     clear(id) {
-        this.cache.delete(id);
+        if (this.cache.has(id)) {
+            this.cache.delete(id);
+            this.emit("clear", id);
+        }
     }
 
     getFromCache(id): Actor {

@@ -1,7 +1,9 @@
+/// <reference types="node" />
 import { Actor, ActorConstructor } from "./Actor";
 import EventStore from "./DefaultEventStore";
 import Snap from "./Snap";
-export default class Repository {
+import { EventEmitter } from "events";
+export default class Repository extends EventEmitter {
     private ActorClass;
     private eventstore;
     private cache;

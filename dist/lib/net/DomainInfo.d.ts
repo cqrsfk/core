@@ -3,6 +3,5 @@ declare type DomainInfo = {
     ip: string;
     port: number;
     actorIds: string[];
-    socket: any;
 };
 export default DomainInfo;

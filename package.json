@@ -1,6 +1,6 @@
 {
   "name": "cqrs",
-  "version": "2.0.2-pre", 
+  "version": "2.0.2-pre",
   "description": "cqrs for javascript",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -25,6 +25,8 @@
   },
   "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
+    "@types/socket.io": "^1.4.29",
+    "@types/socket.io-client": "^1.4.29",
     "debug": "^2.6.8",
     "nedb-promise": "^2.0.1",
     "protobufjs": "^6.7.3",

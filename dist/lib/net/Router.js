@@ -4,8 +4,8 @@ var server = require('socket.io')(8081);
 const domainMap = new Map();
 server.on("connection", function (socket) {
     let id;
-    socket.on("init", function (domainInfo) {
-        domainInfo.socket = socket;
+    socket.on("init", function (domainInfo, callback) {
+        callback([...domainMap]);
         domainMap.set(domainInfo.id, domainInfo);
         id = domainInfo.id;
     });
