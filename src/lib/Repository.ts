@@ -21,6 +21,7 @@ export default class Repository extends EventEmitter {
         const snap = new Snap(actor);
         await this.eventstore.createSnap(snap);
         this.cache.set(actor.id, actor);
+        setImmediate(() => this.emit("create", actor.json));
         return actor;
     }
 
@@ -88,5 +89,9 @@ export default class Repository extends EventEmitter {
 
     exist(id) {
         return this.cache.has(id);
+    }
+
+    getCacheActorIds() {
+        return [...this.cache.keys()]
     }
 }

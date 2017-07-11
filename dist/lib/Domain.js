@@ -150,6 +150,13 @@ class Domain {
     once(event, handle) {
         this.eventbus.on(event, handle);
     }
+    getCacheActorIds() {
+        let result = [];
+        for (let [key, Actor] of this.ActorClassMap) {
+            result = result.concat(this.repositorieMap.get(Actor).getCacheActorIds());
+        }
+        return result;
+    }
 }
 exports.default = Domain;
 //# sourceMappingURL=Domain.js.map

@@ -24,4 +24,5 @@ export default class Repository extends EventEmitter {
     }>;
     get(id: any): Promise<Actor>;
     exist(id: any): boolean;
+    getCacheActorIds(): string[];
 }

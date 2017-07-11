@@ -20,6 +20,16 @@ export default class EventBus {
         private repositorieMap: Map<ActorConstructor, Repository>,
         private ActorClassMap: Map<string, ActorConstructor>) {
 
+
+        for (let [ActorClass, repo] of repositorieMap) {
+            repo.on("create", json => {
+                const alias = getAlias({ type: "create", actorType: ActorClass.getType(), actorId: json.id });
+                for (let name of alias) {
+                    this.emitter.emit(name, json);
+                }
+            });
+        }
+
         this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = getAlias(event);

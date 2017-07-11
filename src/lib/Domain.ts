@@ -10,8 +10,8 @@ export default class Domain {
 
     public eventstore: EventStore;
     public eventbus: EventBus;
-    private ActorClassMap: Map<string, ActorConstructor>;
-    private repositorieMap: Map<ActorConstructor, Repository>;
+    public ActorClassMap: Map<string, ActorConstructor>;
+    public repositorieMap: Map<ActorConstructor, Repository>;
 
     constructor(options: any = {}) {
         this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
@@ -176,5 +176,12 @@ export default class Domain {
         this.eventbus.on(event, handle);
     }
 
+    public getCacheActorIds() {
+        let result = [];
+        for (let [key, Actor] of this.ActorClassMap) {
+            result = result.concat(this.repositorieMap.get(Actor).getCacheActorIds());
+        }
+        return result;
+    }
 
 }

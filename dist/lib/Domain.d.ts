@@ -1,11 +1,12 @@
 import { ActorConstructor } from "./Actor";
+import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
 export default class Domain {
     eventstore: EventStore;
     eventbus: EventBus;
-    private ActorClassMap;
-    private repositorieMap;
+    ActorClassMap: Map<string, ActorConstructor>;
+    repositorieMap: Map<ActorConstructor, Repository>;
     constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
@@ -15,4 +16,5 @@ export default class Domain {
     get(type: string, id: string): Promise<any>;
     on(event: any, handle: any): void;
     once(event: any, handle: any): void;
+    getCacheActorIds(): any[];
 }

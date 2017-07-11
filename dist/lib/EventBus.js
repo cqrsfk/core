@@ -13,6 +13,14 @@ class EventBus {
         this.emitter = new events_1.EventEmitter();
         this.lockSet = new Set();
         this.subscribeRepo = new Map();
+        for (let [ActorClass, repo] of repositorieMap) {
+            repo.on("create", json => {
+                const alias = eventAlias_1.getAlias({ type: "create", actorType: ActorClass.getType(), actorId: json.id });
+                for (let name of alias) {
+                    this.emitter.emit(name, json);
+                }
+            });
+        }
         this.eventstore.on("saved events", events => {
             for (let event of events) {
                 const alias = eventAlias_1.getAlias(event);

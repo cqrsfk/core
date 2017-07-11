@@ -6,6 +6,7 @@
   "types": "dist/lib/index.d.ts",
   "scripts": {
     "test": "tsc && mocha --require source-map-support/register dist/test && node example/main.js ",
+    "test2": "tsc && node dist/test/test.distributedSystem.js",
     "build": "tsc"
   },
   "repository": {
@@ -30,8 +31,8 @@
     "debug": "^2.6.8",
     "nedb-promise": "^2.0.1",
     "protobufjs": "^6.7.3",
-    "socket.io": "^1.7.3",
-    "socket.io-client": "^1.7.3",
+    "socket.io": "^2.0.3",
+    "socket.io-client": "^2.0.3",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
