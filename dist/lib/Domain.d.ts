@@ -7,6 +7,10 @@ export default class Domain {
     eventbus: EventBus;
     ActorClassMap: Map<string, ActorConstructor>;
     repositorieMap: Map<ActorConstructor, Repository>;
+    private proxy;
+    private server;
+    private domainProxyMap;
+    readonly id: any;
     constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);

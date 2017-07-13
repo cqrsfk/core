@@ -6,8 +6,22 @@ const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
+const uid = require("uuid").v1;
 class Domain {
     constructor(options = {}) {
+        this.domainProxyMap = {};
+        this.id = uid();
+        // let cluter = options.cluter;
+        // if (cluter) {
+        //     const { entryURL = "", port } = cluter;
+        //     if (!port) {
+        //         throw new Error("no port");
+        //     }
+        //     // this.server = new DomainServer(this, port);
+        //     if (entryURL) {
+        //         this.proxy = new DomainProxy(entryURL);
+        //     }
+        // }
         this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
@@ -42,6 +56,8 @@ class Domain {
     async getActorProxy(type, id, sagaId, key) {
         const that = this;
         const actor = await this.getNativeActor(type, id);
+        if (!actor) {
+        }
         const proxy = new Proxy(actor, {
             get(target, prop) {
                 if (prop === "then") {

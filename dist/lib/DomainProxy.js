@@ -2,56 +2,89 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const io = require("socket.io-client");
 const events_1 = require("events");
+const Event_1 = require("./Event");
 const uid = require("uuid").v1;
 class DomainProxy extends events_1.EventEmitter {
-    constructor(url) {
+    constructor(entryURL, entryDomainId, domainId) {
         super();
-        this.url = url;
+        this.entryURL = entryURL;
+        this.entryDomainId = entryDomainId;
+        this.domainId = domainId;
+        this.domainMap = new Map();
         this.initialized = false;
-        const that = this;
-        this._id = uid();
-        this.isURL = typeof url === "string";
-        this.socket = this.isURL ? io(url) : url;
-        if (this.isURL) {
-            this.socket.on("connect", () => {
-                console.log("ccccconet");
-                this._connected = true;
-                this.emit("connected");
-            });
-            this.socket.on("connect_error", function () {
-                console.log(arguments);
-            });
-        }
-        else {
-            this._connected = true;
-        }
-        this.socket.on("remove", function (actorId) {
-            that.actorIds.delete(actorId);
-        });
-        this.socket.on("add", function (actorId) {
-            that.actorIds.add(actorId);
+        const entrySocket = this.connect(entryURL);
+        this.socketMap[entryDomainId] = entrySocket;
+        this.init(entrySocket);
+        this.once("initialized", () => {
+            for (let [{ url, id }] of this.domainMap) {
+                this.socketMap[id] = this.connect(url);
+            }
         });
     }
-    init() {
-        this.socket.emit("getActorIds", (actorIds) => {
-            this.actorIds = new Set(actorIds);
+    connect(url) {
+        const that = this;
+        const socket = typeof url === "string" ? io(url) : url;
+        socket.on("connect", () => {
+            this._connected = true;
+            this.emit("connected");
+        });
+        socket.on("getDomainId", function (callback) {
+            callback(that.domainId);
+        });
+        socket.on("connect_error", function () {
+            console.log(arguments);
+        });
+        // socket.on("remove", function (actorId) {
+        //     for (let [k, idset] of that.domainMap) {
+        //         idset.delete(actorId);
+        //     }
+        // });
+        // socket.on("add", function (domainId: string, actorId) {
+        //     for (let [k, idset] of that.domainMap) {
+        //         if (k.id === domainId) {
+        //             idset.add(actorId);
+        //             return;
+        //         }
+        //     }
+        // });
+        socket.on("event", function (event) {
+            that.emit("event", Event_1.default.parse(event));
+        });
+        return socket;
+    }
+    init(socket) {
+        if (this.initialized) {
+            return;
+        }
+        socket.emit("getActorIds", async (dais) => {
+            await this.refresh(socket);
             this.initialized = true;
             this.emit("initialized");
         });
     }
-    async refresh() {
-        new Promise(function (resolve, reject) {
-            this.socket.emit("getActorIds", (actorIds) => {
-                this.actorIds = new Set(actorIds);
-                resolve();
+    async refresh(socket) {
+        return new Promise(resolve => {
+            socket.emit("getActorIds", (dais) => {
+                this.domainMap = new Map();
+                for (let o of dais) {
+                    const ids = new Set(o.ids);
+                    this.domainMap.set(o.domain, ids);
+                    resolve();
+                }
             });
         });
     }
-    has(actorId) {
-        return this.actorIds.has(actorId);
+    getDomainInfoByActorId(actorId) {
+        for (let [domainInfo, idset] of this.domainMap) {
+            let exist = idset.has(actorId);
+            return domainInfo;
+        }
     }
-    get id() {
-        return this._id;
+    addSocket(domainId, socket) {
+        this.socketMap[domainId] = this.connect(socket);
+    }
+    has(actorId) {
+        return !!this.getDomainInfoByActorId(actorId);
     }
     get connected() {
         return this._connected;

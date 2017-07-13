@@ -2,9 +2,12 @@ import { Actor, ActorConstructor } from "./Actor";
 import Service from "./Service";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
+import DomainServer from "./DomainServer";
+import DomainProxy from "./DomainProxy";
 import EventBus from "./EventBus";
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
+const uid = require("uuid").v1;
 
 export default class Domain {
 
@@ -12,8 +15,26 @@ export default class Domain {
     public eventbus: EventBus;
     public ActorClassMap: Map<string, ActorConstructor>;
     public repositorieMap: Map<ActorConstructor, Repository>;
+    private proxy: DomainProxy;
+    private server: DomainServer;
+    private domainProxyMap = {};
+    public readonly id;
 
     constructor(options: any = {}) {
+        this.id = uid();
+        // let cluter = options.cluter;
+        
+        // if (cluter) {
+        //     const { entryURL = "", port } = cluter;
+        //     if (!port) {
+        //         throw new Error("no port");
+        //     }
+        //     // this.server = new DomainServer(this, port);
+        //     if (entryURL) {
+        //         this.proxy = new DomainProxy(entryURL);
+
+        //     }
+        // }
         this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
         this.ActorClassMap = new Map();
         this.repositorieMap = new Map();
@@ -54,6 +75,9 @@ export default class Domain {
 
         const that = this;
         const actor: Actor = await this.getNativeActor(type, id);
+        if (!actor) {
+
+        }
         const proxy = new Proxy(actor, {
             get(target, prop: string) {
 

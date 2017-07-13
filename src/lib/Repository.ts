@@ -74,10 +74,12 @@ export default class Repository extends EventEmitter {
     }
 
     async get(id): Promise<Actor> {
+
         let actor: Actor = this.getFromCache(id);
         if (actor) {
             return actor;
         } else {
+            this.emit("reborn", id);
             const snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
