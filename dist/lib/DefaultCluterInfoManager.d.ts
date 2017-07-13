@@ -3,7 +3,7 @@ export default class DefaultCluterInfoManager {
     private idMap;
     private server;
     constructor(port: number | string);
-    getAllDomainInfo(): Promise<any[]>;
+    getAllDomainInfo(): Promise<any>;
     register(domainInfo: any): Promise<void>;
     logout(domainId: any): Promise<void>;
     deleteID(id: any): Promise<void>;

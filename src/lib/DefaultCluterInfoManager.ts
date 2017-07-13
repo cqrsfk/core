@@ -1,4 +1,3 @@
-import Domain from "./Domain";
 import * as io from "socket.io";
 import * as cio from "socket.io-client";
 import { EventEmitter } from "events";
@@ -52,14 +51,13 @@ export default class DefaultCluterInfoManager {
                 const callback = args.pop();
                 const methodName = args.shift();
                 const result = await this[methodName](...args)
-                if (methodName === "getIdMap") return callback(null,[...result])
+                if (methodName === "getIdMap") return callback(null, [...result])
                 callback(null, result);
             })
         })
-
     }
 
-    async getAllDomainInfo() {
+    async getAllDomainInfo(): Promise<any> {
         return [...this.domainInfoMap.values()]
     }
 
