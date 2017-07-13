@@ -9,21 +9,22 @@ class DomainProxy extends events_1.EventEmitter {
         this.manager = manager;
         this.domainInfos = new Map();
         this.sockets = {};
-        this.init().then(() => {
+        this.refreshDomainInfo().then(() => {
             this.emit("initialized");
         });
     }
-    async init() {
+    async refreshDomainInfo() {
         const infos = await this.manager.getAllDomainInfo();
         for (let info of infos) {
             this.domainInfos.set(info.id, info);
         }
     }
     async createSocket(domainInfo) {
+        const that = this;
         return new Promise(function (resolve) {
             const socket = io(domainInfo.url);
             socket.on("connect", function () {
-                this.sockets[domainInfo.id] = socket;
+                that.sockets[domainInfo.id] = socket;
                 resolve(socket);
             });
         });
@@ -41,7 +42,7 @@ class DomainProxy extends events_1.EventEmitter {
         return new Promise(function (resolve, reject) {
             socket.emit("getActor", type, id, function (actorInfo) {
                 if (actorInfo) {
-                    resolve(new Proxy(null, {
+                    resolve(new Proxy({}, {
                         get(target, prop) {
                             if (prop === "json") {
                                 return actorInfo;
@@ -55,7 +56,7 @@ class DomainProxy extends events_1.EventEmitter {
                                 });
                             }
                             else {
-                                return new Proxy(null, {
+                                return new Proxy({}, {
                                     apply(target, cxt, args) {
                                         return new Promise(function () {
                                             socket.emit("call", type, id, prop, args, function (err, result) {

@@ -6,7 +6,7 @@
   "types": "dist/lib/index.d.ts",
   "scripts": {
     "test": "tsc && mocha --require source-map-support/register dist/test && node example/main.js ",
-    "test2": "tsc && node dist/test/test.distributedSystem.js",
+    "test2": "tsc && mocha --require source-map-support/register dist/test/test.clusterSystem",
     "build": "tsc"
   },
   "repository": {

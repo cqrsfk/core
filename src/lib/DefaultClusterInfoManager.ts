@@ -12,11 +12,13 @@ const METHODS = [
     "getIdMap"
 ];
 
+
+
 export default class DefaultCluterInfoManager {
 
     private domainInfoMap = new Map<string, any>();
     private idMap = new Map<string, Set<string>>();
-    private server;
+    public server;
     constructor(port: number | string) {
 
         if (typeof port === "string") {
@@ -30,7 +32,13 @@ export default class DefaultCluterInfoManager {
                                     socket.emit("call", prop, ...args, function (err, result) {
                                         if (err) reject(err);
                                         else {
-                                            if (prop === "getIdMap") return resolve(new Map(result));
+                                            if (prop === "getIdMap") {
+                                                let map = new Map();
+                                                for (let k in result) {
+                                                    map.set(k, new Set(result[k]));
+                                                }
+                                                resolve(map);
+                                            }
                                             resolve(result);
                                         };
                                     });
@@ -51,7 +59,13 @@ export default class DefaultCluterInfoManager {
                 const callback = args.pop();
                 const methodName = args.shift();
                 const result = await this[methodName](...args)
-                if (methodName === "getIdMap") return callback(null, [...result])
+                if (methodName === "getIdMap") {
+                    let json = {}
+                    for (let [domainId, set] of result) {
+                        json[domainId] = [...set];
+                    }
+                    return callback(null, json);
+                }
                 callback(null, result);
             })
         })
@@ -78,6 +92,7 @@ export default class DefaultCluterInfoManager {
     }
 
     async getDomainIdById(id) {
+
         for (let [domainId, idset] of this.idMap) {
             if (idset.has(id)) {
                 return domainId;

@@ -1,5 +1,5 @@
 import * as io from "socket.io-client";
-import DefaultCluterInfoManager from "./DefaultCluterInfoManager";
+import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import { EventEmitter } from "events";
 import Event from "./Event";
 const uid = require("uuid").v1;
@@ -9,14 +9,14 @@ export default class DomainProxy extends EventEmitter {
     private domainInfos = new Map<string, any>();
     private sockets = {};
 
-    constructor(private manager: DefaultCluterInfoManager) {
+    constructor(private manager: DefaultClusterInfoManager) {
         super();
-        this.init().then(() => {
+        this.refreshDomainInfo().then(() => {
             this.emit("initialized");
         });
     }
 
-    private async init() {
+    async refreshDomainInfo() {
         const infos = await this.manager.getAllDomainInfo();
         for (let info of infos) {
             this.domainInfos.set(info.id, info);
@@ -24,10 +24,11 @@ export default class DomainProxy extends EventEmitter {
     }
 
     private async createSocket(domainInfo) {
+        const that = this;
         return new Promise(function (resolve) {
             const socket = io(domainInfo.url);
             socket.on("connect", function () {
-                this.sockets[domainInfo.id] = socket;
+                that.sockets[domainInfo.id] = socket;
                 resolve(socket);
             });
         });
@@ -37,7 +38,7 @@ export default class DomainProxy extends EventEmitter {
         this.sockets[domainId] = socket;
     }
 
-    async getActor(type, id) {
+    async getActor(type, id): Promise<any> {
 
         const that = this;
         const domainId = await this.manager.getDomainIdById(id);
@@ -49,8 +50,9 @@ export default class DomainProxy extends EventEmitter {
 
         return new Promise(function (resolve, reject) {
             socket.emit("getActor", type, id, function (actorInfo) {
+                
                 if (actorInfo) {
-                    resolve(new Proxy(null, {
+                    resolve(new Proxy({}, {
 
                         get(target, prop) {
                             if (prop === "json") {
@@ -63,7 +65,7 @@ export default class DomainProxy extends EventEmitter {
                                     });
                                 })
                             } else {
-                                return new Proxy(null, {
+                                return new Proxy({}, {
                                     apply(target, cxt, args) {
                                         return new Promise(function () {
                                             socket.emit("call", type, id, prop, args, function (err, result) {

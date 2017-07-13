@@ -1,17 +1,18 @@
 import * as server from "socket.io";
 import Domain from "./Domain";
-import DefaultCluterInfoManager from "./DefaultCluterInfoManager";
+import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 
 export default class DomainServer {
 
 
-    constructor(domain: Domain, port: number, url: string, manager: DefaultCluterInfoManager) {
+    constructor(domain: Domain, port: number, url: string, manager: DefaultClusterInfoManager) {
+
+        manager.register({ id: domain.id, url });
 
         const io = server();
 
         io.on("connection", function (socket: SocketIOClient.Socket) {
 
-            manager.register({ domainId: domain.id, url });
 
             socket.on("call", async function (type, id, methodName, args, callback) {
                 let actor = await domain.get(type, id);
@@ -26,6 +27,14 @@ export default class DomainServer {
                     callback("no actor , id = " + id);
                 }
             });
+
+            socket.on("getActor", function (type, id, callback) {
+                domain.get(type, id).then(function (actor) {
+                    // console.log(actor.json);
+                    callback(actor.json);
+                });
+            });
+
 
         });
 
