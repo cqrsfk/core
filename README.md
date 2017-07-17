@@ -5,7 +5,7 @@ DDD-CQRS-Actor framework.
 
 Version
 =======
-    cqrs@2.0.1-pre
+    cqrs@2.0.5-pre
 
 Install
 =======
@@ -17,7 +17,7 @@ Roadmap
 + preview core
 + use typescript rewrite core
 + saga rollback
-+ ~~join the distributed system~~
++ join the distributed system
 + ~~use protobuf message~~
 + ~~actor GC~~
 + ~~system time travel~~
