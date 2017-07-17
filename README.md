@@ -178,5 +178,5 @@ Event {
 
 LICENSE
 =======
-MIT
+GPL2.0
 
