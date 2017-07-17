@@ -4,9 +4,10 @@ const io = require("socket.io-client");
 const events_1 = require("events");
 const uid = require("uuid").v1;
 class DomainProxy extends events_1.EventEmitter {
-    constructor(manager) {
+    constructor(manager, ActorClassMap) {
         super();
         this.manager = manager;
+        this.ActorClassMap = ActorClassMap;
         this.domainInfos = new Map();
         this.sockets = {};
         this.refreshDomainInfo().then(() => {
@@ -32,17 +33,21 @@ class DomainProxy extends events_1.EventEmitter {
     addSocket(domainId, socket) {
         this.sockets[domainId] = socket;
     }
-    async getActor(type, id) {
+    async getActor(type, id, sagaId, key) {
         const that = this;
         const domainId = await this.manager.getDomainIdById(id);
         let socket = this.sockets[domainId];
         if (!socket) {
-            socket = await this.createSocket(this.domainInfos.get(domainId));
+            let domainInfo = this.domainInfos.get(domainId) || ((await this.refreshDomainInfo()) || this.domainInfos.get(domainId));
+            if (!domainInfo) {
+                return null;
+            }
+            socket = await this.createSocket(domainInfo);
         }
         return new Promise(function (resolve, reject) {
             socket.emit("getActor", type, id, function (actorInfo) {
                 if (actorInfo) {
-                    resolve(new Proxy({}, {
+                    const proxy = new Proxy(actorInfo, {
                         get(target, prop) {
                             if (prop === "json") {
                                 return actorInfo;
@@ -56,10 +61,12 @@ class DomainProxy extends events_1.EventEmitter {
                                 });
                             }
                             else {
-                                return new Proxy({}, {
+                                if (!that.ActorClassMap.get(type).prototype[prop] || (prop in Object.prototype))
+                                    return Reflect.get(target, prop);
+                                return new Proxy(function () { }, {
                                     apply(target, cxt, args) {
                                         return new Promise(function () {
-                                            socket.emit("call", type, id, prop, args, function (err, result) {
+                                            socket.emit("call", type, id, sagaId, key, prop, args, function (err, result) {
                                                 if (err) {
                                                     reject(err);
                                                 }
@@ -72,7 +79,8 @@ class DomainProxy extends events_1.EventEmitter {
                                 });
                             }
                         }
-                    }));
+                    });
+                    resolve(proxy);
                 }
                 else {
                     resolve(null);

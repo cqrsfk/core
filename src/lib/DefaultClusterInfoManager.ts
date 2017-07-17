@@ -9,7 +9,8 @@ const METHODS = [
     "deleteID",
     "getDomainIdById",
     "addId",
-    "getIdMap"
+    "getIdMap",
+    "on"
 ];
 
 

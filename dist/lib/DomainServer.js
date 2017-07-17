@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const server = require("socket.io");
+const getActorProxy = Symbol.for("getActorProxy");
 class DomainServer {
-    constructor(domain, port, url, manager) {
-        manager.register({ id: domain.id, url });
+    constructor(domain, port) {
         const io = server();
         io.on("connection", function (socket) {
-            socket.on("call", async function (type, id, methodName, args, callback) {
-                let actor = await domain.get(type, id);
+            socket.on("call", async function (type, id, sagaId, key, methodName, args, callback) {
+                let actor = await domain[getActorProxy](type, id, sagaId, key);
                 if (actor) {
                     try {
                         let result = await actor[methodName](...args);
@@ -23,7 +23,6 @@ class DomainServer {
             });
             socket.on("getActor", function (type, id, callback) {
                 domain.get(type, id).then(function (actor) {
-                    // console.log(actor.json);
                     callback(actor.json);
                 });
             });

@@ -8,6 +8,8 @@ import EventBus from "./EventBus";
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
+const getActorProxy = Symbol.for("getActorProxy");
+import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 
 export default class Domain {
 
@@ -15,28 +17,29 @@ export default class Domain {
     public eventbus: EventBus;
     public ActorClassMap: Map<string, ActorConstructor>;
     public repositorieMap: Map<ActorConstructor, Repository>;
-    private proxy: DomainProxy;
-    private server: DomainServer;
-    private domainProxyMap = {};
+    private clusterInfoManager: DefaultClusterInfoManager;
+    private domainServer: DomainServer;
+    private domainProxy: DomainProxy;
+
     public readonly id;
 
     constructor(options: any = {}) {
         this.id = uid();
-        // let cluter = options.cluter;
-        
-        // if (cluter) {
-        //     const { entryURL = "", port } = cluter;
-        //     if (!port) {
-        //         throw new Error("no port");
-        //     }
-        //     // this.server = new DomainServer(this, port);
-        //     if (entryURL) {
-        //         this.proxy = new DomainProxy(entryURL);
-
-        //     }
-        // }
-        this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
         this.ActorClassMap = new Map();
+
+        // cluster system
+        if (
+            options.domainServerUrl &&
+            options.domainServerPort &&
+            (options.clusterUrl || options.clusterPort)
+        ) {
+            this.clusterInfoManager = new DefaultClusterInfoManager(options.clusterUrl || options.clusterPort);
+            this.clusterInfoManager.register({ id: this.id, url: options.domainServerUrl });
+            this.domainServer = new DomainServer(this, options.domainServerPort);
+            this.domainProxy = new DomainProxy(this.clusterInfoManager, this.ActorClassMap);
+        }
+
+        this.eventstore = options.EventStore ? new options.EventStore : new EventStore();
         this.repositorieMap = new Map();
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
@@ -65,31 +68,32 @@ export default class Domain {
             }
         }
         const actorId = (await repo.create(data)).json.id;
-        const actor = await this.getActorProxy(type, actorId);
+        const actor = await this[getActorProxy](type, actorId);
         debug("END nativeCreateActor");
         return actor;
 
     }
 
-    private async getActorProxy(type: string, id: string, sagaId?: string, key?: string) {
+    async [getActorProxy](type: string, id: string, sagaId?: string, key?: string) {
 
         const that = this;
-        const actor: Actor = await this.getNativeActor(type, id);
+        let actor = await this.getNativeActor(type, id);
         if (!actor) {
-
+            return await this.domainProxy.getActor(type, id, sagaId, key);
         }
         const proxy = new Proxy(actor, {
             get(target, prop: string) {
 
                 if (prop === "then") { return proxy };
-                const member = actor[prop];
 
                 if ("lock" === prop) {
                     return Reflect.get(target, prop);
                 }
 
-                if (typeof member === "function") {
 
+                const member = actor[prop];
+                if (typeof member === "function") {
+                    if (prop in Object.prototype) return undefined;
                     return new Proxy(member, {
                         apply(target, cxt, args) {
                             return new Promise(function (resolve, reject) {
@@ -100,7 +104,7 @@ export default class Domain {
                                         setTimeout(run, 2000);
                                     } else {
                                         const iservice = new Service(actor, that.eventbus,
-                                            (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key),
+                                            (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
                                             (type, data) => that.nativeCreateActor(type, id),
                                             prop, sagaId);
 
@@ -155,9 +159,7 @@ export default class Domain {
                     return member;
                 } else {
                     if (actor.tags.has(prop)) {
-                        const service = new Service(actor, that.eventbus, (type, id, sagaId, key) => that.getActorProxy(type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
-                        console.log(type, "apply 5")
-
+                        const service = new Service(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
                         service.apply(prop);
                     } else {
                         return (actor.json)[prop] || actor[prop];
@@ -177,7 +179,17 @@ export default class Domain {
 
         for (let Class of Classes) {
             this.ActorClassMap.set(Class.getType(), Class);
-            this.repositorieMap.set(Class, new Repository(Class, this.eventstore));
+            const repo = new Repository(Class, this.eventstore);
+
+            // cluster system code
+            // when repository emit create event ,then add actor's id to clusterInfoManager.
+            if (this.clusterInfoManager) {
+                repo.on("create", async actorJSON => {
+                    await this.clusterInfoManager.addId(this.id, actorJSON.id);
+
+                });
+            }
+            this.repositorieMap.set(Class, repo);
         }
 
         return this;
@@ -189,7 +201,7 @@ export default class Domain {
     }
 
     async get(type: string, id: string) {
-        return await this.getActorProxy(type, id);
+        return await this[getActorProxy](type, id);
     }
 
     on(event, handle) {
