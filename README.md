@@ -12,6 +12,10 @@ Install
 
     npm install cqrs@2.0.1-pre --save
 
+Other Database EventStore 
+=========================
+[mongodb eventstore](https://github.com/liangzeng/cqrs-mongo-eventstore)
+
 Roadmap
 =======
 + preview core
