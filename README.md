@@ -5,7 +5,7 @@ DDD-CQRS-Actor framework.
 
 Version
 =======
-    cqrs@2.0.5-pre
+    cqrs@2.0.6-pre
 
 Install
 =======
