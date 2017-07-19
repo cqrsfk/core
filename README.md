@@ -15,6 +15,12 @@ Install
 Other Database EventStore 
 =========================
 [mongodb eventstore](https://github.com/liangzeng/cqrs-mongo-eventstore)
+```js
+const {Domain} = require("cqrs");
+const MongoStore = require("cqrs-mongo-eventstore");
+const eventstore = new MongoStore("localhost/test");
+const domain = new Domain({eventstore});
+```
 
 Roadmap
 =======
