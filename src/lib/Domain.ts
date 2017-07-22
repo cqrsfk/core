@@ -20,6 +20,7 @@ export default class Domain {
     private clusterInfoManager: DefaultClusterInfoManager;
     private domainServer: DomainServer;
     private domainProxy: DomainProxy;
+    private oldActorClassMap: Map<string, Map<string, ActorConstructor>> = new Map();
 
     public readonly id;
 
@@ -171,6 +172,21 @@ export default class Domain {
         return proxy;
     }
 
+    registerOld(Classes: ActorConstructor[] | ActorConstructor) {
+        if (!Array.isArray(Classes)) {
+            Classes = [Classes]
+        }
+        for (let Class of Classes) {
+            const type = Class.getType();
+            let map = this.oldActorClassMap.get(type);
+            if (!map) {
+                map = new Map<string, ActorConstructor>();
+                this.oldActorClassMap.set(type, map);
+            }
+            map.set(type, Class);
+        }
+    }
+
     register(Classes: ActorConstructor[] | ActorConstructor) {
 
         if (!Array.isArray(Classes)) {
@@ -179,7 +195,7 @@ export default class Domain {
 
         for (let Class of Classes) {
             this.ActorClassMap.set(Class.getType(), Class);
-            const repo = new Repository(Class, this.eventstore);
+            const repo = new Repository(Class, this.eventstore, this.oldActorClassMap);
 
             // cluster system code
             // when repository emit create event ,then add actor's id to clusterInfoManager.

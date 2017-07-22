@@ -11,7 +11,9 @@ export default class Repository extends EventEmitter {
 
     constructor(
         private ActorClass: ActorConstructor,
-        private eventstore: EventStore) {
+        private eventstore: EventStore,
+        private oldActorClassMap: Map<string, Map<string, ActorConstructor>>
+    ) {
         super();
     }
 
@@ -80,11 +82,24 @@ export default class Repository extends EventEmitter {
             return actor;
         } else {
             this.emit("reborn", id);
-            const snap = await this.eventstore.getLatestSnapshot(id);
+            let snap: Snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
-                const actor = reborn(this.ActorClass, snap, events);
-                return actor;
+                if (this.ActorClass.version !== snap.actorVersion) {
+                    let type = this.ActorClass.getType();
+                    const map = this.oldActorClassMap.get(type);
+                    const oldClass = map.get(snap.actorVersion);
+                    let actor = reborn(oldClass, snap, events);
+
+                    actor = this.ActorClass.upgrade(actor.json);
+                    snap = new Snap(actor);
+                    await this.eventstore.createSnap(snap);
+                    this.cache.set(actor.id, actor);
+                    return actor;
+
+                } else {
+                    return reborn(this.ActorClass, snap, events);
+                }
             }
         }
     }

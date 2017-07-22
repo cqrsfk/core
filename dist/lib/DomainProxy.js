@@ -61,7 +61,8 @@ class DomainProxy extends events_1.EventEmitter {
                                 });
                             }
                             else {
-                                if (!that.ActorClassMap.get(type).prototype[prop] || (prop in Object.prototype))
+                                const Class = that.ActorClassMap.get(type);
+                                if (!Class.prototype[prop] || (prop in Object.prototype))
                                     return Reflect.get(target, prop);
                                 return new Proxy(function () { }, {
                                     apply(target, cxt, args) {

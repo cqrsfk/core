@@ -13,6 +13,7 @@ const getActorProxy = Symbol.for("getActorProxy");
 const DefaultClusterInfoManager_1 = require("./DefaultClusterInfoManager");
 class Domain {
     constructor(options = {}) {
+        this.oldActorClassMap = new Map();
         this.id = uid();
         this.ActorClassMap = new Map();
         // cluster system
@@ -24,7 +25,7 @@ class Domain {
             this.domainServer = new DomainServer_1.default(this, options.domainServerPort);
             this.domainProxy = new DomainProxy_1.default(this.clusterInfoManager, this.ActorClassMap);
         }
-        this.eventstore = options.EventStore ? new options.EventStore : new DefaultEventStore_1.default();
+        this.eventstore = options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
         this.repositorieMap = new Map();
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
@@ -147,13 +148,27 @@ class Domain {
         });
         return proxy;
     }
+    registerOld(Classes) {
+        if (!Array.isArray(Classes)) {
+            Classes = [Classes];
+        }
+        for (let Class of Classes) {
+            const type = Class.getType();
+            let map = this.oldActorClassMap.get(type);
+            if (!map) {
+                map = new Map();
+                this.oldActorClassMap.set(type, map);
+            }
+            map.set(type, Class);
+        }
+    }
     register(Classes) {
         if (!Array.isArray(Classes)) {
             Classes = [Classes];
         }
         for (let Class of Classes) {
             this.ActorClassMap.set(Class.getType(), Class);
-            const repo = new Repository_1.default(Class, this.eventstore);
+            const repo = new Repository_1.default(Class, this.eventstore, this.oldActorClassMap);
             // cluster system code
             // when repository emit create event ,then add actor's id to clusterInfoManager.
             if (this.clusterInfoManager) {

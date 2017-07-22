@@ -63,30 +63,27 @@ class DefaultEventStore extends events_1.EventEmitter {
     async getEventsBySnapshot(snapId) {
         const snap = await this.getSnapshotById(snapId);
         if (snap) {
-            if (snap) {
-                let events = await this.events.cfind({
-                    actorId: snap.actorId,
-                    index: { '$gt': snap.latestEventIndex }
-                }).sort({ date: 1, index: 1 }).exec();
-                return events.map(event => Event_1.default.parse(event));
-            }
+            let events = await this.events.cfind({
+                actorId: snap.actorId,
+                index: { '$gt': snap.latestEventIndex }
+            }).sort({ date: 1, index: 1 }).exec();
+            return events.map(event => Event_1.default.parse(event));
         }
     }
     async getSnapshotByIndex(actorId, index) {
         let snap = await this.snaps.cfindOne({ actorId, index }).exec();
         return Snap_1.default.parse(snap);
     }
-    async getSnapshotByLastIndex(actorId, index) {
-        let snap = await this.getLatestSnapshot(actorId);
-        if (snap) {
-            if (index === 0) {
-                return snap;
-            }
-            else {
-                return await this.getSnapshotByIndex(actorId, snap.index - index);
-            }
-        }
-    }
+    // async getSnapshotByLastIndex(actorId, index) {
+    //     let snap = await this.getLatestSnapshot(actorId);
+    //     if (snap) {
+    //         if (index === 0) {
+    //             return snap;
+    //         } else {
+    //             return await this.getSnapshotByIndex(actorId, snap.index - index);
+    //         }
+    //     }
+    // }
     async getSnapshotById(id) {
         let snap = await this.snaps.cfindOne({ id }).exec();
         return Snap_1.default.parse(snap);

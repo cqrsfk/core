@@ -21,7 +21,6 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
     getLatestEvent(actorId: any): Promise<Event>;
     getEventsBySnapshot(snapId: string): Promise<any>;
     getSnapshotByIndex(actorId: any, index: any): Promise<Snap>;
-    getSnapshotByLastIndex(actorId: any, index: any): Promise<Snap>;
     getSnapshotById(id: any): Promise<Snap>;
     getEventById(id: any): Promise<Event>;
     findEventsBySagaId(sagaId: any): Promise<Event[]>;

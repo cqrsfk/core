@@ -10,10 +10,12 @@ export default class Domain {
     private clusterInfoManager;
     private domainServer;
     private domainProxy;
+    private oldActorClassMap;
     readonly id: any;
     constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
+    registerOld(Classes: ActorConstructor[] | ActorConstructor): void;
     register(Classes: ActorConstructor[] | ActorConstructor): this;
     create(type: string, data: any): Promise<any>;
     get(type: string, id: string): Promise<any>;

@@ -4,10 +4,11 @@ const Snap_1 = require("./Snap");
 const reborn_1 = require("./reborn");
 const events_1 = require("events");
 class Repository extends events_1.EventEmitter {
-    constructor(ActorClass, eventstore) {
+    constructor(ActorClass, eventstore, oldActorClassMap) {
         super();
         this.ActorClass = ActorClass;
         this.eventstore = eventstore;
+        this.oldActorClassMap = oldActorClassMap;
         this.cache = new Map();
     }
     async create(data) {
@@ -70,11 +71,23 @@ class Repository extends events_1.EventEmitter {
         }
         else {
             this.emit("reborn", id);
-            const snap = await this.eventstore.getLatestSnapshot(id);
+            let snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
-                const actor = reborn_1.default(this.ActorClass, snap, events);
-                return actor;
+                if (this.ActorClass.version !== snap.actorVersion) {
+                    let type = this.ActorClass.getType();
+                    const map = this.oldActorClassMap.get(type);
+                    const oldClass = map.get(snap.actorVersion);
+                    let actor = reborn_1.default(oldClass, snap, events);
+                    actor = this.ActorClass.upgrade(actor.json);
+                    snap = new Snap_1.default(actor);
+                    await this.eventstore.createSnap(snap);
+                    this.cache.set(actor.id, actor);
+                    return actor;
+                }
+                else {
+                    return reborn_1.default(this.ActorClass, snap, events);
+                }
             }
         }
     }

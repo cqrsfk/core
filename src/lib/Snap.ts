@@ -7,7 +7,7 @@ export default class Snap {
     readonly date: Date
     readonly actorId: string
     readonly actorType: string
-    readonly actorVersion: String
+    readonly actorVersion: string
     readonly data: any
 
     constructor(actor: Actor, public readonly index: number = 0, public readonly latestEventIndex: number = 0) {

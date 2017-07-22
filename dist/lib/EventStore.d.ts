@@ -14,7 +14,6 @@ interface EventStore {
     getLatestEvent(actorId: string): Promise<any>;
     getEventsBySnapshot(snapId: string): Promise<any>;
     getSnapshotByIndex(actorId: string, index: number): Promise<any>;
-    getSnapshotByLastIndex(actorId: string, index: number): Promise<any>;
     getSnapshotById(id: string): Promise<any>;
     getEventById(id: string): Promise<any>;
     findEventsBySagaId(sagaId: string): Promise<Event[]>;

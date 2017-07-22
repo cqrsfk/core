@@ -101,6 +101,9 @@ class Actor {
     static get version() {
         return "1.0";
     }
+    static upgrade(data) {
+        throw new Error("no implements");
+    }
 }
 exports.Actor = Actor;
 //# sourceMappingURL=Actor.js.map

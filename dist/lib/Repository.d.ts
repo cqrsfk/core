@@ -6,8 +6,9 @@ import { EventEmitter } from "events";
 export default class Repository extends EventEmitter {
     private ActorClass;
     private eventstore;
+    private oldActorClassMap;
     private cache;
-    constructor(ActorClass: ActorConstructor, eventstore: EventStore);
+    constructor(ActorClass: ActorConstructor, eventstore: EventStore, oldActorClassMap: Map<string, Map<string, ActorConstructor>>);
     create(data: any): Promise<Actor>;
     clear(id: any): void;
     getFromCache(id: any): Actor;

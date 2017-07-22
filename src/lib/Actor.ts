@@ -104,7 +104,7 @@ export class Actor {
         }
     }
 
-    protected when(event: Event):any {
+    protected when(event: Event): any {
         switch (event.type) {
             case 'remove':
                 return { isAlive: false };
@@ -126,12 +126,17 @@ export class Actor {
     static get version() {
         return "1.0";
     }
+
+    static upgrade(data): Actor {
+        throw new Error("no implements");
+    }
 }
 
 export interface ActorConstructor {
-    new (any): Actor
+    new(any): Actor
     getType(): string
     version: string,
-    createBefor?: (any,Domain) => Promise<any>,
-    parse: (any) => Actor
+    createBefor?: (any, Domain) => Promise<any>,
+    parse: (any) => Actor,
+    upgrade: (any) => Actor
 }

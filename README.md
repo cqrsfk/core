@@ -10,7 +10,7 @@ Version
 Install
 =======
 
-    npm install cqrs@2.0.1-pre --save
+    npm install cqrs@2.0.6-pre --save
 
 Mongodb EventStore 
 ===================
@@ -28,10 +28,10 @@ Roadmap
 + use typescript rewrite core
 + saga rollback
 + join the distributed system
++ Actor version support
 + ~~use protobuf message~~
 + ~~actor GC~~
 + ~~system time travel~~
-+ ~~Actor version support~~
 + ~~DCI support~~
 
 

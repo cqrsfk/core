@@ -20,6 +20,7 @@ export declare class Actor {
     static toJSON(actor: Actor): any;
     static parse(json: any): Actor;
     static readonly version: string;
+    static upgrade(data: any): Actor;
 }
 export interface ActorConstructor {
     new (any: any): Actor;
@@ -27,4 +28,5 @@ export interface ActorConstructor {
     version: string;
     createBefor?: (any, Domain) => Promise<any>;
     parse: (any) => Actor;
+    upgrade: (any) => Actor;
 }
