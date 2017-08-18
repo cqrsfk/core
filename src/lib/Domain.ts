@@ -80,7 +80,10 @@ export default class Domain {
         const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
+            if(this.domainProxy)
             return await this.domainProxy.getActor(type, id, sagaId, key);
+            else
+            return null;
         }
         const proxy = new Proxy(actor, {
             get(target, prop: string) {
@@ -132,6 +135,7 @@ export default class Domain {
                                         } catch (err) {
 
                                             that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                            return;
                                         }
                                         if (result instanceof Promise) {
                                             result
@@ -142,6 +146,7 @@ export default class Domain {
                                                     resolve(result)
 
                                                 }).catch(err => {
+
                                                     that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                                 })
                                         } else {

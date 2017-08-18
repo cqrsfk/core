@@ -59,7 +59,10 @@ class Domain {
         const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
-            return await this.domainProxy.getActor(type, id, sagaId, key);
+            if (this.domainProxy)
+                return await this.domainProxy.getActor(type, id, sagaId, key);
+            else
+                return null;
         }
         const proxy = new Proxy(actor, {
             get(target, prop) {

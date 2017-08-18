@@ -14,7 +14,7 @@ export class Actor {
     private data: any;
     private latestLockTime: Date;
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
-    // framework provider 
+    // framework provider
     protected service: any;
     protected $: any;
     public tags = new Set<string>();
@@ -64,7 +64,8 @@ export class Actor {
     }
 
     get json() {
-        let data = Actor.toJSON(this);
+        let self:any = this;
+        let data = self.constructor.toJSON(this);
         Object.freeze(data);
         return data;
     }

@@ -45,7 +45,8 @@ class Actor {
         return this.name;
     }
     get json() {
-        let data = Actor.toJSON(this);
+        let self = this;
+        let data = self.constructor.toJSON(this);
         Object.freeze(data);
         return data;
     }
