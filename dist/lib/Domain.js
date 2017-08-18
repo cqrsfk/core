@@ -110,6 +110,7 @@ class Domain {
                                         }
                                         catch (err) {
                                             that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                            return;
                                         }
                                         if (result instanceof Promise) {
                                             result
