@@ -11,6 +11,7 @@ function getAlias(event) {
             `${event.actorType}..${event.type}..`,
             `..${event.type}..`,
             `${event.actorType}....`,
+            "...."
         ];
     }
     else {

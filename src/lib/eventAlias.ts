@@ -11,6 +11,7 @@ export function getAlias(event: Event | EventType):any {
             `${event.actorType}..${event.type}..`,
             `..${event.type}..`,
             `${event.actorType}....`,
+            "...."
 
         ]
     } else {
