@@ -27,7 +27,7 @@ export default class Event {
     public index: number = 0;
 
     constructor(
-        actor: Actor,
+        actor: any,
         public readonly data: any,
         public readonly type: string,
         public readonly method: string,

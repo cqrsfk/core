@@ -1,5 +1,7 @@
 import { Actor, ActorConstructor } from "./Actor";
 import Service from "./Service";
+import {getAlias} from "./eventAlias";
+import Event from "./Event";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import DomainServer from "./DomainServer";
@@ -210,6 +212,15 @@ export default class Domain {
 
                 });
             }
+            repo.on("create", json => {
+                let event = new Event(
+                  {id:json.id, version:Class.version, type:Class.getType()}, json, "create", "create"
+                )
+                const alias = getAlias(event);
+                for (let name of alias) {
+                    this.eventbus.emitter.emit(name, json);
+                }
+            });
             this.repositorieMap.set(Class, repo);
         }
 

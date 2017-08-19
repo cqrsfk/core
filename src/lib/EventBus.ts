@@ -10,7 +10,7 @@ import Domain from "./Domain";
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 
 export default class EventBus {
-    private emitter = new EventEmitter();
+    emitter = new EventEmitter();
     private lockSet = new Set();
     private subscribeRepo = new Map<string, Set<{ actorType: string; actorId: string; method: string }>>();
 
@@ -21,14 +21,14 @@ export default class EventBus {
         private ActorClassMap: Map<string, ActorConstructor>) {
 
 
-        for (let [ActorClass, repo] of repositorieMap) {
-            repo.on("create", json => {
-                const alias = getAlias({ type: "create", actorType: ActorClass.getType(), actorId: json.id });
-                for (let name of alias) {
-                    this.emitter.emit(name, json);
-                }
-            });
-        }
+        // for (let [ActorClass, repo] of repositorieMap) {
+        //     repo.on("create", json => {
+        //         const alias = getAlias({ type: "create", actorType: ActorClass.getType(), actorId: json.id });
+        //         for (let name of alias) {
+        //             this.emitter.emit(name, json);
+        //         }
+        //     });
+        // }
 
         this.eventstore.on("saved events", events => {
             for (let event of events) {

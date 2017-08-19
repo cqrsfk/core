@@ -1,4 +1,3 @@
-import { Actor } from "./Actor";
 export default class Event {
     readonly data: any;
     readonly type: string;
@@ -12,7 +11,7 @@ export default class Event {
     readonly date: Date;
     readonly alias: string[];
     index: number;
-    constructor(actor: Actor, data: any, type: string, method: string, sagaId?: string, direct?: boolean);
+    constructor(actor: any, data: any, type: string, method: string, sagaId?: string, direct?: boolean);
     readonly json: any;
     static toJSON(event: Event): any;
     private static _toJSON(data);

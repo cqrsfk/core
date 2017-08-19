@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { EventEmitter } from "events";
 import EventType from "./EventType";
 import { Actor, ActorConstructor } from "./Actor";
 import Repository from "./Repository";
@@ -8,7 +10,7 @@ export default class EventBus {
     private domain;
     private repositorieMap;
     private ActorClassMap;
-    private emitter;
+    emitter: EventEmitter;
     private lockSet;
     private subscribeRepo;
     constructor(eventstore: EventStore, domain: Domain, repositorieMap: Map<ActorConstructor, Repository>, ActorClassMap: Map<string, ActorConstructor>);

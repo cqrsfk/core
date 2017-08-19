@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Service_1 = require("./Service");
+const eventAlias_1 = require("./eventAlias");
+const Event_1 = require("./Event");
 const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const DomainServer_1 = require("./DomainServer");
@@ -180,6 +182,13 @@ class Domain {
                     await this.clusterInfoManager.addId(this.id, actorJSON.id);
                 });
             }
+            repo.on("create", json => {
+                let event = new Event_1.default({ id: json.id, version: Class.version, type: Class.getType() }, json, "create", "create");
+                const alias = eventAlias_1.getAlias(event);
+                for (let name of alias) {
+                    this.eventbus.emitter.emit(name, json);
+                }
+            });
             this.repositorieMap.set(Class, repo);
         }
         return this;
