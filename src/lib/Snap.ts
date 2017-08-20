@@ -20,8 +20,8 @@ export default class Snap {
     }
 
     get json() {
-        let { id, latestEventIndex, date, actorId, actorType, data, index } = this;
-        return { id, latestEventIndex, date, actorId, actorType, data, index };
+        let { id, latestEventIndex, date, actorId, actorType, data, index ,actorVersion} = this;
+        return { id, latestEventIndex, date, actorId, actorType, data, index,actorVersion };
     }
 
     static parse(data): Snap {

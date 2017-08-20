@@ -13,8 +13,8 @@ class Snap {
         this.data = actor.json;
     }
     get json() {
-        let { id, latestEventIndex, date, actorId, actorType, data, index } = this;
-        return { id, latestEventIndex, date, actorId, actorType, data, index };
+        let { id, latestEventIndex, date, actorId, actorType, data, index, actorVersion } = this;
+        return { id, latestEventIndex, date, actorId, actorType, data, index, actorVersion };
     }
     static parse(data) {
         let snap = JSON.parse(JSON.stringify(data));

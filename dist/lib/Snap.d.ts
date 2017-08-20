@@ -17,6 +17,7 @@ export default class Snap {
         actorType: string;
         data: any;
         index: number;
+        actorVersion: string;
     };
     static parse(data: any): Snap;
 }
