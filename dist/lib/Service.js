@@ -23,7 +23,9 @@ class Service {
     apply(type, data, direct) {
         if (this.actor.json.isAlive) {
             const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false);
-            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, this.actor[Symbol.for("when")](event) || {});
+            const updatedData = this.actor[Symbol.for("when")](event) || {};
+            event.updatedData = updatedData;
+            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
             this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
             this.actor[uncommittedEvents].push(event);
             this.bus.publish(this.actor);

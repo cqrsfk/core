@@ -13,7 +13,7 @@ export default class Event {
     index: number;
     constructor(actor: any, data: any, type: string, method: string, sagaId?: string, direct?: boolean);
     readonly json: any;
+    updatedData: any;
     static toJSON(event: Event): any;
-    private static _toJSON(data);
     static parse(data: any): Event;
 }

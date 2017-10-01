@@ -3,21 +3,9 @@
 import { Actor } from "./Actor";
 const uuid = require('uuid').v1;
 const qs = require('querystring');
-
-// type EventData = {
-//     actorId: string
-//     actorType: string
-//     actorVersion: string
-//     id: string
-//     type: string
-//     method: string
-//     sagaId: string
-//     date: Date
-//     data: any
-// }
+const updatedDataKey = Symbol();
 
 export default class Event {
-
     readonly actorId: string
     readonly actorType: string
     readonly actorVersion: string
@@ -35,6 +23,7 @@ export default class Event {
         public readonly direct: boolean = false,
 
     ) {
+        this[updatedDataKey] = null;
 
         this.id = uuid();
         this.actorId = actor.id;
@@ -47,16 +36,26 @@ export default class Event {
         return Event.toJSON(this);
     }
 
-    static toJSON(event: Event) {
-        return this._toJSON(event);
+    get updatedData(){
+        return this[updatedDataKey];
     }
 
-    private static _toJSON(data) {
-        return JSON.parse(JSON.stringify(data));
+    set updatedData(v){
+        if (this[updatedDataKey]) throw new Error("only set once.");
+        this[updatedDataKey] = v;
+    }
+
+    static toJSON(event: Event) {
+        let json = JSON.parse(JSON.stringify(event));
+        json.updatedData = event.updatedData;
+        return json;
     }
 
     static parse(data): Event {
-        let event = this._toJSON(data);
+        let event = JSON.parse(JSON.stringify(data));
+        let updatedData = event.updatedData;
+        delete event.updatedData;
+        event[updatedDataKey] = updatedData;
         event.__proto__ = Event.prototype;
         return event;
     }

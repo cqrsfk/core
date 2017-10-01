@@ -2,17 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require('uuid').v1;
 const qs = require('querystring');
-// type EventData = {
-//     actorId: string
-//     actorType: string
-//     actorVersion: string
-//     id: string
-//     type: string
-//     method: string
-//     sagaId: string
-//     date: Date
-//     data: any
-// }
+const updatedDataKey = Symbol();
 class Event {
     constructor(actor, data, type, method, sagaId, direct = false) {
         this.data = data;
@@ -21,6 +11,7 @@ class Event {
         this.sagaId = sagaId;
         this.direct = direct;
         this.index = 0;
+        this[updatedDataKey] = null;
         this.id = uuid();
         this.actorId = actor.id;
         this.actorType = actor.type;
@@ -30,14 +21,24 @@ class Event {
     get json() {
         return Event.toJSON(this);
     }
-    static toJSON(event) {
-        return this._toJSON(event);
+    get updatedData() {
+        return this[updatedDataKey];
     }
-    static _toJSON(data) {
-        return JSON.parse(JSON.stringify(data));
+    set updatedData(v) {
+        if (this[updatedDataKey])
+            throw new Error("only set once.");
+        this[updatedDataKey] = v;
+    }
+    static toJSON(event) {
+        let json = JSON.parse(JSON.stringify(event));
+        json.updatedData = event.updatedData;
+        return json;
     }
     static parse(data) {
-        let event = this._toJSON(data);
+        let event = JSON.parse(JSON.stringify(data));
+        let updatedData = event.updatedData;
+        delete event.updatedData;
+        event[updatedDataKey] = updatedData;
         event.__proto__ = Event.prototype;
         return event;
     }
