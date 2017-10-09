@@ -4,12 +4,13 @@ const uuid = require('uuid').v1;
 const qs = require('querystring');
 const updatedDataKey = Symbol();
 class Event {
-    constructor(actor, data, type, method, sagaId, direct = false) {
+    constructor(actor, data, type, method, sagaId, direct = false, roleName) {
         this.data = data;
         this.type = type;
         this.method = method;
         this.sagaId = sagaId;
         this.direct = direct;
+        this.roleName = roleName;
         this.index = 0;
         this[updatedDataKey] = null;
         this.id = uuid();

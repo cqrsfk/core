@@ -12,6 +12,7 @@ const debug = require('debug')('domain');
 const uid = require("uuid").v1;
 const getActorProxy = Symbol.for("getActorProxy");
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
+import Role from "./Role";
 
 export default class Domain {
 
@@ -23,6 +24,7 @@ export default class Domain {
     private domainServer: DomainServer;
     private domainProxy: DomainProxy;
     private oldActorClassMap: Map<string, Map<string, ActorConstructor>> = new Map();
+    private roleMap:Map<string,Role> = new Map();
 
     public readonly id;
 
@@ -250,6 +252,16 @@ export default class Domain {
             result = result.concat(this.repositorieMap.get(Actor).getCacheActorIds());
         }
         return result;
+    }
+
+    public addRole(name:string|any,supportedActorNames?:string[],methods?:any){
+        if(typeof name !== "string"){
+          supportedActorNames = name.supportedActorNames;
+          methods = name.methods;
+          name = name.name;
+        }
+        if(this.roleMap.has(name)) throw new Error(name +  " role is exist. ");
+        this.roleMap.set(name,new Role(name,supportedActorNames,methods));
     }
 
 }

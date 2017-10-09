@@ -21,7 +21,7 @@ export default class Event {
         public readonly method: string,
         public readonly sagaId?: string,
         public readonly direct: boolean = false,
-
+        public readonly roleName?: string
     ) {
         this[updatedDataKey] = null;
 

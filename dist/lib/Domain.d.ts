@@ -11,6 +11,7 @@ export default class Domain {
     private domainServer;
     private domainProxy;
     private oldActorClassMap;
+    private roleMap;
     readonly id: any;
     constructor(options?: any);
     private getNativeActor(type, id);
@@ -22,4 +23,5 @@ export default class Domain {
     on(event: any, handle: any): void;
     once(event: any, handle: any): void;
     getCacheActorIds(): any[];
+    addRole(name: string | any, supportedActorNames?: string[], methods?: any): void;
 }
