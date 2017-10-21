@@ -16,7 +16,6 @@ const DefaultClusterInfoManager_1 = require("./DefaultClusterInfoManager");
 const Role_1 = require("./Role");
 class Domain {
     constructor(options = {}) {
-        this.oldActorClassMap = new Map();
         this.roleMap = new Map();
         this.id = uid();
         this.ActorClassMap = new Map();
@@ -36,15 +35,21 @@ class Domain {
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
     }
     async getNativeActor(type, id) {
-        debug("BEGIN getNativeActor(type=%s , id=%s)", type, id);
-        let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
+        const roles = type.split(".");
+        const actorType = roles.shift();
+        let repo = this.repositorieMap.get(this.ActorClassMap.get(actorType));
         const actor = await repo.get(id);
-        debug("END getNativeActor");
-        return actor;
+        let result;
+        if (roles.length) {
+            for (let role of roles) {
+                result = this.roleMap.get(role).wrap(result || actor);
+            }
+        }
+        return result || actor;
     }
     async nativeCreateActor(type, data) {
-        debug("BEGIN nativeCreateActor(type=%s , data=%s)", type, data);
-        const ActorClass = this.ActorClassMap.get(type);
+        const actorType = type.split(".").shift();
+        const ActorClass = this.ActorClassMap.get(actorType);
         const repo = this.repositorieMap.get(ActorClass);
         if (ActorClass.createBefor) {
             try {
@@ -56,7 +61,6 @@ class Domain {
         }
         const actorId = (await repo.create(data)).json.id;
         const actor = await this[getActorProxy](type, actorId);
-        debug("END nativeCreateActor");
         return actor;
     }
     async [getActorProxy](type, id, sagaId, key) {
@@ -68,107 +72,101 @@ class Domain {
             else
                 return null;
         }
+        let roles;
+        if (Array.isArray(actor)) {
+            roles = actor[1];
+            actor = actor[0];
+        }
         const proxy = new Proxy(actor, {
             get(target, prop) {
                 if (prop === "then") {
                     return proxy;
                 }
                 ;
-                if ("lock" === prop) {
+                if ("lock" === prop || "lockData" === prop) {
                     return Reflect.get(target, prop);
                 }
-                const member = actor[prop];
-                if (typeof member === "function") {
-                    if (prop in Object.prototype)
-                        return undefined;
-                    return new Proxy(member, {
-                        apply(target, cxt, args) {
-                            return new Promise(function (resolve, reject) {
-                                function run() {
-                                    const islock = actor[isLock](key);
-                                    if (islock) {
-                                        setTimeout(run, 2000);
-                                    }
-                                    else {
-                                        const iservice = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
-                                        const service = new Proxy(function service(type, data) {
-                                            if (arguments.length === 0) {
-                                                type = prop;
-                                                data = null;
-                                            }
-                                            else if (arguments.length === 1) {
-                                                data = type;
-                                                type = prop;
-                                            }
-                                            return iservice.apply(type, data);
-                                        }, {
-                                            get(target, prop) {
-                                                return iservice[prop].bind(iservice);
-                                            }
-                                        });
-                                        cxt = { service, $: service };
-                                        cxt.__proto__ = proxy;
-                                        let result;
-                                        try {
-                                            result = target.call(cxt, ...args);
-                                        }
-                                        catch (err) {
-                                            that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
-                                            return;
-                                        }
-                                        if (result instanceof Promise) {
-                                            result
-                                                .then(result => {
-                                                if (!iservice.applied) {
-                                                    iservice.apply(prop, {});
-                                                }
-                                                resolve(result);
-                                            }).catch(err => {
-                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
-                                            });
-                                        }
-                                        else {
-                                            if (!iservice.applied) {
-                                                iservice.apply(prop, {});
-                                            }
-                                            resolve(result);
-                                        }
-                                    }
-                                }
-                                run();
-                            });
-                        }
-                    });
-                }
-                else if (prop === "json") {
+                let member = actor[prop];
+                let roleName;
+                let role;
+                if (prop === "json" || prop === "id") {
                     return member;
                 }
                 else {
-                    if (actor.tags.has(prop)) {
-                        const service = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
-                        service.apply(prop);
+                    if (!member) {
+                        if (roles) {
+                            for (let rn in roles) {
+                                role = roles[rn];
+                                member = role.methods[prop];
+                                roleName = rn;
+                                if (member)
+                                    break;
+                            }
+                        }
+                        else
+                            return;
                     }
-                    else {
-                        return (actor.json)[prop] || actor[prop];
+                    if (typeof member === "function") {
+                        if (prop in Object.prototype)
+                            return undefined;
+                        return new Proxy(member, {
+                            apply(target, cxt, args) {
+                                return new Promise(function (resolve, reject) {
+                                    function run() {
+                                        const islock = actor[isLock](key);
+                                        if (islock) {
+                                            setTimeout(run, 2000);
+                                        }
+                                        else {
+                                            const iservice = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId, roleName, role);
+                                            const service = new Proxy(function service(type, data) {
+                                                if (arguments.length === 0) {
+                                                    type = prop;
+                                                    data = null;
+                                                }
+                                                else if (arguments.length === 1) {
+                                                    data = type;
+                                                    type = prop;
+                                                }
+                                                return iservice.apply(type, data);
+                                            }, {
+                                                get(target, prop) {
+                                                    return iservice[prop].bind(iservice);
+                                                }
+                                            });
+                                            cxt = { service, $: service };
+                                            cxt.__proto__ = proxy;
+                                            let result;
+                                            try {
+                                                result = target.call(cxt, ...args);
+                                            }
+                                            catch (err) {
+                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                return;
+                                            }
+                                            if (result instanceof Promise) {
+                                                result.then(result => {
+                                                    resolve(result);
+                                                }).catch(err => {
+                                                    that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                });
+                                            }
+                                            else {
+                                                resolve(result);
+                                            }
+                                        }
+                                    }
+                                    run();
+                                });
+                            }
+                        });
                     }
+                    else
+                        return undefined;
                 }
             }
         });
         return proxy;
-    }
-    registerOld(Classes) {
-        if (!Array.isArray(Classes)) {
-            Classes = [Classes];
-        }
-        for (let Class of Classes) {
-            const type = Class.getType();
-            let map = this.oldActorClassMap.get(type);
-            if (!map) {
-                map = new Map();
-                this.oldActorClassMap.set(type, map);
-            }
-            map.set(type, Class);
-        }
     }
     register(Classes) {
         if (!Array.isArray(Classes)) {
@@ -176,7 +174,7 @@ class Domain {
         }
         for (let Class of Classes) {
             this.ActorClassMap.set(Class.getType(), Class);
-            const repo = new Repository_1.default(Class, this.eventstore, this.oldActorClassMap);
+            const repo = new Repository_1.default(Class, this.eventstore, this.roleMap);
             // cluster system code
             // when repository emit create event ,then add actor's id to clusterInfoManager.
             if (this.clusterInfoManager) {
@@ -185,7 +183,7 @@ class Domain {
                 });
             }
             repo.on("create", json => {
-                let event = new Event_1.default({ id: json.id, version: Class.version, type: Class.getType() }, json, "create", "create");
+                let event = new Event_1.default({ id: json.id, type: Class.getType() }, json, "create", "create");
                 const alias = eventAlias_1.getAlias(event);
                 for (let name of alias) {
                     this.eventbus.emitter.emit(name, json);
@@ -214,15 +212,17 @@ class Domain {
         }
         return result;
     }
-    addRole(name, supportedActorNames, methods) {
+    addRole(name, supportedActorNames, methods, updater) {
         if (typeof name !== "string") {
-            supportedActorNames = name.supportedActorNames;
+            supportedActorNames = name.types;
             methods = name.methods;
+            updater = name.updater;
             name = name.name;
         }
         if (this.roleMap.has(name))
             throw new Error(name + " role is exist. ");
-        this.roleMap.set(name, new Role_1.default(name, supportedActorNames, methods));
+        this.roleMap.set(name, new Role_1.default(name, supportedActorNames, methods, updater));
+        return this;
     }
 }
 exports.default = Domain;

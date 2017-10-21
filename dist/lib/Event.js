@@ -16,7 +16,6 @@ class Event {
         this.id = uuid();
         this.actorId = actor.id;
         this.actorType = actor.type;
-        this.actorVersion = actor.version;
         this.date = new Date();
     }
     get json() {

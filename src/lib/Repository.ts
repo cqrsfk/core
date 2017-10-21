@@ -4,6 +4,8 @@ import Snap from "./Snap";
 import uuid from "uuid/v4";
 import reborn from "./reborn";
 import { EventEmitter } from "events";
+import Role from "./Role";
+const setdata = Symbol.for("setdata")
 
 export default class Repository extends EventEmitter {
 
@@ -12,7 +14,8 @@ export default class Repository extends EventEmitter {
     constructor(
         private ActorClass: ActorConstructor,
         private eventstore: EventStore,
-        private oldActorClassMap: Map<string, Map<string, ActorConstructor>>
+        private roleMap:Map<string,Role>
+
     ) {
         super();
     }
@@ -85,21 +88,19 @@ export default class Repository extends EventEmitter {
             let snap: Snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
-                if (this.ActorClass.version !== snap.actorVersion) {
-                    let type = this.ActorClass.getType();
-                    const map = this.oldActorClassMap.get(type);
-                    const oldClass = map.get(snap.actorVersion);
-                    let actor = reborn(oldClass, snap, events);
+                const actor:Actor = this.ActorClass.parse(snap.data);
+                events.forEach(event=>{
 
-                    actor = this.ActorClass.upgrade(actor.json);
-                    snap = new Snap(actor);
-                    await this.eventstore.createSnap(snap);
-                    this.cache.set(actor.id, actor);
-                    return actor;
+                  let role = this.roleMap.get(event.roleName);
 
-                } else {
-                    return reborn(this.ActorClass, snap, events);
-                }
+                  let updater = actor.updater[event.type] ||
+                                actor.updater[event.method+"Update"] ||
+                                (role ? role.updater[event.type] || role.updater[event.method] : null);
+
+                  const updatedData = updater ? updater(actor.json,event) : {};
+                  actor[setdata] = Object.assign({}, actor.json, updatedData );
+                  return actor;
+                });
             }
         }
     }

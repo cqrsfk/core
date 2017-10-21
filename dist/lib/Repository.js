@@ -3,12 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Snap_1 = require("./Snap");
 const reborn_1 = require("./reborn");
 const events_1 = require("events");
+const setdata = Symbol.for("setdata");
 class Repository extends events_1.EventEmitter {
-    constructor(ActorClass, eventstore, oldActorClassMap) {
+    constructor(ActorClass, eventstore, roleMap) {
         super();
         this.ActorClass = ActorClass;
         this.eventstore = eventstore;
-        this.oldActorClassMap = oldActorClassMap;
+        this.roleMap = roleMap;
         this.cache = new Map();
     }
     async create(data) {
@@ -74,20 +75,16 @@ class Repository extends events_1.EventEmitter {
             let snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
-                if (this.ActorClass.version !== snap.actorVersion) {
-                    let type = this.ActorClass.getType();
-                    const map = this.oldActorClassMap.get(type);
-                    const oldClass = map.get(snap.actorVersion);
-                    let actor = reborn_1.default(oldClass, snap, events);
-                    actor = this.ActorClass.upgrade(actor.json);
-                    snap = new Snap_1.default(actor);
-                    await this.eventstore.createSnap(snap);
-                    this.cache.set(actor.id, actor);
+                const actor = this.ActorClass.parse(snap.data);
+                events.forEach(event => {
+                    let role = this.roleMap.get(event.roleName);
+                    let updater = actor.updater[event.type] ||
+                        actor.updater[event.method + "Update"] ||
+                        (role ? role.updater[event.type] || role.updater[event.method] : null);
+                    const updatedData = updater ? updater(actor.json, event) : {};
+                    actor[setdata] = Object.assign({}, actor.json, updatedData);
                     return actor;
-                }
-                else {
-                    return reborn_1.default(this.ActorClass, snap, events);
-                }
+                });
             }
         }
     }

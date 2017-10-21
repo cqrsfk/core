@@ -11,24 +11,12 @@ module.exports = class User extends Actor {
         this.$.apply("changename", name);
     }
 
-    deduct(money) {
-        this.$("deduct", money);
-    }
-
-    add(money) {
-        this.service.apply("add", money);
-    }
-
-    when(event) {
-        const data = this.json;
-        switch (event.type) {
-            case "changename":
-                return { name: event.name }
-            case "deduct":
-                return { money: data.money - event.data }
-            case "add":
-                return { money: data.money + event.data }
-        }
+    get updater(){
+       return {
+          changename(data,event){
+            return { name: event.name }
+          }
+       }
     }
 
 }

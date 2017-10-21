@@ -7,7 +7,6 @@ export default class Event {
     readonly roleName: string;
     readonly actorId: string;
     readonly actorType: string;
-    readonly actorVersion: string;
     readonly id: string;
     readonly date: Date;
     readonly alias: string[];

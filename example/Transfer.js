@@ -11,14 +11,18 @@ module.exports = class Transfer extends Actor {
     }
 
     async transfe(fromUserId, toUserId, money) {
+      try{
         const $ = this.$;
         $.sagaBegin();
         $.lock();
+
         $.once({ actorType: "User", type: "add" }, "log");
-        const fromUser = await $.get("User", fromUserId);
-        const toUser = await $.get("User", toUserId);
+        console.log(fromUserId,toUserId);
+        const fromUser = await $.get("User.payers", fromUserId);
+        const toUser = await $.get("User.charger", toUserId);
 
         fromUser.deduct(money);
+
         toUser.add(money);
 
         if (money > 100)
@@ -28,14 +32,19 @@ module.exports = class Transfer extends Actor {
         $.sagaEnd();
 
         $("finish", null);
+      }catch(e){
+        console.log(e);
+      }
     }
 
-    when(event) {
-        switch (event.type) {
-            case "finish":
-                return { finish: true }
+
+
+    get updater(){
+      return {
+        finish(data,event) {
+            return { finish: true }
         }
+      }
     }
-
 
 }

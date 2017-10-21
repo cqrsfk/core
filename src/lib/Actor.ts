@@ -17,7 +17,6 @@ export class Actor {
     // framework provider
     protected service: any;
     protected $: any;
-    public tags = new Set<string>();
 
     constructor(data = {}) {
 
@@ -37,22 +36,12 @@ export class Actor {
         return this.constructor["version"]
     }
 
-    [loadEvents](events: Event[]) {
-        let data;
-        events.forEach(event => {
-            data = this.when(event);
-            if (!data) {
-                data = this.data;
-            }
-        });
+    getStore(){
+      throw new Error("getStore() must implements.")
     }
 
     set [setdata](data) {
         this.data = data;
-    }
-
-    remove(args) {
-        this.service.apply('remove');
     }
 
     get id() {
@@ -70,7 +59,12 @@ export class Actor {
         return data;
     }
 
+    get updater(){
+      return {}
+    }
+
     [isLock](key) {
+
         if (this.lockData.key) {
             if (this.lockData.key === key) {
                 return false;
@@ -100,15 +94,9 @@ export class Actor {
 
     // todo
     unlock(key) {
+
         if (this.lockData.key === key) {
             this.lockData.key = null;
-        }
-    }
-
-    protected when(event: Event): any {
-        switch (event.type) {
-            case 'remove':
-                return { isAlive: false };
         }
     }
 
@@ -119,25 +107,11 @@ export class Actor {
     static parse(json) {
         return new this(json);
     }
-
-    [$when](event) {
-        return this.when(event);
-    }
-
-    static get version() {
-        return "1.0";
-    }
-
-    static upgrade(data): Actor {
-        throw new Error("no implements");
-    }
 }
 
 export interface ActorConstructor {
     new(any): Actor
     getType(): string
-    version: string,
     createBefor?: (any, Domain) => Promise<any>,
-    parse: (any) => Actor,
-    upgrade: (any) => Actor
+    parse: (any) => Actor
 }

@@ -2,6 +2,7 @@ import { Actor } from "./Actor";
 import EventBus from "./EventBus";
 import EventType from "./EventType";
 import Event from "./Event";
+import Role from "./Role";
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata")
@@ -22,19 +23,26 @@ export default class Service {
         private getActor,
         private createActor,
         private method: string,
-        public sagaId?: string) {
+        public sagaId?: string,
+        private roleName?: string,
+        private role?:Role
+      ) {
     }
 
     apply(type: string, data?: any, direct?: boolean) {
-        if (this.actor.json.isAlive) {
-            const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false);
-            const updatedData = this.actor[Symbol.for("when")](event) || {};
-            event.updatedData = updatedData;
-            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
-            this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
-            this.actor[uncommittedEvents].push(event);
-            this.bus.publish(this.actor);
-        }
+
+        const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false,this.roleName);
+
+        let updater = this.actor.updater[type] ||
+                      this.actor.updater[this.method+"Update"] ||
+                      (this.role ? this.role.updater[type] || this.role.updater[this.method] : null);
+
+        const updatedData = updater(this.actor.json,event);
+        event.updatedData = updatedData;
+        this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
+        this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
+        this.actor[uncommittedEvents].push(event);
+        this.bus.publish(this.actor);
 
         this.applied = true;
 
@@ -78,7 +86,6 @@ export default class Service {
         return new Promise((resolve, reject) => {
 
             tryLock();
-
             async function tryLock() {
                 var isLock = await actor.lock({ key: that.key, timeout: that.timeout });
                 if (isLock) resolve();

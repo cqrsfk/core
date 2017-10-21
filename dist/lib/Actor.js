@@ -9,7 +9,6 @@ const isLock = Symbol.for("isLock");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
-        this.tags = new Set();
         this[uncommittedEvents] = [];
         this.data = data;
         this.data.isAlive = true;
@@ -23,20 +22,11 @@ class Actor {
     get version() {
         return this.constructor["version"];
     }
-    [loadEvents](events) {
-        let data;
-        events.forEach(event => {
-            data = this.when(event);
-            if (!data) {
-                data = this.data;
-            }
-        });
+    getStore() {
+        throw new Error("getStore() must implements.");
     }
     set [setdata](data) {
         this.data = data;
-    }
-    remove(args) {
-        this.service.apply('remove');
     }
     get id() {
         return this.json.id;
@@ -49,6 +39,9 @@ class Actor {
         let data = self.constructor.toJSON(this);
         Object.freeze(data);
         return data;
+    }
+    get updater() {
+        return {};
     }
     [isLock](key) {
         if (this.lockData.key) {
@@ -84,26 +77,11 @@ class Actor {
             this.lockData.key = null;
         }
     }
-    when(event) {
-        switch (event.type) {
-            case 'remove':
-                return { isAlive: false };
-        }
-    }
     static toJSON(actor) {
         return JSON.parse(JSON.stringify(actor.data));
     }
     static parse(json) {
         return new this(json);
-    }
-    [$when](event) {
-        return this.when(event);
-    }
-    static get version() {
-        return "1.0";
-    }
-    static upgrade(data) {
-        throw new Error("no implements");
     }
 }
 exports.Actor = Actor;

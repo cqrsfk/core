@@ -3,12 +3,13 @@ import { Actor, ActorConstructor } from "./Actor";
 import EventStore from "./DefaultEventStore";
 import Snap from "./Snap";
 import { EventEmitter } from "events";
+import Role from "./Role";
 export default class Repository extends EventEmitter {
     private ActorClass;
     private eventstore;
-    private oldActorClassMap;
+    private roleMap;
     private cache;
-    constructor(ActorClass: ActorConstructor, eventstore: EventStore, oldActorClassMap: Map<string, Map<string, ActorConstructor>>);
+    constructor(ActorClass: ActorConstructor, eventstore: EventStore, roleMap: Map<string, Role>);
     create(data: any): Promise<Actor>;
     clear(id: any): void;
     getFromCache(id: any): Actor;

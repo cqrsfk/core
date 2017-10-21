@@ -8,28 +8,31 @@ const setdata = Symbol.for("setdata");
  * When call actor's method , then DI service object.
  */
 class Service {
-    constructor(actor, bus, getActor, createActor, method, sagaId) {
+    constructor(actor, bus, getActor, createActor, method, sagaId, roleName, role) {
         this.actor = actor;
         this.bus = bus;
         this.getActor = getActor;
         this.createActor = createActor;
         this.method = method;
         this.sagaId = sagaId;
+        this.roleName = roleName;
+        this.role = role;
         this.lockMode = false;
         this.sagaMode = false;
         this.key = uuid();
         this.applied = false;
     }
     apply(type, data, direct) {
-        if (this.actor.json.isAlive) {
-            const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false);
-            const updatedData = this.actor[Symbol.for("when")](event) || {};
-            event.updatedData = updatedData;
-            this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
-            this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
-            this.actor[uncommittedEvents].push(event);
-            this.bus.publish(this.actor);
-        }
+        const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
+        let updater = this.actor.updater[type] ||
+            this.actor.updater[this.method + "Update"] ||
+            (this.role ? this.role.updater[type] || this.role.updater[this.method] : null);
+        const updatedData = updater(this.actor.json, event);
+        event.updatedData = updatedData;
+        this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
+        this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
+        this.actor[uncommittedEvents].push(event);
+        this.bus.publish(this.actor);
         this.applied = true;
     }
     lock(timeout) {

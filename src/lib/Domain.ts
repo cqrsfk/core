@@ -23,7 +23,6 @@ export default class Domain {
     private clusterInfoManager: DefaultClusterInfoManager;
     private domainServer: DomainServer;
     private domainProxy: DomainProxy;
-    private oldActorClassMap: Map<string, Map<string, ActorConstructor>> = new Map();
     private roleMap:Map<string,Role> = new Map();
 
     public readonly id;
@@ -53,17 +52,31 @@ export default class Domain {
     }
 
     private async getNativeActor(type: string, id: string): Promise<any> {
-        debug("BEGIN getNativeActor(type=%s , id=%s)", type, id);
-        let repo = this.repositorieMap.get(this.ActorClassMap.get(type));
+
+        const roles = type.split(".");
+        const actorType = roles.shift();
+
+        let repo = this.repositorieMap.get(this.ActorClassMap.get(actorType));
         const actor = await repo.get(id);
-        debug("END getNativeActor");
-        return actor;
+
+        let result;
+
+        if(roles.length){
+            for(let role of roles){
+               result = this.roleMap.get(role).wrap(result || actor);
+            }
+        }
+
+        return result || actor;
     }
 
     private async nativeCreateActor(type, data) {
-        debug("BEGIN nativeCreateActor(type=%s , data=%s)", type, data);
-        const ActorClass = this.ActorClassMap.get(type);
+
+        const actorType = type.split(".").shift();
+
+        const ActorClass = this.ActorClassMap.get(actorType);
         const repo = this.repositorieMap.get(ActorClass);
+
 
         if (ActorClass.createBefor) {
             try {
@@ -74,7 +87,6 @@ export default class Domain {
         }
         const actorId = (await repo.create(data)).json.id;
         const actor = await this[getActorProxy](type, actorId);
-        debug("END nativeCreateActor");
         return actor;
 
     }
@@ -82,25 +94,47 @@ export default class Domain {
     async [getActorProxy](type: string, id: string, sagaId?: string, key?: string) {
 
         const that = this;
+
         let actor = await this.getNativeActor(type, id);
+
         if (!actor) {
             if(this.domainProxy)
             return await this.domainProxy.getActor(type, id, sagaId, key);
             else
             return null;
         }
+
+        let roles;
+        if(Array.isArray(actor)){
+           roles = actor[1]
+           actor = actor[0];
+        }
+
         const proxy = new Proxy(actor, {
             get(target, prop: string) {
-
                 if (prop === "then") { return proxy };
 
-                if ("lock" === prop) {
+                if ("lock" === prop || "lockData" === prop) {
                     return Reflect.get(target, prop);
                 }
 
-
-                const member = actor[prop];
-                if (typeof member === "function") {
+                let member = actor[prop];
+                let roleName;
+                let role;
+                if (prop === "json" || prop === "id") {
+                   return member;
+                } else {
+                  if(!member){
+                     if(roles){
+                        for(let rn in roles){
+                           role = roles[rn];
+                           member = role.methods[prop];
+                           roleName = rn;
+                           if(member) break;
+                        }
+                     }else return;
+                  }
+                  if (typeof member === "function") {
                     if (prop in Object.prototype) return undefined;
                     return new Proxy(member, {
                         apply(target, cxt, args) {
@@ -114,7 +148,7 @@ export default class Domain {
                                         const iservice = new Service(actor, that.eventbus,
                                             (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
                                             (type, data) => that.nativeCreateActor(type, id),
-                                            prop, sagaId);
+                                            prop, sagaId,roleName,role);
 
                                         const service = new Proxy(function service(type, data) {
                                             if (arguments.length === 0) {
@@ -142,21 +176,12 @@ export default class Domain {
                                             return;
                                         }
                                         if (result instanceof Promise) {
-                                            result
-                                                .then(result => {
-                                                    if (!iservice.applied) {
-                                                        iservice.apply(prop, {});
-                                                    }
+                                            result.then(result => {
                                                     resolve(result)
-
                                                 }).catch(err => {
-
                                                     that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                                                 })
                                         } else {
-                                            if (!iservice.applied) {
-                                                iservice.apply(prop, {});
-                                            }
                                             resolve(result);
                                         }
                                     }
@@ -165,35 +190,11 @@ export default class Domain {
                             });
                         }
                     });
-                } else if (prop === "json") {
-                    return member;
-                } else {
-                    if (actor.tags.has(prop)) {
-                        const service = new Service(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, id), prop, sagaId);
-                        service.apply(prop);
-                    } else {
-                        return (actor.json)[prop] || actor[prop];
-                    }
-                }
-
+                }else return undefined;
+              }
             }
         })
         return proxy;
-    }
-
-    registerOld(Classes: ActorConstructor[] | ActorConstructor) {
-        if (!Array.isArray(Classes)) {
-            Classes = [Classes]
-        }
-        for (let Class of Classes) {
-            const type = Class.getType();
-            let map = this.oldActorClassMap.get(type);
-            if (!map) {
-                map = new Map<string, ActorConstructor>();
-                this.oldActorClassMap.set(type, map);
-            }
-            map.set(type, Class);
-        }
     }
 
     register(Classes: ActorConstructor[] | ActorConstructor) {
@@ -204,7 +205,7 @@ export default class Domain {
 
         for (let Class of Classes) {
             this.ActorClassMap.set(Class.getType(), Class);
-            const repo = new Repository(Class, this.eventstore, this.oldActorClassMap);
+            const repo = new Repository(Class, this.eventstore,this.roleMap);
 
             // cluster system code
             // when repository emit create event ,then add actor's id to clusterInfoManager.
@@ -216,7 +217,7 @@ export default class Domain {
             }
             repo.on("create", json => {
                 let event = new Event(
-                  {id:json.id, version:Class.version, type:Class.getType()}, json, "create", "create"
+                  {id:json.id, type:Class.getType()}, json, "create", "create"
                 )
                 const alias = getAlias(event);
                 for (let name of alias) {
@@ -254,14 +255,18 @@ export default class Domain {
         return result;
     }
 
-    public addRole(name:string|any,supportedActorNames?:string[],methods?:any){
+    public addRole(name:string|any,supportedActorNames?:string[],methods?:any,updater?:any){
+
         if(typeof name !== "string"){
-          supportedActorNames = name.supportedActorNames;
+          supportedActorNames = name.types;
           methods = name.methods;
+          updater = name.updater;
           name = name.name;
+
         }
         if(this.roleMap.has(name)) throw new Error(name +  " role is exist. ");
-        this.roleMap.set(name,new Role(name,supportedActorNames,methods));
+        this.roleMap.set(name,new Role(name,supportedActorNames,methods,updater));
+        return this;
     }
 
 }

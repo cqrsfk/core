@@ -10,18 +10,16 @@ export default class Domain {
     private clusterInfoManager;
     private domainServer;
     private domainProxy;
-    private oldActorClassMap;
     private roleMap;
     readonly id: any;
     constructor(options?: any);
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
-    registerOld(Classes: ActorConstructor[] | ActorConstructor): void;
     register(Classes: ActorConstructor[] | ActorConstructor): this;
     create(type: string, data: any): Promise<any>;
     get(type: string, id: string): Promise<any>;
     on(event: any, handle: any): void;
     once(event: any, handle: any): void;
     getCacheActorIds(): any[];
-    addRole(name: string | any, supportedActorNames?: string[], methods?: any): void;
+    addRole(name: string | any, supportedActorNames?: string[], methods?: any, updater?: any): this;
 }

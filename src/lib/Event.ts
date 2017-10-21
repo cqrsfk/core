@@ -8,7 +8,6 @@ const updatedDataKey = Symbol();
 export default class Event {
     readonly actorId: string
     readonly actorType: string
-    readonly actorVersion: string
     readonly id: string
     readonly date: Date
     readonly alias: string[]
@@ -28,7 +27,6 @@ export default class Event {
         this.id = uuid();
         this.actorId = actor.id;
         this.actorType = actor.type;
-        this.actorVersion = actor.version;
         this.date = new Date();
     }
 
