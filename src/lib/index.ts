@@ -1,7 +1,7 @@
+export {default as Domain} from "./Domain";
+export { Actor } from "./Actor";
+export {default as Event} from "./Event";
 import Domain from "./Domain";
-import { Actor } from "./Actor";
 
 // default domain instance.
 const domain = new Domain();
-
-export { Domain, Actor, domain };

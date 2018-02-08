@@ -14,7 +14,7 @@ async function main(money) {
   fromUser.add(100);
   uid = fromUser.id;
 
-  let toUser = await domain.create("User", { name: "toUser" });
+  let toUser = await domain.create("User.changer.payers", { name: "toUser" });
   console.log(fromUser.json,toUser.json);
 
   const transfer = await domain.create("Transfer", {});

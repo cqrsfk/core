@@ -5,7 +5,6 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
-const $when = Symbol.for("when");
 const isLock = Symbol.for("isLock");
 import Domain from "./Domain";
 

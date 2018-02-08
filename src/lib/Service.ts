@@ -30,7 +30,6 @@ export default class Service {
     }
 
     apply(type: string, data?: any, direct?: boolean) {
-
         const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false,this.roleName);
 
         let updater = this.actor.updater[type] ||

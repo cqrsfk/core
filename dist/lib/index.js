@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Domain_1 = require("./Domain");
+var Domain_1 = require("./Domain");
 exports.Domain = Domain_1.default;
-const Actor_1 = require("./Actor");
+var Actor_1 = require("./Actor");
 exports.Actor = Actor_1.Actor;
+var Event_1 = require("./Event");
+exports.Event = Event_1.default;
+const Domain_2 = require("./Domain");
 // default domain instance.
-const domain = new Domain_1.default();
-exports.domain = domain;
+const domain = new Domain_2.default();
 //# sourceMappingURL=index.js.map

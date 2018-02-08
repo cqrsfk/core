@@ -1,4 +1,3 @@
-import Domain from "./Domain";
-import { Actor } from "./Actor";
-declare const domain: Domain;
-export { Domain, Actor, domain };
+export { default as Domain } from "./Domain";
+export { Actor } from "./Actor";
+export { default as Event } from "./Event";
