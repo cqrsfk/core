@@ -82,7 +82,12 @@ export default class Repository extends EventEmitter {
 
         let actor: Actor = this.getFromCache(id);
         if (actor) {
-            return actor;
+            if(actor.json.isAlive){
+              return actor;
+            }else{
+              this.cache.delete(id);
+              return null;
+            }
         } else {
             this.emit("reborn", id);
             let snap: Snap = await this.eventstore.getLatestSnapshot(id);
@@ -99,7 +104,7 @@ export default class Repository extends EventEmitter {
 
                   const updatedData = updater ? updater(actor.json,event) : {};
                   actor[setdata] = Object.assign({}, actor.json, updatedData );
-                  return actor;
+                  return actor || null;
                 });
             }
         }
