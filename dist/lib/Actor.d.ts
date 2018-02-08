@@ -14,6 +14,7 @@ export declare class Actor {
     static getType(): string;
     readonly json: any;
     readonly updater: {};
+    remove(): void;
     lock(data: LockDataType): boolean;
     unlock(key: any): void;
     static toJSON(actor: Actor): any;

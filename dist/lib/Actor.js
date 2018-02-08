@@ -55,6 +55,9 @@ class Actor {
             return false;
         }
     }
+    remove() {
+        this.$();
+    }
     lock(data) {
         if (this.lockData.key === data.key) {
             return true;

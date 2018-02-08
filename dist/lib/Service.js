@@ -24,9 +24,9 @@ class Service {
     }
     apply(type, data, direct) {
         const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
-        let updater = this.actor.updater[type] ||
+        let updater = type === "remove" ? () => ({ isAlive: false }) : (this.actor.updater[type] ||
             this.actor.updater[this.method + "Update"] ||
-            (this.role ? this.role.updater[type] || this.role.updater[this.method] : null);
+            (this.role ? this.role.updater[type] || this.role.updater[this.method] : null));
         const updatedData = updater(this.actor.json, event);
         event.updatedData = updatedData;
         this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
