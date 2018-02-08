@@ -109,8 +109,8 @@ export class Actor {
 }
 
 export interface ActorConstructor {
-    new(any): Actor
+    new(data:any): Actor
     getType(): string
-    createBefor?: (any, Domain) => Promise<any>,
-    parse: (any) => Actor
+    createBefor?: (data:any, domain:Domain) => Promise<any>,
+    parse: (data:any) => Actor
 }
