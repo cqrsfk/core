@@ -147,7 +147,7 @@ export default class Domain {
                                     } else {
                                         const iservice = new Service(actor, that.eventbus,
                                             (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
-                                            (type, data) => that.nativeCreateActor(type, id),
+                                            (type, data) => that.nativeCreateActor(type, data),
                                             prop, sagaId,roleName,role);
 
                                         const service = new Proxy(function service(type, data) {

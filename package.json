@@ -1,6 +1,6 @@
 {
   "name": "cqrs",
-  "version": "3.0.7-pre",
+  "version": "3.0.9-pre",
   "description": "cqrs for javascript",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
