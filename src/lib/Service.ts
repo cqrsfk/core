@@ -32,9 +32,10 @@ export default class Service {
     apply(type: string, data?: any, direct?: boolean) {
         const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false,this.roleName);
 
-        let updater = this.actor.updater[type] ||
+
+        let updater = type === "remove" ? ()=> ({isAlive:false}) : (this.actor.updater[type] ||
                       this.actor.updater[this.method+"Update"] ||
-                      (this.role ? this.role.updater[type] || this.role.updater[this.method] : null);
+                      (this.role ? this.role.updater[type] || this.role.updater[this.method] : null));
 
         const updatedData = updater(this.actor.json,event);
         event.updatedData = updatedData;

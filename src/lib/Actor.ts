@@ -76,6 +76,10 @@ export class Actor {
 
     }
 
+    remove(){
+      this.$();
+    }
+
     lock(data: LockDataType) {
         if (this.lockData.key === data.key) {
             return true;
