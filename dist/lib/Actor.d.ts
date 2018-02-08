@@ -23,6 +23,6 @@ export declare class Actor {
 export interface ActorConstructor {
     new (data: any): Actor;
     getType(): string;
-    createBefor?: (data: any, domain: Domain) => Promise<any>;
+    createBefor?: (data: any, domain: Domain) => any;
     parse: (data: any) => Actor;
 }
