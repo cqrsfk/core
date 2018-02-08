@@ -68,7 +68,13 @@ class Repository extends events_1.EventEmitter {
     async get(id) {
         let actor = this.getFromCache(id);
         if (actor) {
-            return actor;
+            if (actor.json.isAlive) {
+                return actor;
+            }
+            else {
+                this.cache.delete(id);
+                return null;
+            }
         }
         else {
             this.emit("reborn", id);
@@ -83,7 +89,7 @@ class Repository extends events_1.EventEmitter {
                         (role ? role.updater[event.type] || role.updater[event.method] : null);
                     const updatedData = updater ? updater(actor.json, event) : {};
                     actor[setdata] = Object.assign({}, actor.json, updatedData);
-                    return actor;
+                    return actor || null;
                 });
             }
         }
