@@ -186,7 +186,7 @@ class Domain {
                 let event = new Event_1.default({ id: json.id, type: Class.getType() }, json, "create", "create");
                 const alias = eventAlias_1.getAlias(event);
                 for (let name of alias) {
-                    this.eventbus.emitter.emit(name, json);
+                    this.eventbus.emitter.emit(name, event);
                 }
             });
             this.repositorieMap.set(Class, repo);
