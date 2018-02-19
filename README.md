@@ -5,12 +5,12 @@ DDD-CQRS-Actor framework.
 
 Version
 =======
-    cqrs@2.0.6-pre
+    cqrs@1.0.0
 
 Install
 =======
 
-    npm install cqrs@2.0.6-pre --save
+    npm install cqrs@latest
 
 Consumers
 =========
@@ -32,11 +32,11 @@ Roadmap
 + use typescript rewrite core
 + saga rollback
 + join the distributed system
-+ Actor version support
++ DCI support
++ ~~Actor version support~~
 + ~~use protobuf message~~
 + ~~actor GC~~
 + ~~system time travel~~
-+ ~~DCI support~~
 
 
 Step
@@ -67,7 +67,7 @@ user.deduct(120.00); // call instance method.
 const userInstance = await domain.get("User",userId); // get a User instance.
 ```
 
-Preview Example 
+Preview Example
 ===============
 
 see ES6 [Example](https://github.com/liangzeng/cqrs/tree/master/example)
@@ -164,7 +164,7 @@ async function main() {
     const transfer = await domain.create("Transfer", {});
     await transfer.transfe(fromUser.id, toUser.id, 15);
 
-    
+
     fromUser = await domain.get("User", fromUser.id);
     toUser = await domain.get("User", toUser.id);
     console.log("fromUser's money is " , fromUser.json.money);
@@ -193,4 +193,3 @@ Event {
 LICENSE
 =======
 GPL2.0
-
