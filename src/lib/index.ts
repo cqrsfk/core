@@ -4,4 +4,4 @@ export {default as Event} from "./Event";
 import Domain from "./Domain";
 
 // default domain instance.
-const domain = new Domain();
+export let domain = new Domain();

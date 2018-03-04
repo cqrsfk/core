@@ -12,9 +12,9 @@ const setdata = Symbol.for("setdata")
  */
 export default class Service {
     private timeout: number;
-    private lockMode = false
-    private sagaMode = false
-    private key: string = uuid()
+    private lockMode = false;
+    private sagaMode = false;
+    private key: string = uuid();
     public applied: boolean = false;
 
     constructor(
@@ -82,7 +82,7 @@ export default class Service {
     }
 
     private actorLock(actor): Promise<any> {
-      
+
         const that = this;
         return new Promise((resolve, reject) => {
 

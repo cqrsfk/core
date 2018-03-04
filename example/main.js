@@ -1,9 +1,10 @@
-const { domain, Actor } = require("..");
+const { Domain, Actor } = require("..");
 const User = require("./User");
 const Transfer = require("./Transfer");
 const payers_roles = require("./payers");
 const charger_roles =require("./charger");
 
+const domain = new Domain();
 domain.register(User).register(Transfer);
 domain.addRole(payers_roles).addRole(charger_roles);
 
@@ -14,7 +15,7 @@ async function main(money) {
   fromUser.add(100);
   uid = fromUser.id;
 
-  let toUser = await domain.create("User.changer.payers", { name: "toUser" });
+  let toUser = await domain.create("User.charger.payers", { name: "toUser" });
   console.log(fromUser.json,toUser.json);
 
   const transfer = await domain.create("Transfer", {});
@@ -31,6 +32,8 @@ async function main(money) {
   console.log("toUser's money is ", toUser.json.money);
 }
 
-main(15);
+main(15).catch(function (err) {
+  console.log(err);
+});
 
 // main(220);

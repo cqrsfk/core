@@ -87,7 +87,6 @@ export default class Actor {
 
     // todo
     unlock(key) {
-
         if (this.lockData.key === key) {
             this.lockData.key = null;
         }
@@ -100,4 +99,5 @@ export default class Actor {
     static parse(json) {
         return new this(json);
     }
+
 }

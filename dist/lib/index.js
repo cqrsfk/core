@@ -8,5 +8,5 @@ var Event_1 = require("./Event");
 exports.Event = Event_1.default;
 const Domain_2 = require("./Domain");
 // default domain instance.
-const domain = new Domain_2.default();
+exports.domain = new Domain_2.default();
 //# sourceMappingURL=index.js.map
