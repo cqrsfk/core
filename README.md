@@ -33,7 +33,6 @@ Roadmap
 + saga rollback
 + join the distributed system
 + DCI support
-+ ~~Actor version support~~
 + ~~use protobuf message~~
 + ~~actor GC~~
 + ~~system time travel~~
