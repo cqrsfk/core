@@ -1,12 +1,13 @@
 import Event from "./Event";
 import Service from "./Service";
-import LockDataType from "./types/LockDataType";
+import LockDataType from "./LockDataType";
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
 const isLock = Symbol.for("isLock");
 import Domain from "./Domain";
+import ActorConstructor from "./ActorConstructor";
 
 export default class Actor {
 
@@ -19,7 +20,6 @@ export default class Actor {
     protected $: any;
 
     constructor(data = {}) {
-
         this[uncommittedEvents] = [];
         this.data = data;
         this.data.isAlive = true;
@@ -29,11 +29,7 @@ export default class Actor {
     }
 
     get type(): string {
-        return this.constructor["getType"]();
-    }
-
-    get version() {
-        return this.constructor["version"]
+        return (<ActorConstructor>this.constructor).getType();
     }
 
     getStore(){

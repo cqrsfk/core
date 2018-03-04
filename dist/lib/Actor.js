@@ -16,10 +16,7 @@ class Actor {
         }
     }
     get type() {
-        return this.constructor["getType"]();
-    }
-    get version() {
-        return this.constructor["version"];
+        return this.constructor.getType();
     }
     getStore() {
         throw new Error("getStore() must implements.");

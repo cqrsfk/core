@@ -1,4 +1,4 @@
-import LockDataType from "./types/LockDataType";
+import LockDataType from "./LockDataType";
 export default class Actor {
     private data;
     private latestLockTime;
@@ -7,7 +7,6 @@ export default class Actor {
     protected $: any;
     constructor(data?: {});
     readonly type: string;
-    readonly version: any;
     getStore(): void;
     readonly id: any;
     static getType(): string;

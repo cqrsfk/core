@@ -6,7 +6,6 @@ export default class Snap {
     readonly date: Date;
     readonly actorId: string;
     readonly actorType: string;
-    readonly actorVersion: string;
     readonly data: any;
     constructor(actor: Actor, index?: number, latestEventIndex?: number);
     readonly json: {
@@ -17,7 +16,6 @@ export default class Snap {
         actorType: string;
         data: any;
         index: number;
-        actorVersion: string;
     };
     static parse(data: any): Snap;
 }
