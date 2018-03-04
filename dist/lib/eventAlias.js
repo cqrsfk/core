@@ -15,6 +15,7 @@ function getAlias(event) {
         ];
     }
     else {
+        console.log(event);
         return `${event.actorType || ""}.${event.actorId || ""}.${event.type || ""}.${event.method || ""}.${event.sagaId || ""}`;
     }
 }
