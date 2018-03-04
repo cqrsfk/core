@@ -3,9 +3,10 @@ import EventBus from "./EventBus";
 import EventType from "./EventType";
 import Event from "./Event";
 import Role from "./Role";
+import Repository from "./Repository";
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
-const setdata = Symbol.for("setdata")
+const setdata = Symbol.for("setdata");
 
 /**
  * When call actor's method , then DI service object.
@@ -20,6 +21,7 @@ export default class Service {
     constructor(
         private actor: Actor,
         private bus: EventBus,
+        private repo: Repository,
         private getActor,
         private createActor,
         private method: string,
@@ -119,6 +121,10 @@ export default class Service {
 
     once(event: EventType, handle: string, timeout?: number) {
         this.bus.subscribe(event, { actorType: this.actor.type, actorId: this.actor.id, method: handle }, timeout);
+    }
+
+    async getHistory():Promise<any>{
+      return await this.repo.getHistory(this.actor.id);
     }
 
 }

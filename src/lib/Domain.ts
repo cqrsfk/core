@@ -146,7 +146,7 @@ export default class Domain {
                     if (islock) {
                       setTimeout(run, 2000);
                     } else {
-                      const iservice = new Service(actor, that.eventbus,
+                      const iservice = new Service(actor, that.eventbus,that.repositorieMap.get(that.ActorClassMap.get(actor.type)),
                         (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
                         (type, data) => that.nativeCreateActor(type, data),
                         prop, sagaId, roleName, role);

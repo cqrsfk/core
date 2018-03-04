@@ -2,12 +2,14 @@ import Actor from "./Actor";
 import EventBus from "./EventBus";
 import EventType from "./EventType";
 import Role from "./Role";
+import Repository from "./Repository";
 /**
  * When call actor's method , then DI service object.
  */
 export default class Service {
     private actor;
     private bus;
+    private repo;
     private getActor;
     private createActor;
     private method;
@@ -19,7 +21,7 @@ export default class Service {
     private sagaMode;
     private key;
     applied: boolean;
-    constructor(actor: Actor, bus: EventBus, getActor: any, createActor: any, method: string, sagaId?: string, roleName?: string, role?: Role);
+    constructor(actor: Actor, bus: EventBus, repo: Repository, getActor: any, createActor: any, method: string, sagaId?: string, roleName?: string, role?: Role);
     apply(type: string, data?: any, direct?: boolean): void;
     lock(timeout?: number): void;
     unlock(): void;
@@ -30,4 +32,5 @@ export default class Service {
     get(type: string, id: string): Promise<any>;
     create(type: string, data: any): Promise<any>;
     once(event: EventType, handle: string, timeout?: number): void;
+    getHistory(): Promise<any>;
 }

@@ -118,7 +118,7 @@ class Domain {
                                             setTimeout(run, 2000);
                                         }
                                         else {
-                                            const iservice = new Service_1.default(actor, that.eventbus, (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
+                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
                                             const service = new Proxy(function service(type, data) {
                                                 if (arguments.length === 0) {
                                                     type = prop;

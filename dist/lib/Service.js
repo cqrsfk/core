@@ -8,9 +8,10 @@ const setdata = Symbol.for("setdata");
  * When call actor's method , then DI service object.
  */
 class Service {
-    constructor(actor, bus, getActor, createActor, method, sagaId, roleName, role) {
+    constructor(actor, bus, repo, getActor, createActor, method, sagaId, roleName, role) {
         this.actor = actor;
         this.bus = bus;
+        this.repo = repo;
         this.getActor = getActor;
         this.createActor = createActor;
         this.method = method;
@@ -94,6 +95,9 @@ class Service {
     }
     once(event, handle, timeout) {
         this.bus.subscribe(event, { actorType: this.actor.type, actorId: this.actor.id, method: handle }, timeout);
+    }
+    async getHistory() {
+        return await this.repo.getHistory(this.actor.id);
     }
 }
 exports.default = Service;
