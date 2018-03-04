@@ -5,5 +5,6 @@ interface ActorConstructor {
     getType(): string;
     createBefor?: (data: any, domain: Domain) => any;
     parse: (data: any) => Actor;
+    toJSON: (Actor) => any;
 }
 export default ActorConstructor;

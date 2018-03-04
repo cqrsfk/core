@@ -82,6 +82,7 @@ export default class Service {
     }
 
     private actorLock(actor): Promise<any> {
+      
         const that = this;
         return new Promise((resolve, reject) => {
 

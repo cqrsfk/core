@@ -5,13 +5,13 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
+const datakey = Symbol("datakey");
 const isLock = Symbol.for("isLock");
 import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 
 export default class Actor {
 
-    private data: any;
     private latestLockTime: Date;
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
 
@@ -21,10 +21,10 @@ export default class Actor {
 
     constructor(data = {}) {
         this[uncommittedEvents] = [];
-        this.data = data;
-        this.data.isAlive = true;
-        if (!this.data.id) {
-            this.data.id = uuid();
+        this[datakey] = data;
+        this[datakey].isAlive = true;
+        if (!this[datakey].id) {
+            this[datakey].id = uuid();
         }
     }
 
@@ -32,12 +32,8 @@ export default class Actor {
         return (<ActorConstructor>this.constructor).getType();
     }
 
-    getStore(){
-      throw new Error("getStore() must implements.")
-    }
-
     set [setdata](data) {
-        this.data = data;
+        this[datakey] = data;
     }
 
     get id() {
@@ -49,14 +45,11 @@ export default class Actor {
     }
 
     get json() {
-        let self:any = this;
-        let data = self.constructor.toJSON(this);
-        Object.freeze(data);
-        return data;
+        return (<ActorConstructor>this.constructor).toJSON(this);
     }
 
     get updater(){
-      return {}
+      throw new Error("please implements updater() Getter!");
     }
 
     [isLock](key) {
@@ -101,7 +94,7 @@ export default class Actor {
     }
 
     static toJSON(actor: Actor) {
-        return JSON.parse(JSON.stringify(actor.data));
+        return JSON.parse(JSON.stringify(actor[datakey]));
     }
 
     static parse(json) {

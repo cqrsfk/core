@@ -173,7 +173,10 @@ class Domain {
             Classes = [Classes];
         }
         for (let Class of Classes) {
-            this.ActorClassMap.set(Class.getType(), Class);
+            const type = Class.getType();
+            if (!type)
+                throw new Error("please implements Actor.getType!");
+            this.ActorClassMap.set(type, Class);
             const repo = new Repository_1.default(Class, this.eventstore, this.roleMap);
             // cluster system code
             // when repository emit create event ,then add actor's id to clusterInfoManager.
