@@ -1,4 +1,4 @@
-import { Actor } from "./Actor";
+import Actor from "./Actor";
 import EventBus from "./EventBus";
 import EventType from "./EventType";
 import Role from "./Role";

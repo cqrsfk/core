@@ -86,5 +86,5 @@ class Actor {
         return new this(json);
     }
 }
-exports.Actor = Actor;
+exports.default = Actor;
 //# sourceMappingURL=Actor.js.map

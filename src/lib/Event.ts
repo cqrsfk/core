@@ -1,6 +1,6 @@
 'use strict';
 
-import { Actor } from "./Actor";
+import Actor from "./Actor";
 const uuid = require('uuid').v1;
 const qs = require('querystring');
 const updatedDataKey = Symbol();

@@ -1,6 +1,5 @@
 import LockDataType from "./types/LockDataType";
-import Domain from "./Domain";
-export declare class Actor {
+export default class Actor {
     private data;
     private latestLockTime;
     private lockData;
@@ -19,10 +18,4 @@ export declare class Actor {
     unlock(key: any): void;
     static toJSON(actor: Actor): any;
     static parse(json: any): Actor;
-}
-export interface ActorConstructor {
-    new (data: any): Actor;
-    getType(): string;
-    createBefor?: (data: any, domain: Domain) => any;
-    parse: (data: any) => Actor;
 }

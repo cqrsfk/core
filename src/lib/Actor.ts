@@ -8,11 +8,12 @@ const setdata = Symbol.for("setdata");
 const isLock = Symbol.for("isLock");
 import Domain from "./Domain";
 
-export class Actor {
+export default class Actor {
 
     private data: any;
     private latestLockTime: Date;
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
+
     // framework provider
     protected service: any;
     protected $: any;
@@ -110,11 +111,4 @@ export class Actor {
     static parse(json) {
         return new this(json);
     }
-}
-
-export interface ActorConstructor {
-    new(data:any): Actor
-    getType(): string
-    createBefor?: (data:any, domain:Domain) => any,
-    parse: (data:any) => Actor
 }

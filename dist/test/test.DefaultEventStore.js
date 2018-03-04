@@ -26,7 +26,7 @@ describe("DefaultEventStore", function () {
         await es.killSaga(sid);
         assert_1.ok(await es.existSaga(sid) === false);
         await es.beginSaga(sid);
-        let actor = new Actor_1.Actor();
+        let actor = new Actor_1.default();
         let event = new Event_1.default(actor, { name: "leo" }, "change", "change", sid);
         await es.saveEvents(event);
         assert_1.ok(!!await es.getEventById(event.id));

@@ -1,4 +1,4 @@
-import { Actor } from "./Actor";
+import Actor from "./Actor";
 export default class Role {
     readonly name: string;
     private supportedActorNames;

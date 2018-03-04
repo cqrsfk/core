@@ -1,7 +1,8 @@
 /// <reference types="node" />
 import { EventEmitter } from "events";
 import EventType from "./EventType";
-import { Actor, ActorConstructor } from "./Actor";
+import ActorConstructor from "./ActorConstructor";
+import Actor from "./Actor";
 import Repository from "./Repository";
 import EventStore from "./EventStore";
 import Domain from "./Domain";

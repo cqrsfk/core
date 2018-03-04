@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
 const Domain_1 = require("../lib/Domain");
 const Actor_1 = require("../lib/Actor");
-class User extends Actor_1.Actor {
+class User extends Actor_1.default {
     constructor(data) {
         super(data);
     }

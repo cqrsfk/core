@@ -1,4 +1,5 @@
-import { Actor, ActorConstructor } from "./Actor";
+import ActorConstructor from "./ActorConstructor";
+import Actor from "./Actor";
 import EventStore from "./DefaultEventStore";
 import Snap from "./Snap";
 import uuid from "uuid/v4";

@@ -1,4 +1,5 @@
-import { Actor, ActorConstructor } from "./Actor";
+import ActorConstructor from "./ActorConstructor";
+import Actor from "./Actor";
 import Service from "./Service";
 import {getAlias} from "./eventAlias";
 import Event from "./Event";

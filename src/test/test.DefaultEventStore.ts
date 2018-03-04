@@ -2,7 +2,7 @@ import "mocha";
 import { ok } from "assert";
 import DefaultEventStore from "../lib/DefaultEventStore";
 import Event from '../lib/Event';
-import { Actor } from "../lib/Actor";
+import  Actor from "../lib/Actor";
 
 const es = new DefaultEventStore();
 

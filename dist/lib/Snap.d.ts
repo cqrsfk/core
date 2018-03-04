@@ -1,4 +1,4 @@
-import { Actor } from "./Actor";
+import Actor from "./Actor";
 export default class Snap {
     readonly index: number;
     readonly latestEventIndex: number;

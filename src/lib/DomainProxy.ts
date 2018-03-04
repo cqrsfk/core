@@ -1,7 +1,7 @@
 import * as io from "socket.io-client";
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import { EventEmitter } from "events";
-import { ActorConstructor } from "./Actor";
+import  ActorConstructor  from "./ActorConstructor";
 import Event from "./Event";
 import Domain from "./Domain";
 const uid = require("uuid").v1;
@@ -97,4 +97,3 @@ export default class DomainProxy extends EventEmitter {
         })
     }
 }
-

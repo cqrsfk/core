@@ -1,4 +1,4 @@
-import { ActorConstructor } from "./Actor";
+import ActorConstructor from "./ActorConstructor";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";

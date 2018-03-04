@@ -1,5 +1,5 @@
 const uuid = require("uuid").v1;
-import { Actor } from "./Actor";
+import  Actor from "./Actor";
 
 export default class Snap {
 

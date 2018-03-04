@@ -4,7 +4,7 @@ import DomainProxy from "../lib/DomainProxy";
 import DomainServer from "../lib/DomainServer";
 import DefaultClusterInfoManager from "../lib/DefaultClusterInfoManager";
 import Domain from "../lib/Domain";
-import { Actor } from "../lib/Actor";
+import Actor from "../lib/Actor";
 
 class User extends Actor {
     constructor(data) {

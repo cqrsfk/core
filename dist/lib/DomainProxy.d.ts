@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import { EventEmitter } from "events";
-import { ActorConstructor } from "./Actor";
+import ActorConstructor from "./ActorConstructor";
 export default class DomainProxy extends EventEmitter {
     private manager;
     private ActorClassMap;
