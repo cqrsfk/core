@@ -52,10 +52,11 @@ export default class Service {
       updater = (json, _event) => {
         const listeners = json.listeners;
         let { event, listenerId } = _event.data;
+
         if (listeners[event]) {
           delete listeners[event][listenerId];
         }
-        return listeners;
+        return {listeners};
       }
     } else {
       updater = (this.actor.updater[type] ||

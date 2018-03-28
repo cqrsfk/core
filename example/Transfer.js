@@ -7,7 +7,7 @@ module.exports = class Transfer extends Actor {
     }
 
     log(event) {
-        console.log(event,"211212");
+        console.log(event,"21121----2");
     }
 
     async transfe(fromUserId, toUserId, money) {
@@ -16,12 +16,12 @@ module.exports = class Transfer extends Actor {
         $.sagaBegin();
         $.lock();
 
-        try{
-          await $.subscribe({ actorType: "User", actorId:fromUserId , type: "add" }, "log");
+          await $.subscribe({ actorType: "User", actorId:fromUserId , type: "deduct" }, "log");
+          await $.unsubscribe({ actorType: "User", actorId:fromUserId , type: "deduct" });
           await $.subscribe({ actorType: "User", actorId:toUserId , type: "add" }, "log");
-        }catch(err){
-          console.log(err);
-        }
+          await $.unsubscribe({ actorType: "User", actorId:toUserId , type: "add" });
+
+
         // console.log(fromUserId,toUserId);
         const fromUser = await $.get("User.payers", fromUserId);
         const toUser = await $.get("User.charger", toUserId);

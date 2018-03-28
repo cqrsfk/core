@@ -49,7 +49,7 @@ class Service {
                 if (listeners[event]) {
                     delete listeners[event][listenerId];
                 }
-                return listeners;
+                return { listeners };
             };
         }
         else {
