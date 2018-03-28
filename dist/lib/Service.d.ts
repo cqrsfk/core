@@ -31,6 +31,7 @@ export default class Service {
     private actorLock(actor);
     get(type: string, id: string): Promise<any>;
     create(type: string, data: any): Promise<any>;
-    once(event: EventType, handle: string, timeout?: number): void;
+    subscribe(event: EventType, handleMethodName: string): Promise<void>;
+    unsubscribe(event: EventType): Promise<void>;
     getHistory(): Promise<any>;
 }

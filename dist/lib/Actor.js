@@ -12,6 +12,7 @@ class Actor {
         this[uncommittedEvents] = [];
         this[datakey] = data;
         this[datakey].isAlive = true;
+        this[datakey].listeners = {};
         if (!this[datakey].id) {
             this[datakey].id = uuid();
         }
@@ -33,6 +34,12 @@ class Actor {
     }
     get updater() {
         throw new Error("please implements updater() Getter!");
+    }
+    subscribe(event, listenerType, listenerId, handleMethodName) {
+        this.$({ event, listenerType, listenerId, handleMethodName });
+    }
+    unsubscribe(event, listenerId) {
+        this.$({ event, listenerId });
     }
     [isLock](key) {
         if (this.lockData.key) {

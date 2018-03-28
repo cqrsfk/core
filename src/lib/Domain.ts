@@ -14,6 +14,7 @@ const uid = require("uuid").v1;
 const getActorProxy = Symbol.for("getActorProxy");
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import Role from "./Role";
+import Plugin from "./Plugin";
 
 export default class Domain {
 
@@ -25,6 +26,7 @@ export default class Domain {
   private domainServer: DomainServer;
   private domainProxy: DomainProxy;
   private roleMap: Map<string, Role> = new Map();
+  private setEventStore: Function;
 
   public readonly id;
 
@@ -50,6 +52,12 @@ export default class Domain {
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
       new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
 
+  }
+
+  // todo
+  use(plugin: Plugin): Domain {
+    plugin(this);
+    return this;
   }
 
   private async getNativeActor(type: string, id: string): Promise<any> {
@@ -86,6 +94,7 @@ export default class Domain {
         throw err;
       }
     }
+    
     const actorId = (await repo.create(data)).json.id;
     const actor = await this[getActorProxy](type, actorId);
     return actor;
@@ -146,7 +155,7 @@ export default class Domain {
                     if (islock) {
                       setTimeout(run, 2000);
                     } else {
-                      const iservice = new Service(actor, that.eventbus,that.repositorieMap.get(that.ActorClassMap.get(actor.type)),
+                      const iservice = new Service(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)),
                         (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
                         (type, data) => that.nativeCreateActor(type, data),
                         prop, sagaId, roleName, role);
@@ -206,7 +215,7 @@ export default class Domain {
 
     for (let Class of Classes) {
       const type = Class.getType();
-      if(!type) throw new Error("please implements Actor.getType!");
+      if (!type) throw new Error("please implements Actor.getType!");
       this.ActorClassMap.set(type, Class);
       const repo = new Repository(Class, this.eventstore, this.roleMap);
 
@@ -265,8 +274,8 @@ export default class Domain {
       methods = name.methods;
       updater = name.updater;
       name = name.name;
-
     }
+
     if (this.roleMap.has(name)) throw new Error(name + " role is exist. ");
     this.roleMap.set(name, new Role(name, supportedActorNames, methods, updater));
     return this;

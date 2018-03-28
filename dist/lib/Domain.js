@@ -34,6 +34,11 @@ class Domain {
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
     }
+    // todo
+    use(plugin) {
+        plugin(this);
+        return this;
+    }
     async getNativeActor(type, id) {
         const roles = type.split(".");
         const actorType = roles.shift();

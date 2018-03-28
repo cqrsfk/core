@@ -51,18 +51,6 @@ class EventBus {
             });
         });
     }
-    subscribe(event, { actorType, actorId, method }, timeout) {
-        let eventname = eventAlias_1.getAlias(event);
-        let repo = this.subscribeRepo.get(eventname);
-        if (!repo) {
-            repo = new Set();
-            this.subscribeRepo.set(eventname, repo);
-        }
-        repo.add({ actorType, actorId, method });
-    }
-    unsubscribe() {
-        // this.subscribeRepo.delete(getAlias(event));
-    }
     on(event, cb) {
         this.emitter.on(eventAlias_1.getAlias(event), function (event) {
             cb(event);

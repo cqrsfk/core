@@ -25,9 +25,40 @@ class Service {
     }
     apply(type, data, direct) {
         const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
-        let updater = type === "remove" ? () => ({ isAlive: false }) : (this.actor.updater[type] ||
-            this.actor.updater[this.method + "Update"] ||
-            (this.role ? this.role.updater[type] || this.role.updater[this.method] : null));
+        let updater;
+        if (type === "remove") {
+            updater = () => ({ isAlive: false });
+        }
+        else if (type === "subscribe") {
+            updater = (json, _event) => {
+                const listeners = json.listeners;
+                let { event, listenerType, listenerId, handleMethodName } = _event.data;
+                if (listeners[event]) {
+                    listeners[event][listenerId] = { handleMethodName, listenerType };
+                }
+                else {
+                    listeners[event] = { [listenerId]: { handleMethodName, listenerType } };
+                }
+                return { listeners };
+            };
+        }
+        else if (type === "unsubscribe") {
+            updater = (json, _event) => {
+                const listeners = json.listeners;
+                let { event, listenerId } = _event.data;
+                if (listeners[event]) {
+                    delete listeners[event][listenerId];
+                }
+                return listeners;
+            };
+        }
+        else {
+            updater = (this.actor.updater[type] ||
+                this.actor.updater[this.method + "Update"] ||
+                (this.role ? this.role.updater[type] || this.role.updater[this.method] : null));
+        }
+        if (!updater)
+            return;
         const updatedData = updater(this.actor.json, event);
         event.updatedData = updatedData;
         this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
@@ -35,6 +66,24 @@ class Service {
         this.actor[uncommittedEvents].push(event);
         this.bus.publish(this.actor);
         this.applied = true;
+        if (!["subscribe", "unsubscribe"].includes(type)) {
+            let listeners = this.actor.json.listeners;
+            let handles = listeners[type];
+            let emit = async (handles) => {
+                if (handles) {
+                    for (let id in handles) {
+                        let { handleMethodName, listenerType } = handles[id];
+                        let actor = await this.get(listenerType, id);
+                        if (actor) {
+                            actor[handleMethodName](event);
+                        }
+                    }
+                }
+            };
+            emit(handles);
+            handles = listeners["*"];
+            emit(handles);
+        }
     }
     lock(timeout) {
         this.lockMode = true;
@@ -93,8 +142,23 @@ class Service {
     async create(type, data) {
         return this.createActor(...arguments, this.sagaId);
     }
-    once(event, handle, timeout) {
-        this.bus.subscribe(event, { actorType: this.actor.type, actorId: this.actor.id, method: handle }, timeout);
+    async subscribe(event, handleMethodName) {
+        let { actorId, actorType, type } = event;
+        if (actorId && actorType && type) {
+            let actor = await this.get(actorType, actorId);
+            if (actor) {
+                actor.subscribe(type, this.actor.type, this.actor.id, handleMethodName);
+            }
+        }
+    }
+    async unsubscribe(event) {
+        let { actorId, actorType, type } = event;
+        if (actorId && actorType && type) {
+            let actor = await this.get(actorType, actorId);
+            if (actor) {
+                actor.unsubscribe(type, this.actor.id);
+            }
+        }
     }
     async getHistory() {
         return await this.repo.getHistory(this.actor.id);

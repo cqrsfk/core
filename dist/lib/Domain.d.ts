@@ -2,6 +2,7 @@ import ActorConstructor from "./ActorConstructor";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
+import Plugin from "./Plugin";
 export default class Domain {
     eventstore: EventStore;
     eventbus: EventBus;
@@ -11,8 +12,10 @@ export default class Domain {
     private domainServer;
     private domainProxy;
     private roleMap;
+    private setEventStore;
     readonly id: any;
     constructor(options?: any);
+    use(plugin: Plugin): Domain;
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
     register(Classes: ActorConstructor[] | ActorConstructor): this;

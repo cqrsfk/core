@@ -1,7 +1,11 @@
 
 import Actor from "./Actor";
 export default class Role {
-   constructor(public readonly name:string,private supportedActorNames:string[],public readonly methods:any, public readonly updater:any = {}){
+   constructor(
+     public readonly name:string,
+     private supportedActorNames:string[],
+     public readonly methods:any,
+     public readonly updater:any = {}){
    }
 
    // [actor , {roleA, roleB} ]

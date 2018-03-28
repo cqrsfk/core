@@ -63,25 +63,12 @@ export default class EventBus {
         })
     }
 
-    subscribe(event: EventType, { actorType, actorId, method }: { actorType: string; actorId: string; method: string }, timeout?: number) {
-        let eventname = getAlias(event);
-        let repo = this.subscribeRepo.get(eventname);
-        if (!repo) {
-            repo = new Set();
-            this.subscribeRepo.set(eventname, repo);
-        }
-        repo.add({ actorType, actorId, method });
-    }
-
-    unsubscribe() {
-        // this.subscribeRepo.delete(getAlias(event));
-    }
-
     on(event: EventType, cb: Function) {
         this.emitter.on(getAlias(event), function (event) {
             cb(event);
         });
     }
+    
     async publish(actor: Actor) {
 
         if (this.lockSet.has(actor.id)) {

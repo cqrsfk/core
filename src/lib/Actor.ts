@@ -16,13 +16,14 @@ export default class Actor {
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
 
     // framework provider
-    protected service: any;
-    protected $: any;
+    protected service: Service;
+    protected $: Function;
 
     constructor(data = {}) {
         this[uncommittedEvents] = [];
         this[datakey] = data;
         this[datakey].isAlive = true;
+        this[datakey].listeners = {};
         if (!this[datakey].id) {
             this[datakey].id = uuid();
         }
@@ -50,6 +51,14 @@ export default class Actor {
 
     get updater(){
       throw new Error("please implements updater() Getter!");
+    }
+
+    subscribe(event:string,listenerType,listenerId:string,handleMethodName:string){
+      this.$({event,listenerType,listenerId,handleMethodName});
+    }
+
+    unsubscribe(event:string,listenerId:string){
+      this.$({event,listenerId});
     }
 
     [isLock](key) {
