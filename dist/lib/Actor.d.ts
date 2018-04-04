@@ -10,7 +10,7 @@ export default class Actor {
     readonly id: any;
     static getType(): string;
     readonly json: any;
-    readonly updater: void;
+    readonly updater: any;
     subscribe(event: string, listenerType: any, listenerId: string, handleMethodName: string): void;
     unsubscribe(event: string, listenerId: string): void;
     remove(): void;

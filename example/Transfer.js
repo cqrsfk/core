@@ -16,10 +16,10 @@ module.exports = class Transfer extends Actor {
         $.sagaBegin();
         $.lock();
 
-          await $.subscribe({ actorType: "User", actorId:fromUserId , type: "deduct" }, "log");
-          await $.unsubscribe({ actorType: "User", actorId:fromUserId , type: "deduct" });
+          // await $.subscribe({ actorType: "User"}, "log");
+          // await $.unsubscribe({ actorType: "User"});
           await $.subscribe({ actorType: "User", actorId:toUserId , type: "add" }, "log");
-          await $.unsubscribe({ actorType: "User", actorId:toUserId , type: "add" });
+          // await $.unsubscribe({ actorType: "User", actorId:toUserId , type: "add" });
 
 
         // console.log(fromUserId,toUserId);

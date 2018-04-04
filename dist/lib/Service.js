@@ -66,7 +66,14 @@ class Service {
         this.actor[uncommittedEvents].push(event);
         this.bus.publish(this.actor);
         this.applied = true;
-        if (!["subscribe", "unsubscribe"].includes(type)) {
+        if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
+            const actorType = this.actor.type;
+            (async () => {
+                const emitter = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+                if (emitter) {
+                    emitter.publish(event);
+                }
+            })();
             let listeners = this.actor.json.listeners;
             let handles = listeners[type];
             let emit = async (handles) => {
@@ -150,6 +157,13 @@ class Service {
                 actor.subscribe(type, this.actor.type, this.actor.id, handleMethodName);
             }
         }
+        else if (actorType) {
+            let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+            if (!actor) {
+                actor = await this.create("ActorEventEmitter", { id: "ActorEventEmitter" + actorType });
+            }
+            await actor.subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
+        }
     }
     async unsubscribe(event) {
         let { actorId, actorType, type } = event;
@@ -157,6 +171,12 @@ class Service {
             let actor = await this.get(actorType, actorId);
             if (actor) {
                 actor.unsubscribe(type, this.actor.id);
+            }
+        }
+        else if (actorType) {
+            let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+            if (actor) {
+                await actor.unsubscribe(actorType, this.actor.id);
             }
         }
     }

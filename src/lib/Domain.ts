@@ -15,6 +15,7 @@ const getActorProxy = Symbol.for("getActorProxy");
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import Role from "./Role";
 import Plugin from "./Plugin";
+import ActorEventEmitter from "./ActorEventEmitter";
 
 export default class Domain {
 
@@ -51,6 +52,8 @@ export default class Domain {
     this.eventbus = options.EventBus ?
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
       new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
+
+    this.register(ActorEventEmitter);
 
   }
 
@@ -94,7 +97,7 @@ export default class Domain {
         throw err;
       }
     }
-    
+
     const actorId = (await repo.create(data)).json.id;
     const actor = await this[getActorProxy](type, actorId);
     return actor;

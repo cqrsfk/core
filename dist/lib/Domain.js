@@ -14,6 +14,7 @@ const uid = require("uuid").v1;
 const getActorProxy = Symbol.for("getActorProxy");
 const DefaultClusterInfoManager_1 = require("./DefaultClusterInfoManager");
 const Role_1 = require("./Role");
+const ActorEventEmitter_1 = require("./ActorEventEmitter");
 class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
@@ -33,6 +34,7 @@ class Domain {
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
+        this.register(ActorEventEmitter_1.default);
     }
     // todo
     use(plugin) {

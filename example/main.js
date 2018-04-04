@@ -16,7 +16,7 @@ async function main(money) {
   uid = fromUser.id;
 
   let toUser = await domain.create("User.charger.payers", { name: "toUser" });
-  console.log(fromUser.json,toUser.json);
+  // console.log(fromUser.json,toUser.json);
 
   const transfer = await domain.create("Transfer", {});
 
@@ -28,8 +28,8 @@ async function main(money) {
 
   fromUser = await domain.get("User", fromUser.id);
   toUser = await domain.get("User", toUser.id);
-  console.log("fromUser's money is ", fromUser.json.money);
-  console.log("toUser's money is ", toUser.json.money);
+  // console.log("fromUser's money is ", fromUser.json.money);
+  // console.log("toUser's money is ", toUser.json.money);
 }
 
 main(15).catch(function (err) {

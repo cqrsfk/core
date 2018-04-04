@@ -49,7 +49,7 @@ export default class Actor {
         return (<ActorConstructor>this.constructor).toJSON(this);
     }
 
-    get updater(){
+    get updater():any{
       throw new Error("please implements updater() Getter!");
     }
 

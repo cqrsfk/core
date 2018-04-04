@@ -4,6 +4,7 @@ import EventType from "./EventType";
 import Event from "./Event";
 import Role from "./Role";
 import Repository from "./Repository";
+import ActorEventEmitter from "./ActorEventEmitter";
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
@@ -40,11 +41,11 @@ export default class Service {
     } else if (type === "subscribe") {
       updater = (json, _event) => {
         const listeners = json.listeners;
-        let { event, listenerType,listenerId, handleMethodName } = _event.data;
+        let { event, listenerType, listenerId, handleMethodName } = _event.data;
         if (listeners[event]) {
-          listeners[event][listenerId] = {handleMethodName,listenerType};
+          listeners[event][listenerId] = { handleMethodName, listenerType };
         } else {
-          listeners[event] = { [listenerId]: {handleMethodName,listenerType} }
+          listeners[event] = { [listenerId]: { handleMethodName, listenerType } }
         }
         return { listeners };
       }
@@ -56,7 +57,7 @@ export default class Service {
         if (listeners[event]) {
           delete listeners[event][listenerId];
         }
-        return {listeners};
+        return { listeners };
       }
     } else {
       updater = (this.actor.updater[type] ||
@@ -74,14 +75,23 @@ export default class Service {
     this.bus.publish(this.actor);
     this.applied = true;
 
-    if (!["subscribe", "unsubscribe"].includes(type)) {
+    if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
+      const actorType = this.actor.type;
+
+      (async () => {
+        const emitter = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+        if(emitter){
+          emitter.publish(event);
+        }
+      })();
+
       let listeners = this.actor.json.listeners;
       let handles = listeners[type];
 
       let emit = async handles => {
         if (handles) {
           for (let id in handles) {
-            let {handleMethodName,listenerType} = handles[id];
+            let { handleMethodName, listenerType } = handles[id];
 
             let actor = await this.get(listenerType, id);
 
@@ -91,12 +101,14 @@ export default class Service {
           }
         }
       }
-
       emit(handles);
       handles = listeners["*"];
       emit(handles);
 
     }
+
+
+
   }
 
   lock(timeout?: number) {
@@ -169,13 +181,20 @@ export default class Service {
   }
 
   async subscribe(event: EventType, handleMethodName: string) {
-      let { actorId, actorType, type } = event;
-      if (actorId && actorType && type) {
-        let actor = await this.get(actorType, actorId);
-        if (actor) {
-          (<Actor>actor).subscribe(type , this.actor.type , this.actor.id, handleMethodName);
-        }
+
+    let { actorId, actorType, type } = event;
+    if (actorId && actorType && type) {
+      let actor = await this.get(actorType, actorId);
+      if (actor) {
+        (<Actor>actor).subscribe(type, this.actor.type, this.actor.id, handleMethodName);
       }
+    } else if (actorType) {
+      let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+      if (!actor) {
+        actor = await this.create("ActorEventEmitter", { id: "ActorEventEmitter" + actorType })
+      }
+      await (<ActorEventEmitter>actor).subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
+    }
   }
 
   async unsubscribe(event: EventType) {
@@ -184,6 +203,11 @@ export default class Service {
       let actor = await this.get(actorType, actorId);
       if (actor) {
         (<Actor>actor).unsubscribe(type, this.actor.id);
+      }
+    } else if (actorType) {
+      let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
+      if (actor) {
+        await (<ActorEventEmitter>actor).unsubscribe(actorType, this.actor.id);
       }
     }
   }
