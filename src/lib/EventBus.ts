@@ -68,7 +68,7 @@ export default class EventBus {
             cb(event);
         });
     }
-    
+
     async publish(actor: Actor) {
 
         if (this.lockSet.has(actor.id)) {

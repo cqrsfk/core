@@ -8,6 +8,10 @@ export default class ActorEventEmitter extends Actor {
     super(data)
   }
 
+  static getType(){
+    return 'ActorEventEmitter';
+  }
+
   async publish(event: Event) {
     let json = this.json;
     let map = json[event.actorType];

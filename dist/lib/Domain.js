@@ -167,6 +167,7 @@ class Domain {
         }
         for (let Class of Classes) {
             const type = Class.getType();
+            console.log(Class,Class.getType())
             if (!type)
                 throw new Error("please implements Actor.getType!");
             this.ActorClassMap.set(type, Class);

@@ -28,20 +28,27 @@
   "dependencies": {
     "@types/socket.io": "^1.4.29",
     "@types/socket.io-client": "^1.4.29",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
     "debug": "^2.6.8",
     "nedb-promise": "^2.0.1",
     "protobufjs": "^6.7.3",
     "socket.io": "^2.0.3",
     "socket.io-client": "^2.0.3",
+    "uglifyjs-webpack-plugin": "^1.2.5",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
+    "@types/node": "^10.0.0",
     "browserify": "^14.4.0",
     "mocha": "^2.5.3",
     "should": "^4.3.0",
     "source-map-support": "^0.4.15",
-    "typescript": "^2.3.4"
+    "typescript": "^2.3.4",
+    "webpack": "^4.6.0",
+    "webpack-cli": "^2.0.15"
   },
   "engines": {
     "node": ">=8.0.0"
