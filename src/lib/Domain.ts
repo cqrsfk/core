@@ -11,7 +11,7 @@ import EventBus from "./EventBus";
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
-const getActorProxy = Symbol.for("getActorProxy");
+export const getActorProxy = Symbol.for("getActorProxy");
 import DefaultClusterInfoManager from "./DefaultClusterInfoManager";
 import Role from "./Role";
 import Plugin from "./Plugin";

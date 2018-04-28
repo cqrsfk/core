@@ -3,25 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
-const setdata = Symbol.for("setdata");
-const datakey = Symbol("datakey");
-const isLock = Symbol.for("isLock");
+exports.setdata = Symbol.for("setdata");
+exports.datakey = Symbol("datakey");
+exports.isLock = Symbol.for("isLock");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
         this[uncommittedEvents] = [];
-        this[datakey] = data;
-        this[datakey].isAlive = true;
-        this[datakey].listeners = {};
-        if (!this[datakey].id) {
-            this[datakey].id = uuid();
+        this[exports.datakey] = data;
+        this[exports.datakey].isAlive = true;
+        this[exports.datakey].listeners = {};
+        if (!this[exports.datakey].id) {
+            this[exports.datakey].id = uuid();
         }
     }
     get type() {
         return this.constructor.getType();
     }
-    set [setdata](data) {
-        this[datakey] = data;
+    set [exports.setdata](data) {
+        this[exports.datakey] = data;
     }
     get id() {
         return this.json.id;
@@ -41,7 +41,7 @@ class Actor {
     unsubscribe(event, listenerId) {
         this.$({ event, listenerId });
     }
-    [isLock](key) {
+    [exports.isLock](key) {
         if (this.lockData.key) {
             if (this.lockData.key === key) {
                 return false;
@@ -79,7 +79,7 @@ class Actor {
         }
     }
     static toJSON(actor) {
-        return JSON.parse(JSON.stringify(actor[datakey]));
+        return JSON.parse(JSON.stringify(actor[exports.datakey]));
     }
     static parse(json) {
         return new this(json);

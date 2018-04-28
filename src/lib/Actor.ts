@@ -4,9 +4,9 @@ import LockDataType from "./LockDataType";
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
-const setdata = Symbol.for("setdata");
-const datakey = Symbol("datakey");
-const isLock = Symbol.for("isLock");
+export const setdata = Symbol.for("setdata");
+export const datakey = Symbol("datakey");
+export const isLock = Symbol.for("isLock");
 import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 

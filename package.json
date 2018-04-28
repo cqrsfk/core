@@ -37,11 +37,12 @@
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
+    "@types/node": "^9.6.7",
     "browserify": "^14.4.0",
     "mocha": "^2.5.3",
     "should": "^4.3.0",
     "source-map-support": "^0.4.15",
-    "typescript": "^2.3.4"
+    "typescript": "^2.8.3"
   },
   "engines": {
     "node": ">=8.0.0"

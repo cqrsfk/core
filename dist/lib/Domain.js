@@ -11,7 +11,7 @@ const EventBus_1 = require("./EventBus");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
-const getActorProxy = Symbol.for("getActorProxy");
+exports.getActorProxy = Symbol.for("getActorProxy");
 const DefaultClusterInfoManager_1 = require("./DefaultClusterInfoManager");
 const Role_1 = require("./Role");
 const ActorEventEmitter_1 = require("./ActorEventEmitter");
@@ -67,10 +67,10 @@ class Domain {
             }
         }
         const actorId = (await repo.create(data)).json.id;
-        const actor = await this[getActorProxy](type, actorId);
+        const actor = await this[exports.getActorProxy](type, actorId);
         return actor;
     }
-    async [getActorProxy](type, id, sagaId, key) {
+    async [exports.getActorProxy](type, id, sagaId, key) {
         const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
@@ -125,7 +125,7 @@ class Domain {
                                             setTimeout(run, 2000);
                                         }
                                         else {
-                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
+                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[exports.getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
                                             const service = new Proxy(function service(type, data) {
                                                 if (arguments.length === 0) {
                                                     type = prop;
@@ -207,7 +207,7 @@ class Domain {
         return await this.nativeCreateActor(type, data);
     }
     async get(type, id) {
-        return await this[getActorProxy](type, id);
+        return await this[exports.getActorProxy](type, id);
     }
     on(event, handle) {
         this.eventbus.on(event, handle);
