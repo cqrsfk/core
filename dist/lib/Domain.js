@@ -5,36 +5,25 @@ const eventAlias_1 = require("./eventAlias");
 const Event_1 = require("./Event");
 const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
-const DomainServer_1 = require("./DomainServer");
-const DomainProxy_1 = require("./DomainProxy");
 const EventBus_1 = require("./EventBus");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
 const getActorProxy = Symbol.for("getActorProxy");
-const DefaultClusterInfoManager_1 = require("./DefaultClusterInfoManager");
 const Role_1 = require("./Role");
 const ActorEventEmitter_1 = require("./ActorEventEmitter");
+const IDManager_1 = require("./cluster/IDManager");
 class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
         this.id = uid();
         this.ActorClassMap = new Map();
-        // cluster system
-        if (options.domainServerUrl &&
-            options.domainServerPort &&
-            (options.clusterUrl || options.clusterPort)) {
-            this.clusterInfoManager = new DefaultClusterInfoManager_1.default(options.clusterUrl || options.clusterPort);
-            this.clusterInfoManager.register({ id: this.id, url: options.domainServerUrl });
-            this.domainServer = new DomainServer_1.default(this, options.domainServerPort);
-            this.domainProxy = new DomainProxy_1.default(this.clusterInfoManager, this.ActorClassMap);
-        }
         this.eventstore = options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
         this.repositorieMap = new Map();
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
-        this.register(ActorEventEmitter_1.default);
+        this.register(ActorEventEmitter_1.default).register(IDManager_1.default);
     }
     // todo
     use(plugin) {
@@ -74,10 +63,7 @@ class Domain {
         const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
-            if (this.domainProxy)
-                return await this.domainProxy.getActor(type, id, sagaId, key);
-            else
-                return null;
+            return null;
         }
         let roles;
         if (Array.isArray(actor)) {
@@ -185,13 +171,6 @@ class Domain {
                 throw new Error("please implements Actor.getType!");
             this.ActorClassMap.set(type, Class);
             const repo = new Repository_1.default(Class, this.eventstore, this.roleMap);
-            // cluster system code
-            // when repository emit create event ,then add actor's id to clusterInfoManager.
-            if (this.clusterInfoManager) {
-                repo.on("create", async (actorJSON) => {
-                    await this.clusterInfoManager.addId(this.id, actorJSON.id);
-                });
-            }
             repo.on("create", json => {
                 let event = new Event_1.default({ id: json.id, type: Class.getType() }, json, "create", "create");
                 const alias = eventAlias_1.getAlias(event);

@@ -8,9 +8,6 @@ export default class Domain {
     eventbus: EventBus;
     ActorClassMap: Map<string, ActorConstructor>;
     repositorieMap: Map<ActorConstructor, Repository>;
-    private clusterInfoManager;
-    private domainServer;
-    private domainProxy;
     private roleMap;
     private setEventStore;
     readonly id: any;
