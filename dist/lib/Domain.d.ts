@@ -2,6 +2,7 @@ import ActorConstructor from "./ActorConstructor";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
+export declare const getActorProxy: symbol;
 import Plugin from "./Plugin";
 export default class Domain {
     eventstore: EventStore;

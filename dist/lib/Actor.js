@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
-const setdata = Symbol.for("setdata");
+exports.setdata = Symbol.for("setdata");
 const datakey = Symbol("datakey");
-const isLock = Symbol.for("isLock");
+exports.isLock = Symbol.for("isLock");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
@@ -20,7 +20,7 @@ class Actor {
     get type() {
         return this.constructor.getType();
     }
-    set [setdata](data) {
+    set [exports.setdata](data) {
         this[datakey] = data;
     }
     get id() {
@@ -41,7 +41,7 @@ class Actor {
     unsubscribe(event, listenerId) {
         this.$({ event, listenerId });
     }
-    [isLock](key) {
+    [exports.isLock](key) {
         if (this.lockData.key) {
             if (this.lockData.key === key) {
                 return false;

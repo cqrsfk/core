@@ -53,5 +53,7 @@ module.exports = {
 
 	// plugins: [new UglifyJSPlugin()],
 	// mode: 'production',
-
+	devServer: {
+     contentBase: './dist'
+  },
 };

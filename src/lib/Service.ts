@@ -190,10 +190,9 @@ export default class Service {
       }
     } else if (actorType) {
       let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
-      if (!actor) {
-        actor = await this.create("ActorEventEmitter", { id: "ActorEventEmitter" + actorType })
+      if (actor) {
+        await (<ActorEventEmitter>actor).subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
       }
-      await (<ActorEventEmitter>actor).subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
     }
   }
 

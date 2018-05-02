@@ -9,10 +9,10 @@ const EventBus_1 = require("./EventBus");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
-const getActorProxy = Symbol.for("getActorProxy");
+exports.getActorProxy = Symbol.for("getActorProxy");
 const Role_1 = require("./Role");
 const ActorEventEmitter_1 = require("./ActorEventEmitter");
-const IDManager_1 = require("./cluster/IDManager");
+// import IDManager from "./cluster/IDManager";
 class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
@@ -23,7 +23,8 @@ class Domain {
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
-        this.register(ActorEventEmitter_1.default).register(IDManager_1.default);
+        this.register(ActorEventEmitter_1.default);
+        // .register(IDManager);
     }
     // todo
     use(plugin) {
@@ -56,10 +57,10 @@ class Domain {
             }
         }
         const actorId = (await repo.create(data)).json.id;
-        const actor = await this[getActorProxy](type, actorId);
+        const actor = await this[exports.getActorProxy](type, actorId);
         return actor;
     }
-    async [getActorProxy](type, id, sagaId, key) {
+    async [exports.getActorProxy](type, id, sagaId, key) {
         const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
@@ -111,7 +112,7 @@ class Domain {
                                             setTimeout(run, 2000);
                                         }
                                         else {
-                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
+                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[exports.getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
                                             const service = new Proxy(function service(type, data) {
                                                 if (arguments.length === 0) {
                                                     type = prop;
@@ -167,19 +168,24 @@ class Domain {
         }
         for (let Class of Classes) {
             const type = Class.getType();
-            console.log(Class,Class.getType())
             if (!type)
                 throw new Error("please implements Actor.getType!");
             this.ActorClassMap.set(type, Class);
             const repo = new Repository_1.default(Class, this.eventstore, this.roleMap);
+            this.repositorieMap.set(Class, repo);
+            this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
             repo.on("create", json => {
                 let event = new Event_1.default({ id: json.id, type: Class.getType() }, json, "create", "create");
+                if (type !== 'ActorEventEmitter') {
+                    this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
+                        emitter.publish(event);
+                    });
+                }
                 const alias = eventAlias_1.getAlias(event);
                 for (let name of alias) {
                     this.eventbus.emitter.emit(name, event);
                 }
             });
-            this.repositorieMap.set(Class, repo);
         }
         return this;
     }
@@ -187,7 +193,7 @@ class Domain {
         return await this.nativeCreateActor(type, data);
     }
     async get(type, id) {
-        return await this[getActorProxy](type, id);
+        return await this[exports.getActorProxy](type, id);
     }
     on(event, handle) {
         this.eventbus.on(event, handle);

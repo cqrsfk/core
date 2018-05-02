@@ -1,5 +1,7 @@
 import Service from "./Service";
 import LockDataType from "./LockDataType";
+export declare const setdata: symbol;
+export declare const isLock: symbol;
 export default class Actor {
     private latestLockTime;
     private lockData;

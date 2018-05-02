@@ -9,11 +9,11 @@ import EventBus from "./EventBus";
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
-const getActorProxy = Symbol.for("getActorProxy");
+export const getActorProxy = Symbol.for("getActorProxy");
 import Role from "./Role";
 import Plugin from "./Plugin";
 import ActorEventEmitter from "./ActorEventEmitter";
-import IDManager from "./cluster/IDManager";
+// import IDManager from "./cluster/IDManager";
 
 export default class Domain {
 
@@ -36,7 +36,8 @@ export default class Domain {
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
       new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
 
-    this.register(ActorEventEmitter).register(IDManager);
+    this.register(ActorEventEmitter)
+    // .register(IDManager);
 
   }
 
@@ -201,17 +202,24 @@ export default class Domain {
       if (!type) throw new Error("please implements Actor.getType!");
       this.ActorClassMap.set(type, Class);
       const repo = new Repository(Class, this.eventstore, this.roleMap);
+      this.repositorieMap.set(Class, repo);
+
+      this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
 
       repo.on("create", json => {
         let event = new Event(
           { id: json.id, type: Class.getType() }, json, "create", "create"
         )
+        if(type !== 'ActorEventEmitter'){
+          this.get('ActorEventEmitter','ActorEventEmitter'+event.actorType).then(emitter=>{
+            emitter.publish(event);
+          })
+        }
         const alias = getAlias(event);
         for (let name of alias) {
           this.eventbus.emitter.emit(name, event);
         }
       });
-      this.repositorieMap.set(Class, repo);
     }
 
     return this;
