@@ -5,6 +5,9 @@ class ActorEventEmitter extends Actor_1.default {
     constructor(data) {
         super(data);
     }
+    static getType() {
+        return 'ActorEventEmitter';
+    }
     async publish(event) {
         let json = this.json;
         let map = json[event.actorType];

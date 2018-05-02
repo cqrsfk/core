@@ -2,16 +2,13 @@ import ActorConstructor from "./ActorConstructor";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
-export declare const getActorProxy: unique symbol;
+export declare const getActorProxy: symbol;
 import Plugin from "./Plugin";
 export default class Domain {
     eventstore: EventStore;
     eventbus: EventBus;
     ActorClassMap: Map<string, ActorConstructor>;
     repositorieMap: Map<ActorConstructor, Repository>;
-    private clusterInfoManager;
-    private domainServer;
-    private domainProxy;
     private roleMap;
     private setEventStore;
     readonly id: any;
@@ -19,7 +16,6 @@ export default class Domain {
     use(plugin: Plugin): Domain;
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
-    [getActorProxy](type: string, id: string, sagaId?: string, key?: string): Promise<any>;
     register(Classes: ActorConstructor[] | ActorConstructor): this;
     create(type: string, data: any): Promise<any>;
     get(type: string, id: string): Promise<any>;

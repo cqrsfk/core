@@ -159,10 +159,9 @@ class Service {
         }
         else if (actorType) {
             let actor = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
-            if (!actor) {
-                actor = await this.create("ActorEventEmitter", { id: "ActorEventEmitter" + actorType });
+            if (actor) {
+                await actor.subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
             }
-            await actor.subscribe(actorType, this.actor.type, this.actor.id, handleMethodName);
         }
     }
     async unsubscribe(event) {
