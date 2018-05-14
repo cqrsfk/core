@@ -14,7 +14,6 @@ export const getActorProxy = Symbol.for("getActorProxy");
 import Role from "./Role";
 import Plugin from "./Plugin";
 import ActorEventEmitter from "./ActorEventEmitter";
-// import IDManager from "./cluster/IDManager";
 
 export default class Domain {
 
@@ -38,7 +37,6 @@ export default class Domain {
       new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
 
     this.register(ActorEventEmitter)
-    // .register(IDManager);
 
   }
 
@@ -75,9 +73,9 @@ export default class Domain {
     const repo = this.repositorieMap.get(ActorClass);
 
 
-    if (ActorClass.createBefor) {
+    if (ActorClass.beforeCreate) {
       try {
-        data = (await ActorClass.createBefor(data, this)) || data;
+        data = (await ActorClass.beforeCreate(data, this)) || data;
       } catch (err) {
         throw err;
       }
@@ -192,7 +190,7 @@ export default class Domain {
     return proxy;
   }
 
-  register(Classes: ActorConstructor[] | ActorConstructor) {
+  register(Classes: ActorConstructor[] | ActorConstructor ) {
 
     if (!Array.isArray(Classes)) {
       Classes = [Classes]

@@ -12,7 +12,6 @@ const uid = require("uuid").v1;
 exports.getActorProxy = Symbol.for("getActorProxy");
 const Role_1 = require("./Role");
 const ActorEventEmitter_1 = require("./ActorEventEmitter");
-// import IDManager from "./cluster/IDManager";
 class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
@@ -24,7 +23,6 @@ class Domain {
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.register(ActorEventEmitter_1.default);
-        // .register(IDManager);
     }
     // todo
     use(plugin) {
@@ -48,9 +46,9 @@ class Domain {
         const actorType = type.split(".").shift();
         const ActorClass = this.ActorClassMap.get(actorType);
         const repo = this.repositorieMap.get(ActorClass);
-        if (ActorClass.createBefor) {
+        if (ActorClass.beforeCreate) {
             try {
-                data = (await ActorClass.createBefor(data, this)) || data;
+                data = (await ActorClass.beforeCreate(data, this)) || data;
             }
             catch (err) {
                 throw err;

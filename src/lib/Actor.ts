@@ -19,6 +19,8 @@ export default class Actor {
     protected service: Service;
     protected $: Function;
 
+    protected readonly data:any;
+
     constructor(data = {}) {
         this[uncommittedEvents] = [];
         this[datakey] = data;

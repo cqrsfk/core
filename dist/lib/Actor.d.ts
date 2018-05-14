@@ -8,6 +8,7 @@ export default class Actor {
     private lockData;
     protected service: Service;
     protected $: Function;
+    protected readonly data: any;
     constructor(data?: {});
     readonly type: string;
     readonly id: any;
