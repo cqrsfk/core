@@ -1,6 +1,6 @@
 import Actor from "./Actor";
 export const datakey = Symbol("datakey");
-export type arr = { key: string, value: string }[];
+export type arr = { key: string, value: string | number }[];
 export default class UniqueValidator extends Actor {
 
   constructor({ actotType, uniqueFields }) {

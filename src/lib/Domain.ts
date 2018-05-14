@@ -11,6 +11,7 @@ const debug = require('debug')('domain');
 const uid = require("uuid").v1;
 export const getActorProxy = Symbol.for("getActorProxy");
 
+import UniqueValidator from './UniqueValidator';
 import Role from "./Role";
 import Plugin from "./Plugin";
 import ActorEventEmitter from "./ActorEventEmitter";
@@ -36,7 +37,7 @@ export default class Domain {
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
       new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
 
-    this.register(ActorEventEmitter)
+    this.register(ActorEventEmitter).register(UniqueValidator);
 
   }
 
@@ -74,8 +75,29 @@ export default class Domain {
 
 
     if (ActorClass.beforeCreate) {
+
+
       try {
-        data = (await ActorClass.beforeCreate(data, this)) || data;
+        let uniqueValidatedOk = true;
+
+        //  unique field value validate
+        if(ActorClass.uniqueFields){
+          let arr = [];
+          ActorClass.uniqueFields.forEach(key=>{
+            let value;
+            if(value = data[key] && ['string','number'].includes(typeof(value))){
+              arr.push({key,value});
+            }
+          });
+          if(arr.length){
+            let uniqueValidator:UniqueValidator = await this.get('UniqueValidator',ActorClass.getType());
+            if(!uniqueValidator){
+              uniqueValidator = await this.create("UniqueValidator",{actotType:ActorClass.getType(), uniqueFields:ActorClass.uniqueFields});
+            }
+            uniqueValidatedOk = await uniqueValidator.hold(arr);
+          }
+        }
+        data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk)) || data;
       } catch (err) {
         throw err;
       }
