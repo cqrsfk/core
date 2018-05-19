@@ -25,4 +25,5 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
     getEventById(id: any): Promise<Event>;
     findEventsBySagaId(sagaId: any): Promise<Event[]>;
     removeEventsBySagaId(sagaId: string): Promise<void>;
+    findFollowEvents(actorId: string, index: number): Promise<any>;
 }

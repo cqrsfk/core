@@ -3,7 +3,6 @@ import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
 export declare const getActorProxy: symbol;
-import Plugin from "./Plugin";
 export default class Domain {
     eventstore: EventStore;
     eventbus: EventBus;
@@ -11,9 +10,10 @@ export default class Domain {
     repositorieMap: Map<ActorConstructor, Repository>;
     private roleMap;
     private setEventStore;
+    private beforeCallHandles;
     readonly id: any;
     constructor(options?: any);
-    use(plugin: Plugin): Domain;
+    use(plugin: any): Domain;
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
     register(Classes: ActorConstructor[] | ActorConstructor): this;

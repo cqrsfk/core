@@ -2,7 +2,6 @@ import Event from "./Event";
 import Service from "./Service";
 import LockDataType from "./LockDataType";
 const uncommittedEvents = Symbol.for('uncommittedEvents');
-const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 export const setdata = Symbol.for("setdata");
 export const datakey = Symbol("datakey");

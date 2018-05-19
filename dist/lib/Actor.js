@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uncommittedEvents = Symbol.for('uncommittedEvents');
-const loadEvents = Symbol.for('loadEvents');
 const uuid = require('uuid').v1;
 exports.setdata = Symbol.for("setdata");
 exports.datakey = Symbol("datakey");

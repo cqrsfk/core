@@ -22,7 +22,8 @@ interface EventStore {
     getSnapshotById(id: string): Promise<any>;
     getEventById(id: string): Promise<any>;
     findEventsBySagaId(sagaId: string): Promise<Event[]>;
-    // findEvents(selector: {}): Promise<any>;
+
+    findFollowEvents(actorId: string, index:number): Promise<any>;
 
     // remove events
     removeEventsBySagaId(sagaId: string): Promise<any>;

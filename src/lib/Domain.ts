@@ -13,7 +13,6 @@ export const getActorProxy = Symbol.for("getActorProxy");
 
 import UniqueValidator from './UniqueValidator';
 import Role from "./Role";
-import Plugin from "./Plugin";
 import ActorEventEmitter from "./ActorEventEmitter";
 
 export default class Domain {
@@ -24,7 +23,7 @@ export default class Domain {
   public repositorieMap: Map<ActorConstructor, Repository>;
   private roleMap: Map<string, Role> = new Map();
   private setEventStore: Function;
-
+  private beforeCallHandles:any[] = [];
   public readonly id;
 
   constructor(options: any = {}) {
@@ -42,8 +41,10 @@ export default class Domain {
   }
 
   // todo
-  use(plugin: Plugin): Domain {
-    plugin(this);
+  use(plugin): Domain {
+    plugin({
+      beforeCallHandles:this.beforeCallHandles
+    });
     return this;
   }
 
@@ -127,6 +128,7 @@ export default class Domain {
 
     const proxy = new Proxy(actor, {
       get(target, prop: string) {
+
         if (prop === "then") { return proxy };
 
         if ("lock" === prop || "lockData" === prop) {
@@ -151,10 +153,16 @@ export default class Domain {
           }
           if (typeof member === "function") {
             if (prop in Object.prototype) return undefined;
+
             return new Proxy(member, {
               apply(target, cxt, args) {
                 return new Promise(function(resolve, reject) {
-                  function run() {
+                  async function run() {
+
+                    for(let i=0;i<that.beforeCallHandles.length;i++){
+                      await that.beforeCallHandles[i]({actor,prop});
+                    }
+
                     const islock = actor[isLock](key);
 
                     if (islock) {

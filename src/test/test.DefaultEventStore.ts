@@ -40,4 +40,21 @@ describe("DefaultEventStore", function () {
 
 
     })
+
+    it("#unique validator",async function () {
+
+      class User extends Actor{
+        // 唯一性字段指定
+        static uniqueFields = ['code','loginname']
+        beforeCreate(data,uniqueOk){
+          if(!uniqueOk){
+            // 非唯一验证未通过处理
+          }
+        }
+        constructor(data){
+          super(data);
+        }
+      }
+
+    })
 })

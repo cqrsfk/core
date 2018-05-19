@@ -33,5 +33,19 @@ describe("DefaultEventStore", function () {
         await es.removeEventsBySagaId(sid);
         assert_1.ok(!await es.getEventById(event.id));
     });
+    it("#unique validator", async function () {
+        class User extends Actor_1.default {
+            constructor(data) {
+                super(data);
+            }
+            beforeCreate(data, uniqueOk) {
+                if (!uniqueOk) {
+                    // 非唯一验证未通过处理
+                }
+            }
+        }
+        // 唯一性字段指定
+        User.uniqueFields = ['code', 'loginname'];
+    });
 });
 //# sourceMappingURL=test.DefaultEventStore.js.map

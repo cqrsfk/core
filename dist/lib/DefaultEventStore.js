@@ -105,6 +105,10 @@ class DefaultEventStore extends events_1.EventEmitter {
         await this.killSaga(sagaId);
         await this.events.remove({ sagaId });
     }
+    async findFollowEvents(actorId, index) {
+        let events = await this.events.cfind({ actorId, index: { $gt: index } }).sort({ index: -1, date: -1 }).exec();
+        return events.map(event => Event_1.default.parse(event));
+    }
 }
 exports.default = DefaultEventStore;
 //# sourceMappingURL=DefaultEventStore.js.map

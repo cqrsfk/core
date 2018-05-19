@@ -54,11 +54,11 @@ export default class Repository extends EventEmitter {
                     return index > 0 && index <= this._events.length;
                 },
                 done: false,
-                data: reborn(this.ActorClass, snap, events).json,
+                data: reborn(this.ActorClass, snap, events,this.roleMap).json,
                 _get(index) {
                     if (this._validateIndex(index)) {
                         let events = this._events.slice(0, index);
-                        this.data = reborn(this.ActorClass, this._snap, events).json;
+                        this.data = reborn(this.ActorClass, this._snap, events,this.roleMap).json;
                         this.done = false;
                     } else {
                         this.done = true;
@@ -94,19 +94,20 @@ export default class Repository extends EventEmitter {
             let snap: Snap = await this.eventstore.getLatestSnapshot(id);
             if (snap) {
                 const events = await this.eventstore.getEventsBySnapshot(snap.id);
-                const actor:Actor = this.ActorClass.parse(snap.data);
-                events.forEach(event=>{
-
-                  let role = this.roleMap.get(event.roleName);
-
-                  let updater = actor.updater[event.type] ||
-                                actor.updater[event.method+"Update"] ||
-                                (role ? role.updater[event.type] || role.updater[event.method] : null);
-
-                  const updatedData = updater ? updater(actor.json,event) : {};
-                  actor[setdata] = Object.assign({}, actor.json, updatedData );
-                  return actor || null;
-                });
+                return reborn(this.ActorClass, snap, events,this.roleMap)
+                // const actor:Actor = this.ActorClass.parse(snap.data);
+                // events.forEach(event=>{
+                //
+                //   let role = this.roleMap.get(event.roleName);
+                //
+                //   let updater = actor.updater[event.type] ||
+                //                 actor.updater[event.method+"Update"] ||
+                //                 (role ? role.updater[event.type] || role.updater[event.method] : null);
+                //
+                //   const updatedData = updater ? updater(actor.json,event) : {};
+                //   actor[setdata] = Object.assign({}, actor.json, updatedData );
+                //   return actor || null;
+                // });
             }
         }
     }
