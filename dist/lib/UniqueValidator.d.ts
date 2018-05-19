@@ -1,5 +1,5 @@
 import Actor from "./Actor";
-export declare const datakey: symbol;
+export declare const datakey: unique symbol;
 export declare type arr = {
     key: string;
     value: string | number;

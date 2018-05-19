@@ -129,9 +129,8 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
     }
 
     async findFollowEvents(actorId: string, index:number): Promise<any>{
-      let events = await this.events.cfind({ actorId, index:{$gt:index} }).sort({ index: -1, date: -1 }).exec();
+      let events = await this.events.cfind({ actorId, index:{$gt:index} }).sort({ index: 1, date: 1 }).exec();
       return events.map(event => Event.parse(event));
     }
-
 
 }

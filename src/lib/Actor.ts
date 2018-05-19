@@ -6,6 +6,9 @@ const uuid = require('uuid').v1;
 export const setdata = Symbol.for("setdata");
 export const datakey = Symbol("datakey");
 export const isLock = Symbol.for("isLock");
+export const loadEvents = Symbol.for("loadEvents");
+export const roleMap = Symbol.for("roleMap");
+export const latestEventIndex  = Symbol.for("latestEventIndex");
 import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 
@@ -28,6 +31,7 @@ export default class Actor {
         if (!this[datakey].id) {
             this[datakey].id = uuid();
         }
+        this[latestEventIndex] = -1;
     }
 
     get type(): string {
@@ -95,6 +99,18 @@ export default class Actor {
         }
     }
 
+    [loadEvents](events){
+      events.forEach(event=>{
+        let role = this.constructor[roleMap].get(event.roleName);
+        let updater = this.updater[event.type] ||
+                      this.updater[event.method+"Update"] ||
+                      (role ? role.updater[event.type] || role.updater[event.method] : null);
+        const updatedData = updater ? updater(this.json,event) : {};
+        this[setdata] = Object.assign({}, this.json, updatedData );
+        this[latestEventIndex] =  event.index;
+      });
+    }
+
     // todo
     unlock(key) {
         if (this.lockData.key === key) {
@@ -107,7 +123,13 @@ export default class Actor {
     }
 
     static parse(json) {
-        return new this(json);
+        let act = new this(json);
+        act[datakey].id = json.id;
+        return act;
+    }
+
+    unbind(){
+      this.service.unbind(this.id);
     }
 
 }

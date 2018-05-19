@@ -6,10 +6,18 @@ const Event_1 = require("./Event");
 const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
+const utils_1 = require("./cluster/utils");
+const IDManagerServer_1 = require("./cluster/IDManagerServer");
+const IDManager_1 = require("./cluster/IDManager");
+const cio = require("socket.io-client");
+const cqrs_mongo_eventstore_1 = require("cqrs-mongo-eventstore");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
+exports.roleMap = Symbol.for("roleMap");
 exports.getActorProxy = Symbol.for("getActorProxy");
+exports.latestEventIndex = Symbol.for("latestEventIndex");
+const loadEvents = Symbol.for("loadEvents");
 const UniqueValidator_1 = require("./UniqueValidator");
 const Role_1 = require("./Role");
 const ActorEventEmitter_1 = require("./ActorEventEmitter");
@@ -17,14 +25,31 @@ class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
         this.beforeCallHandles = [];
+        this._isCluster = false;
         this.id = uid();
+        let eventstore;
+        // cluster support
+        if (options.cluster) {
+            this._isCluster = true;
+            eventstore = new cqrs_mongo_eventstore_1.default('localhost/test');
+            utils_1.probe(64321, bool => {
+                if (bool) {
+                    new IDManagerServer_1.IDManagerServer();
+                }
+                const socket = cio('http://localhost:64321');
+                this.idManager = new IDManager_1.IDManager(this, socket);
+            });
+        }
         this.ActorClassMap = new Map();
-        this.eventstore = options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
+        this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
         this.repositorieMap = new Map();
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
             new EventBus_1.default(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
         this.register(ActorEventEmitter_1.default).register(UniqueValidator_1.default);
+    }
+    get isCluster() {
+        return this._isCluster;
     }
     // todo
     use(plugin) {
@@ -81,11 +106,24 @@ class Domain {
         return actor;
     }
     async [exports.getActorProxy](type, id, sagaId, key) {
-        const that = this;
         let actor = await this.getNativeActor(type, id);
         if (!actor) {
             return null;
         }
+        if (this.isCluster) {
+            if (!this.idManager.isHold(id)) {
+                await this.idManager.bind(id);
+                if (Array.isArray(actor)) {
+                    let events = await this.eventstore.findFollowEvents(actor[0].id, actor[exports.latestEventIndex]);
+                    actor[0][loadEvents](events);
+                }
+                else {
+                    let events = await this.eventstore.findFollowEvents(actor.id, actor[exports.latestEventIndex]);
+                    actor[loadEvents](events);
+                }
+            }
+        }
+        const that = this;
         let roles;
         if (Array.isArray(actor)) {
             roles = actor[1];
@@ -103,7 +141,7 @@ class Domain {
                 let member = actor[prop];
                 let roleName;
                 let role;
-                if (prop === "json" || prop === "id") {
+                if (prop === "json" || prop === "id" || typeof prop === 'symbol') {
                     return member;
                 }
                 else {
@@ -135,7 +173,7 @@ class Domain {
                                             setTimeout(run, 2000);
                                         }
                                         else {
-                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), (type, id, sagaId, key) => that[exports.getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
+                                            const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), that, (type, id, sagaId, key) => that[exports.getActorProxy](type, id, sagaId, key), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role);
                                             const service = new Proxy(function service(type, data) {
                                                 if (arguments.length === 0) {
                                                     type = prop;
@@ -190,6 +228,7 @@ class Domain {
             Classes = [Classes];
         }
         for (let Class of Classes) {
+            Class[exports.roleMap] = this.roleMap;
             const type = Class.getType();
             if (!type)
                 throw new Error("please implements Actor.getType!");
@@ -242,6 +281,14 @@ class Domain {
             throw new Error(name + " role is exist. ");
         this.roleMap.set(name, new Role_1.default(name, supportedActorNames, methods, updater));
         return this;
+    }
+    clearCache(id) {
+        this.repositorieMap.forEach(repo => {
+            repo.clear(id);
+        });
+    }
+    unbind(id) {
+        this.idManager.unbind(id);
     }
 }
 exports.default = Domain;

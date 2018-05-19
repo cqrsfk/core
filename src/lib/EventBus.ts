@@ -8,6 +8,8 @@ import { getAlias } from "./eventAlias";
 import Snap from "./Snap";
 import Domain from "./Domain";
 
+const latestEventIndex = Symbol.for("latestEventIndex");
+
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 
 export default class EventBus {
@@ -80,10 +82,11 @@ export default class EventBus {
         const event = await this.eventstore.getLatestEvent(actor.id);
         let startIndex = event ? event.index + 1 : 0;
         let events = actor[uncommittedEvents].map(function (evt, index) {
-            evt.index = index + startIndex;
+            actor[latestEventIndex] = evt.index = index + startIndex;
             return evt;
         });
         await this.eventstore.saveEvents(events);
+
         actor[uncommittedEvents] = [];
 
         let snap = await this.eventstore.getLatestSnapshot(actor.id);

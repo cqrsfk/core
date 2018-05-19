@@ -30,7 +30,7 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.6.1",
-    "debug": "^2.6.8",
+    "cqrs-mongo-eventstore": "^1.2.2",
     "nedb-promise": "^2.0.1",
     "protobufjs": "^6.7.3",
     "socket.io": "^2.0.3",

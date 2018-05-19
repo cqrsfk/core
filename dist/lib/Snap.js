@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid = require("uuid").v1;
 class Snap {
-    constructor(actor, index = 0, latestEventIndex = 0) {
+    constructor(actor, index = 0, latestEventIndex = -1) {
         this.index = index;
         this.latestEventIndex = latestEventIndex;
         this.id = uuid();

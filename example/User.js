@@ -4,7 +4,7 @@ const { Actor } = require("..");
 module.exports = class User extends Actor {
 
     constructor(data) {
-        super({ money: data.money || 0, name: data.name });
+        super({ money: data.money || 0, name: data.name, id:data.id });
     }
 
     changename(name) {

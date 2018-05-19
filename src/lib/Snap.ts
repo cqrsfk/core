@@ -9,7 +9,7 @@ export default class Snap {
     readonly actorType: string
     readonly data: any
 
-    constructor(actor: Actor, public readonly index: number = 0, public readonly latestEventIndex: number = 0) {
+    constructor(actor: Actor, public readonly index: number = 0, public readonly latestEventIndex: number = -1) {
         this.id = uuid();
         this.date = new Date();
         this.actorId = actor.id;

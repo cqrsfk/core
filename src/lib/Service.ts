@@ -5,9 +5,11 @@ import Event from "./Event";
 import Role from "./Role";
 import Repository from "./Repository";
 import ActorEventEmitter from "./ActorEventEmitter";
+import Domain from "./Domain";
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
+export const latestEventIndex  = Symbol.for("latestEventIndex");
 
 /**
  * When call actor's method , then DI service object.
@@ -23,6 +25,7 @@ export default class Service {
     private actor: Actor,
     private bus: EventBus,
     private repo: Repository,
+    private _domain:Domain,
     private getActor,
     private createActor,
     private method: string,
@@ -72,6 +75,7 @@ export default class Service {
     this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
     this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
     this.actor[uncommittedEvents].push(event);
+    ++this.actor[latestEventIndex];
     this.bus.publish(this.actor);
     this.applied = true;
 
@@ -107,8 +111,6 @@ export default class Service {
 
     }
 
-
-
   }
 
   lock(timeout?: number) {
@@ -119,6 +121,10 @@ export default class Service {
   unlock() {
     this.lockMode = false;
     // todo
+  }
+
+  unbind(id:string){
+    this._domain.unbind(id);
   }
 
   sagaBegin() {

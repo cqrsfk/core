@@ -3,6 +3,7 @@ module.exports = {
   methods:{
       add(money) {
           this.service.apply("add", money);
+          return "-------> " + money;
       }
   },
   name:"charger",

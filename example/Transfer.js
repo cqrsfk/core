@@ -7,7 +7,7 @@ module.exports = class Transfer extends Actor {
     }
 
     log(event) {
-        console.log(event,"21121----2");
+        // console.log(event,"21121----2");
     }
 
     async transfe(fromUserId, toUserId, money) {

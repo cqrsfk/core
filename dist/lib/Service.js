@@ -4,14 +4,16 @@ const Event_1 = require("./Event");
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
+exports.latestEventIndex = Symbol.for("latestEventIndex");
 /**
  * When call actor's method , then DI service object.
  */
 class Service {
-    constructor(actor, bus, repo, getActor, createActor, method, sagaId, roleName, role) {
+    constructor(actor, bus, repo, _domain, getActor, createActor, method, sagaId, roleName, role) {
         this.actor = actor;
         this.bus = bus;
         this.repo = repo;
+        this._domain = _domain;
         this.getActor = getActor;
         this.createActor = createActor;
         this.method = method;
@@ -64,6 +66,7 @@ class Service {
         this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
+        ++this.actor[exports.latestEventIndex];
         this.bus.publish(this.actor);
         this.applied = true;
         if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
@@ -99,6 +102,9 @@ class Service {
     unlock() {
         this.lockMode = false;
         // todo
+    }
+    unbind(id) {
+        this._domain.unbind(id);
     }
     sagaBegin() {
         if (this.sagaId && !this.sagaMode) {

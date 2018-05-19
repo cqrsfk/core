@@ -1,1 +1,1 @@
-export declare function getLocalClusterMode(): void;
+export declare function probe(port: any, callback: any): void;
