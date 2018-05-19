@@ -15,7 +15,6 @@ class IDManager {
         return this.holdIds.has(id);
     }
     async bind(id) {
-        console.log("bind .....", id);
         var that = this;
         return new Promise(resolve => {
             this.socket.emit("bind", { domainId: this.domainId, id }, function (err, result) {
