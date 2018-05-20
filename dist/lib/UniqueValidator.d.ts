@@ -9,6 +9,7 @@ export default class UniqueValidator extends Actor {
         actotType: any;
         uniqueFields: any;
     });
+    static getType(): string;
     private getArr(key, value?);
     hasVoid(key: string | arr, value?: string): boolean;
     private filter(arr);

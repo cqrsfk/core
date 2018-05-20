@@ -130,6 +130,7 @@ export default class Domain {
               uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
             }
             uniqueValidatedOk = await uniqueValidator.hold(arr);
+            uniqueValidator.unbind();
           }
         }
         data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk)) || data;
@@ -152,7 +153,9 @@ export default class Domain {
       return null;
     }
 
-    if (this.isCluster) {
+
+    // cluster support
+    if (this.isCluster && 'ActorEventEmitter' !== type) {
       if (!this.idManager.isHold(id)) {
         await this.idManager.bind(id);
         if (Array.isArray(actor)) {

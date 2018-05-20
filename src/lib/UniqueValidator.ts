@@ -12,6 +12,10 @@ export default class UniqueValidator extends Actor {
     super({ id: actotType, uniqueFields: [...uniqueFields], repos })
   }
 
+  static getType(){
+    return 'UniqueValidator';
+  }
+
   private getArr(key: string | arr, value?: string): arr {
     let arr: arr;
     if (!Array.isArray(key)) {

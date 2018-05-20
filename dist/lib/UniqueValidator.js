@@ -11,6 +11,9 @@ class UniqueValidator extends Actor_1.default {
         });
         super({ id: actotType, uniqueFields: [...uniqueFields], repos });
     }
+    static getType() {
+        return 'UniqueValidator';
+    }
     getArr(key, value) {
         let arr;
         if (!Array.isArray(key)) {

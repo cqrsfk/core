@@ -7,7 +7,7 @@ const Transfer = require("./Transfer");
 const payers_roles = require("./payers");
 const charger_roles = require("./charger");
 const domain = new Domain({
-  cluster: true
+  // cluster: true
 });
 
 
@@ -52,6 +52,3 @@ async function main(money) {
   console.log("fromUser's money is ", fromUser.json.money);
   console.log("toUser's money is ", toUser.json.money);
 }
-
-
-// main(220);
