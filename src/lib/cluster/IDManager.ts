@@ -23,12 +23,28 @@ export class IDManager {
   }
 
   async bind(id) {
+
+    if(this.isHold(id)) return;
+
     var that = this;
     return new Promise(resolve=>{
-      this.socket.emit("bind",{domainId:this.domainId,id},function (err,result) {
-        that.holdIds.add(id);
-        resolve();
+
+      let timeout = false;
+
+      // timeout
+      let t = setTimeout(()=>{
+        timeout = true;
+        resolve("timeout");
+      },1000);
+
+      this.socket.emit("bind",{domainId:this.domainId,id}, (err,result)=> {
+        clearTimeout(t);
+        this.holdIds.add(id);
+        if(!timeout){
+          resolve();
+        }
       });
+
     })
   }
 

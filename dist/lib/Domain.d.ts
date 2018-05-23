@@ -15,13 +15,17 @@ export default class Domain {
     private beforeCallHandles;
     private idManager;
     private _isCluster;
+    private _isInited;
+    private _waitInitList;
+    private _isMaster;
     readonly id: any;
     constructor(options?: any);
+    waitInited(): Promise<{}>;
     readonly isCluster: boolean;
     use(plugin: any): Domain;
     private getNativeActor(type, id);
     private nativeCreateActor(type, data);
-    [getActorProxy](type: string, id: string, sagaId?: string, key?: string): Promise<any>;
+    [getActorProxy](type: string, id: string, sagaId?: string, key?: string, parents?: any[]): Promise<any>;
     register(Classes: ActorConstructor[] | ActorConstructor): this;
     create(type: string, data: any): Promise<any>;
     get(type: string, id: string): Promise<any>;

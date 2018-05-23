@@ -129,7 +129,7 @@ export default class Actor {
     }
 
     unbind(){
-      this.service.unbind(this.id);
+      this.service.unbind();
     }
 
 }

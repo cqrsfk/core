@@ -23,14 +23,17 @@ export default class ActorEventEmitter extends Actor {
         await listener[handleMethodName](event);
       }
     }
+    this.service.unbind();
   }
 
   subscribe(actorType: string, listenerType: string, listenerId: string, handleMethodName: string) {
     this.service.apply("_subscribe",{ actorType, listenerType, listenerId, handleMethodName });
+    this.service.unbind();
   }
 
   unsubscribe(actorType: string, listenerId: string) {
     this.service.apply("_unsubscribe",{ actorType, listenerId });
+    this.service.unbind();
   }
 
   get updater() {

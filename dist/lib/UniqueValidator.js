@@ -30,8 +30,10 @@ class UniqueValidator extends Actor_1.default {
             let repo = this[exports.datakey].repos[item.key];
             if (repo) {
                 repo.includes(item.value);
+                this.service.unbind();
             }
             else {
+                this.service.unbind();
                 return true;
             }
         });
@@ -42,6 +44,7 @@ class UniqueValidator extends Actor_1.default {
     hold(key, value) {
         let arr = this.filter(this.getArr(key, value));
         this.$(arr);
+        this.service.unbind();
         return false;
     }
     get updater() {

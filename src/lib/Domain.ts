@@ -36,6 +36,9 @@ export default class Domain {
   private beforeCallHandles: any[] = [];
   private idManager: IDManager;
   private _isCluster = false;
+  private _isInited = false;
+  private _waitInitList = [];
+  private _isMaster = false;
   public readonly id;
 
   constructor(options: any = {}) {
@@ -44,18 +47,21 @@ export default class Domain {
     let eventstore;
 
     // cluster support
+
     if (options.cluster) {
       this._isCluster = true;
       eventstore = new MongoEventStore('localhost/test');
-      probe(64321, bool => {
+      setImmediate(()=>probe(64321, bool => {
         if (bool) {
           new IDManagerServer();
+          this._isMaster = true;
         }
 
+        this._isInited = true;
+        setImmediate(()=>this._waitInitList.forEach(fn => fn()));
         const socket = cio('http://localhost:64321');
         this.idManager = new IDManager(this, socket);
-      })
-
+      }))
 
     }
 
@@ -68,6 +74,17 @@ export default class Domain {
 
     this.register(ActorEventEmitter).register(UniqueValidator);
 
+  }
+
+  // TODO:
+  waitInited() {
+    return new Promise(resolve => {
+      if (this._isInited) {
+        resolve();
+      } else {
+        this._waitInitList.push(resolve);
+      }
+    })
   }
 
   get isCluster(): boolean {
@@ -145,25 +162,58 @@ export default class Domain {
 
   }
 
-  async [getActorProxy](type: string, id: string, sagaId?: string, key?: string) {
+  async [getActorProxy](type: string, id: string, sagaId?: string, key?: string, parents?: any[]) {
+
+    parents = parents || [];
 
     let actor = await this.getNativeActor(type, id);
-
     if (!actor) {
       return null;
     }
 
-
     // cluster support
-    if (this.isCluster && 'ActorEventEmitter' !== type) {
+
+    if (this.isCluster) {
       if (!this.idManager.isHold(id)) {
-        await this.idManager.bind(id);
+
+        // if timeout , then try loop bind .
+        let looptry = async () => {
+
+          const result = await this.idManager.bind(id);
+
+          if (result === 'timeout') { // timeout
+
+            if (parents) {
+              for (let parent of parents) {
+                await this.idManager.unbind(parent.id); // unbind parent actor
+                const p = await this[getActorProxy](parent.type, parent.id); // rebind parent actor
+
+                // parent is removed
+                if (!p) {
+                  throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
+                }
+              }
+            }
+
+            await looptry();
+
+          }
+        }
+
+        await looptry();
+
         if (Array.isArray(actor)) {
           let events = await this.eventstore.findFollowEvents(actor[0].id, actor[latestEventIndex]);
           actor[0][loadEvents](events);
+          if (!actor[0].json.isAlive) {
+            return null;
+          }
         } else {
           let events = await this.eventstore.findFollowEvents(actor.id, actor[latestEventIndex]);
           actor[loadEvents](events);
+          if (!actor.json.isAlive) {
+            return null;
+          }
         }
       }
     }
@@ -175,6 +225,8 @@ export default class Domain {
       roles = actor[1]
       actor = actor[0];
     }
+
+
 
     const proxy = new Proxy(actor, {
       get(target, prop: string) {
@@ -220,9 +272,9 @@ export default class Domain {
                     } else {
                       const iservice = new Service(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)),
                         that,
-                        (type, id, sagaId, key) => that[getActorProxy](type, id, sagaId, key),
+                        (type, id, sagaId, key, parent) => that[getActorProxy](type, id, sagaId, key, parent),
                         (type, data) => that.nativeCreateActor(type, data),
-                        prop, sagaId, roleName, role);
+                        prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
 
                       const service = new Proxy(function service(type, data) {
                         if (arguments.length === 0) {
@@ -251,12 +303,22 @@ export default class Domain {
                       }
                       if (result instanceof Promise) {
                         result.then(result => {
-                          resolve(result)
+                          resolve(result);
+                          if(!iservice.unbindCalled){
+                            iservice.unbind();
+                          }
                         }).catch(err => {
+                          if(!iservice.unbindCalled){
+                            iservice.unbind();
+                          }
                           that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
                         })
                       } else {
+
                         resolve(result);
+                        if(iservice.unbindCalled){
+                          iservice.unbind();
+                        }
                       }
                     }
                   }
@@ -277,34 +339,47 @@ export default class Domain {
       Classes = [Classes]
     }
 
-    for (let Class of Classes) {
-      Class[roleMap] = this.roleMap;
-      const type = Class.getType();
-      if (!type) throw new Error("please implements Actor.getType!");
-      this.ActorClassMap.set(type, Class);
-      const repo = new Repository(Class, this.eventstore, this.roleMap);
-      this.repositorieMap.set(Class, repo);
+    (async () => {
+      if (this.isCluster) {
+        await this.waitInited();
+      }
+      for (let Class of Classes) {
+        Class[roleMap] = this.roleMap;
+        const type = Class.getType();
+        if (!type) throw new Error("please implements Actor.getType!");
+        this.ActorClassMap.set(type, Class);
+        const repo = new Repository(Class, this.eventstore, this.roleMap);
+        this.repositorieMap.set(Class, repo);
 
-      this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
+        (async ()=>{
+          this.waitInited();
+            if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator'  ) {
+              const emitter = await this.get('ActorEventEmitter', "ActorEventEmitter" + type);
+              if (!emitter && (!this.isCluster || this._isMaster)) {
+                this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
+              }
+            }
+            repo.on("create", json => {
+              let event = new Event(
+                { id: json.id, type: Class.getType() }, json, "create", "create"
+              )
+              if (type !== 'ActorEventEmitter') {
+                this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
+                  emitter.publish(event);
+                })
+              }
+              const alias = getAlias(event);
+              for (let name of alias) {
+                this.eventbus.emitter.emit(name, event);
+              }
+            });
+        })();
 
-      repo.on("create", json => {
-        let event = new Event(
-          { id: json.id, type: Class.getType() }, json, "create", "create"
-        )
-        if (type !== 'ActorEventEmitter') {
-          this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
-            emitter.publish(event);
-          })
-        }
-        const alias = getAlias(event);
-        for (let name of alias) {
-          this.eventbus.emitter.emit(name, event);
-        }
-      });
-    }
+
+      }
+    })();
 
     return this;
-
   }
 
   async create(type: string, data: any) {
@@ -352,7 +427,9 @@ export default class Domain {
   }
 
   unbind(id: string) {
-    this.idManager.unbind(id);
+    if(this._isCluster){
+      this.idManager.unbind(id);
+    }
   }
 
 }

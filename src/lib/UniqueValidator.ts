@@ -32,10 +32,14 @@ export default class UniqueValidator extends Actor {
       let repo = this[datakey].repos[item.key];
       if (repo) {
         repo.includes(item.value)
+        this.service.unbind();
       } else {
+        this.service.unbind();
         return true;
       }
     });
+
+
   }
 
   private filter(arr: arr) {
@@ -45,6 +49,7 @@ export default class UniqueValidator extends Actor {
   hold(key: string | arr, value?: string) {
     let arr = this.filter(this.getArr(key, value));
     this.$(arr);
+    this.service.unbind();
     return false;
   }
 

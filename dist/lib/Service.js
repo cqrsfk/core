@@ -9,7 +9,7 @@ exports.latestEventIndex = Symbol.for("latestEventIndex");
  * When call actor's method , then DI service object.
  */
 class Service {
-    constructor(actor, bus, repo, _domain, getActor, createActor, method, sagaId, roleName, role) {
+    constructor(actor, bus, repo, _domain, getActor, createActor, method, sagaId, roleName, role, parents) {
         this.actor = actor;
         this.bus = bus;
         this.repo = repo;
@@ -20,12 +20,15 @@ class Service {
         this.sagaId = sagaId;
         this.roleName = roleName;
         this.role = role;
+        this.parents = parents;
         this.lockMode = false;
         this.sagaMode = false;
         this.key = uuid();
+        this.subIds = [];
         this.applied = false;
+        this.unbindCalled = false;
     }
-    apply(type, data, direct) {
+    async apply(type, data, direct) {
         const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
         let updater;
         if (type === "remove") {
@@ -67,16 +70,16 @@ class Service {
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
         ++this.actor[exports.latestEventIndex];
-        this.bus.publish(this.actor);
+        await this.bus.publish(this.actor);
         this.applied = true;
         if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
             const actorType = this.actor.type;
-            (async () => {
+            setImmediate(async () => {
                 const emitter = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
                 if (emitter) {
                     emitter.publish(event);
                 }
-            })();
+            });
             let listeners = this.actor.json.listeners;
             let handles = listeners[type];
             let emit = async (handles) => {
@@ -94,6 +97,7 @@ class Service {
             handles = listeners["*"];
             emit(handles);
         }
+        this.unbind();
     }
     lock(timeout) {
         this.lockMode = true;
@@ -103,8 +107,10 @@ class Service {
         this.lockMode = false;
         // todo
     }
-    unbind(id) {
-        this._domain.unbind(id);
+    unbind() {
+        this.unbindCalled = true;
+        this._domain.unbind(this.actor.id);
+        this.subIds.forEach(id => this._domain.unbind(id));
     }
     sagaBegin() {
         if (this.sagaId && !this.sagaMode) {
@@ -144,7 +150,8 @@ class Service {
     async get(type, id) {
         if (id === this.actor.id)
             throw new Error("Don't be get self");
-        let proxy = await this.getActor(type, id, this.sagaId || null, this.key);
+        this.subIds.push(id);
+        let proxy = await this.getActor(type, id, this.sagaId || null, this.key, this.parents || []);
         if (!proxy)
             return null;
         if (this.lockMode) {

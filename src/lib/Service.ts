@@ -19,8 +19,9 @@ export default class Service {
   private lockMode = false;
   private sagaMode = false;
   private key: string = uuid();
+  private subIds : string[] = [];
   public applied: boolean = false;
-
+  public unbindCalled: boolean = false;
   constructor(
     private actor: Actor,
     private bus: EventBus,
@@ -31,11 +32,13 @@ export default class Service {
     private method: string,
     public sagaId?: string,
     private roleName?: string,
-    private role?: Role
+    private role?: Role,
+    private parents?: any[]
   ) {
+
   }
 
-  apply(type: string, data?: any, direct?: boolean) {
+  async apply(type: string, data?: any, direct?: boolean) {
     const event = new Event(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
 
     let updater;
@@ -76,18 +79,18 @@ export default class Service {
     this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
     this.actor[uncommittedEvents].push(event);
     ++this.actor[latestEventIndex];
-    this.bus.publish(this.actor);
+    await this.bus.publish(this.actor);
     this.applied = true;
 
     if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
       const actorType = this.actor.type;
 
-      (async () => {
+      setImmediate(async ()=>{
         const emitter = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
         if(emitter){
           emitter.publish(event);
         }
-      })();
+      })
 
       let listeners = this.actor.json.listeners;
       let handles = listeners[type];
@@ -110,7 +113,7 @@ export default class Service {
       emit(handles);
 
     }
-
+    this.unbind();
   }
 
   lock(timeout?: number) {
@@ -123,8 +126,11 @@ export default class Service {
     // todo
   }
 
-  unbind(id:string){
-    this._domain.unbind(id);
+  unbind(){
+    this.unbindCalled = true;
+
+    this._domain.unbind(this.actor.id);
+    this.subIds.forEach(id=>this._domain.unbind(id));
   }
 
   sagaBegin() {
@@ -169,9 +175,9 @@ export default class Service {
   }
 
   async get(type: string, id: string) {
-
     if (id === this.actor.id) throw new Error("Don't be get self");
-    let proxy = await this.getActor(type, id, this.sagaId || null, this.key);
+    this.subIds.push(id);
+    let proxy = await this.getActor(type, id, this.sagaId || null, this.key , this.parents || []);
     if (!proxy) return null;
 
     if (this.lockMode) {

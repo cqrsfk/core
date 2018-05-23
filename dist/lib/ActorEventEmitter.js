@@ -19,12 +19,15 @@ class ActorEventEmitter extends Actor_1.default {
                 await listener[handleMethodName](event);
             }
         }
+        this.service.unbind();
     }
     subscribe(actorType, listenerType, listenerId, handleMethodName) {
         this.service.apply("_subscribe", { actorType, listenerType, listenerId, handleMethodName });
+        this.service.unbind();
     }
     unsubscribe(actorType, listenerId) {
         this.service.apply("_unsubscribe", { actorType, listenerId });
+        this.service.unbind();
     }
     get updater() {
         return {

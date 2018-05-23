@@ -34,6 +34,7 @@ export class IDManagerServer {
           const _domainId = this.idMap.get(id);
           if (domainId === _domainId) {
             this.idMap.delete(id);
+
             let arr = this.cbMap.get(id);
             if (arr && arr.length) {
               const { info, cb } = arr.pop();

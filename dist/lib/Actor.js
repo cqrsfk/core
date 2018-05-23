@@ -101,7 +101,7 @@ class Actor {
         return act;
     }
     unbind() {
-        this.service.unbind(this.id);
+        this.service.unbind();
     }
 }
 exports.default = Actor;
