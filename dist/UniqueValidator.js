@@ -31,7 +31,7 @@ class UniqueValidator extends Actor_1.default {
                 return repo.includes(item.value);
             }
             else {
-                return true;
+                return false;
             }
         });
     }

@@ -32,7 +32,7 @@ export default class UniqueValidator extends Actor {
       if (repo) {
         return repo.includes(item.value);
       } else {
-        return true;
+        return false;
       }
     });
   }
