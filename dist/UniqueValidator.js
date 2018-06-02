@@ -43,6 +43,14 @@ class UniqueValidator extends Actor_1.default {
         this.$(arr);
         return true;
     }
+    giveup(key, value) {
+        const json = this.json;
+        if (json.uniqueFields.includes(key)) {
+            if (json.repos[key].includes(value)) {
+                this.$({ key, value });
+            }
+        }
+    }
     get updater() {
         return {
             hold(json, event) {
@@ -51,6 +59,15 @@ class UniqueValidator extends Actor_1.default {
                 arr.forEach(function (item) {
                     repos[item.key].push(item.value);
                 });
+                return { repos };
+            },
+            giveup(json, event) {
+                let { key, value } = event.data;
+                let repos = json.repos;
+                let repo = repos[key];
+                let repoSet = (new Set(repo));
+                repoSet.delete(value);
+                repos = Object.assign({}, repos, { [key]: [...repoSet] });
                 return { repos };
             }
         };

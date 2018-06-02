@@ -12,8 +12,12 @@ export default class UniqueValidator extends Actor {
     private getArr;
     hasHold(key: string | arr, value?: string): boolean;
     hold(key: string | arr, value?: string): boolean;
+    giveup(key: any, value: any): void;
     readonly updater: {
         hold(json: any, event: any): {
+            repos: any;
+        };
+        giveup(json: any, event: any): {
             repos: any;
         };
     };
