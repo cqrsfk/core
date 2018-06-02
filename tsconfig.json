@@ -1,13 +1,17 @@
 {
-    "compilerOptions": {
-        "target": "es2017",
-        "module": "commonjs",
-        "outDir": "dist",
-        "noEmitOnError":true,
-        "sourceMap": true,
-        "declaration":true
-    },
-    "include": [
-        "src/**/*"
-    ]
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "outDir": "dist",
+    "noEmitOnError": true,
+    "sourceMap": true,
+    "declaration": true,
+    "lib": [
+      "es2017",
+      "esnext.asynciterable"
+    ],
+  },
+  "include": [
+    "src/**/*"
+  ]
 }
