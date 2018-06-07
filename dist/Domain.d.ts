@@ -22,6 +22,7 @@ export default class Domain {
     constructor(options?: any);
     waitInited(): Promise<{}>;
     readonly isCluster: boolean;
+    static readonly version: string;
     use(plugin: any): Domain;
     private getNativeActor;
     private nativeCreateActor;

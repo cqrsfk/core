@@ -10,6 +10,7 @@ const utils_1 = require("./cluster/utils");
 const IDManagerServer_1 = require("./cluster/IDManagerServer");
 const IDManager_1 = require("./cluster/IDManager");
 const cio = require("socket.io-client");
+const { version } = require("../package.json");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
@@ -65,6 +66,9 @@ class Domain {
     }
     get isCluster() {
         return this._isCluster;
+    }
+    static get version() {
+        return version;
     }
     // todo
     use(plugin) {
