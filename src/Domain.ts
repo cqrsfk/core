@@ -10,7 +10,7 @@ import { probe } from './cluster/utils';
 import { IDManagerServer } from './cluster/IDManagerServer';
 import { IDManager } from './cluster/IDManager';
 import * as cio from "socket.io-client";
-
+const {version} = require("../package.json");
 const isLock = Symbol.for("isLock");
 const debug = require('debug')('domain');
 const uid = require("uuid").v1;
@@ -87,6 +87,10 @@ export default class Domain {
 
   get isCluster(): boolean {
     return this._isCluster;
+  }
+
+  static get version():string{
+     return version;
   }
 
   // todo
