@@ -235,15 +235,11 @@ export default class Domain {
 
         if (prop === "then") { return proxy };
 
-        if ("lock" === prop || "lockData" === prop) {
-          return Reflect.get(target, prop);
-        }
-
         let member = actor[prop];
         let roleName;
         let role;
-        if (prop === "json" || prop === "id" || typeof prop === 'symbol') {
-          return member;
+        if ("lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
+          return Reflect.get(target, prop);
         } else {
           if (!member) {
             if (roles) {
