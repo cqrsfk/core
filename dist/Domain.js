@@ -216,7 +216,7 @@ class Domain {
                                         }
                                         else {
                                             const iservice = new Service_1.default(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)), that, (type, id, sagaId, key, parent) => that[exports.getActorProxy](type, id, sagaId, key, parent), (type, data) => that.nativeCreateActor(type, data), prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
-                                            const service = new Proxy(function service(type, data) {
+                                            const service = function (type, data) {
                                                 if (arguments.length === 0) {
                                                     type = prop;
                                                     data = null;
@@ -226,11 +226,8 @@ class Domain {
                                                     type = prop;
                                                 }
                                                 return iservice.apply(type, data);
-                                            }, {
-                                                get(target, prop) {
-                                                    return iservice[prop].bind(iservice);
-                                                }
-                                            });
+                                            };
+                                            service.__proto__ = iservice;
                                             cxt = { service, $: service };
                                             cxt.__proto__ = actor;
                                             let result;

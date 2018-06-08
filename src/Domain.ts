@@ -274,20 +274,21 @@ export default class Domain {
                         (type, data) => that.nativeCreateActor(type, data),
                         prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
 
-                      const service = new Proxy(function service(type, data) {
-                        if (arguments.length === 0) {
-                          type = prop;
-                          data = null;
-                        } else if (arguments.length === 1) {
-                          data = type;
-                          type = prop;
-                        }
-                        return iservice.apply(type, data)
-                      }, {
-                          get(target, prop) {
-                            return iservice[prop].bind(iservice);
+                      interface IService {
+                        __proto__?:any,
+                        (type:string,data:any):any
+                      }
+                      const service:IService = function (type,data) {
+                          if (arguments.length === 0) {
+                            type = prop;
+                            data = null;
+                          } else if (arguments.length === 1) {
+                            data = type;
+                            type = prop;
                           }
-                        })
+                          return iservice.apply(type, data);
+                      }
+                      service.__proto__ = iservice;
                       cxt = { service, $: service };
 
                       cxt.__proto__ = actor;
