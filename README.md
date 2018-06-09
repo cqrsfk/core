@@ -16,7 +16,7 @@ Install
 
 Consumers
 =========
-+ [Node.js Forum](https://github.com/liangzeng/auxo)
++ [Auxo](https://github.com/liangzeng/auxo) vue & express & cqrs framework
 + [Node.js Forum](https://github.com/liangzeng/forum)
 
 EventStore
