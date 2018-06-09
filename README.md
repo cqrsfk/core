@@ -5,15 +5,18 @@ DDD-CQRS-Actor framework.
 
 Version
 =======
-    cqrs@1.6.0
+    cqrs@2.2.4
 
 Install
 =======
 
-    npm install cqrs@latest
+    npm install cqrs
+
+    yarn add cqrs
 
 Consumers
 =========
++ [Node.js Forum](https://github.com/liangzeng/auxo)
 + [Node.js Forum](https://github.com/liangzeng/forum)
 
 EventStore
