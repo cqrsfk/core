@@ -27,7 +27,7 @@ export default class UniqueValidator extends Actor {
 
   hasHold(key: string | arr, value?: string):boolean {
     let arr = this.getArr(key, value);
-    return arr.every(item => {
+    return arr.some(item => {
       let repo = this.json.repos[item.key];
       if (repo) {
         return repo.includes(item.value);
@@ -38,10 +38,16 @@ export default class UniqueValidator extends Actor {
   }
 
   hold(key: string | arr, value?: string) {
-    let arr = this.getArr(key, value);
-    if(this.hasHold(arr)){
-      return false;
+    let arr:any = this.getArr(key, value);
+    let holded = [];
+    let hasError = false;
+    for(let item of arr){
+      if (this.hasHold(item.key,item.value)) {
+        hasError = true;
+        holded.push(item.key);
+      }
     }
+    if(hasError) throw {holded};
     this.$(arr);
     return true;
   }

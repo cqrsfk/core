@@ -122,47 +122,52 @@ export default class Domain {
 
   private async nativeCreateActor(type, data) {
 
-    const actorType = type.split(".").shift();
+      const actorType = type.split(".").shift();
 
-    const ActorClass = this.ActorClassMap.get(actorType);
-    const repo = this.repositorieMap.get(ActorClass);
-
-
-    if (ActorClass.beforeCreate) {
+      const ActorClass = this.ActorClassMap.get(actorType);
+      const repo = this.repositorieMap.get(ActorClass);
 
 
-      try {
-        let uniqueValidatedOk = true;
+      if (ActorClass.beforeCreate) {
 
-        //  unique field value validate
-        if (ActorClass.uniqueFields) {
-          let arr = [];
-          ActorClass.uniqueFields.forEach(key => {
-            let value = data[key];
-            if (value && ['string', 'number'].includes(typeof (value))) {
-              arr.push({ key, value });
+
+        try {
+          let uniqueValidatedOk = true;
+          let holded = [];
+          //  unique field value validate
+          if (ActorClass.uniqueFields) {
+            let arr = [];
+            ActorClass.uniqueFields.forEach(key => {
+              let value = data[key];
+              if (value && ['string', 'number'].includes(typeof (value))) {
+                arr.push({ key, value });
+              }
+            });
+            if (arr.length) {
+              let uniqueValidator: UniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
+              if (!uniqueValidator) {
+                uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
+              }
+              try{
+                uniqueValidatedOk = await uniqueValidator.hold(arr);
+              }catch(err){
+                holded = err.holded;
+                uniqueValidatedOk = false;
+              }
+              uniqueValidator.unbind();
             }
-          });
-          if (arr.length) {
-            let uniqueValidator: UniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
-            if (!uniqueValidator) {
-              uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
-            }
-            uniqueValidatedOk = await uniqueValidator.hold(arr);
-            uniqueValidator.unbind();
           }
+          data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk,holded)) || data;
+        } catch (err) {
+          throw err;
         }
-        data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk)) || data;
-      } catch (err) {
-        throw err;
       }
+
+      const actorId = (await repo.create(data)).json.id;
+      const actor = await this[getActorProxy](type, actorId);
+      return actor;
+
     }
-
-    const actorId = (await repo.create(data)).json.id;
-    const actor = await this[getActorProxy](type, actorId);
-    return actor;
-
-  }
 
   async [getActorProxy](type: string, id: string, sagaId?: string, key?: string, parents?: any[]) {
 

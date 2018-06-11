@@ -97,6 +97,7 @@ class Domain {
         if (ActorClass.beforeCreate) {
             try {
                 let uniqueValidatedOk = true;
+                let holded = [];
                 //  unique field value validate
                 if (ActorClass.uniqueFields) {
                     let arr = [];
@@ -111,11 +112,17 @@ class Domain {
                         if (!uniqueValidator) {
                             uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
                         }
-                        uniqueValidatedOk = await uniqueValidator.hold(arr);
+                        try {
+                            uniqueValidatedOk = await uniqueValidator.hold(arr);
+                        }
+                        catch (err) {
+                            holded = err.holded;
+                            uniqueValidatedOk = false;
+                        }
                         uniqueValidator.unbind();
                     }
                 }
-                data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk)) || data;
+                data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk, holded)) || data;
             }
             catch (err) {
                 throw err;

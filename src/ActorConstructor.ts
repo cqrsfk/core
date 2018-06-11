@@ -6,7 +6,7 @@ interface ActorConstructor {
     getType(): string;
     parse: (data:any) => Actor;
     toJSON: (Actor)=>any;
-    beforeCreate?: (data:any, domain:Domain,uniqueValidatedOk:boolean) => any;
+    beforeCreate?: (data:any, domain:Domain,uniqueValidatedOk:boolean,holded:string[]) => any;
     uniqueFields?:string[]
 }
 
