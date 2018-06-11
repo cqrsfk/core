@@ -131,6 +131,7 @@ class Domain {
         const actorId = (await repo.create(data)).json.id;
         const actor = await this[exports.getActorProxy](type, actorId);
         if (ActorClass.created) {
+            await ActorClass.created(actor, this);
         }
         return actor;
     }
