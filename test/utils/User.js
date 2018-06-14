@@ -23,7 +23,7 @@ module.exports = class User extends Actor {
   // 充值
   recharge(money) {
     money = +money;
-    if (money !== money || Number.isInteger(money)) {
+    if (money !== money || !Number.isInteger(money)) {
       throw {
         money: "格式不对"
       }

@@ -68,7 +68,7 @@ export default class DefaultEventStore extends EventEmitter implements EventStor
     }
 
     async getEvents(actorId) {
-        let events = await this.events.cfind({ actorId }).sort({ index: -1, date: -1 }).exec();
+        let events = await this.events.cfind({ actorId }).sort({ index: 1, date: 1 }).exec();
         return events.map(event => Event.parse(event));
     }
 

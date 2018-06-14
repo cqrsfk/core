@@ -53,7 +53,7 @@ class DefaultEventStore extends events_1.EventEmitter {
         }
     }
     async getEvents(actorId) {
-        let events = await this.events.cfind({ actorId }).sort({ index: -1, date: -1 }).exec();
+        let events = await this.events.cfind({ actorId }).sort({ index: 1, date: 1 }).exec();
         return events.map(event => Event_1.default.parse(event));
     }
     async getLatestEvent(actorId) {

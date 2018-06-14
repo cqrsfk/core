@@ -6,6 +6,7 @@ import uuid from "uuid/v4";
 import reborn from "./reborn";
 import { EventEmitter } from "events";
 import Role from "./Role";
+import History from "./History";
 const setdata = Symbol.for("setdata")
 
 export default class Repository extends EventEmitter {
@@ -42,39 +43,11 @@ export default class Repository extends EventEmitter {
         return this.cache.get(id);
     }
 
-    async getHistory(actorId: string) {
+    async getHistory(actorId: string,actorType?:string) {
         const snap = await this.eventstore.getSnapshotByIndex(actorId, 0);
         const events = await this.eventstore.getEvents(actorId);
         if (snap) {
-            return {
-                _events: events,
-                _snap: snap,
-                _index: events.length,
-                _validateIndex(index) {
-                    return index > 0 && index <= this._events.length;
-                },
-                done: false,
-                data: reborn(this.ActorClass, snap, events).json,
-                _get(index) {
-                    if (this._validateIndex(index)) {
-                        let events = this._events.slice(0, index);
-                        this.data = reborn(this.ActorClass, this._snap, events).json;
-                        this.done = false;
-                    } else {
-                        this.done = true;
-                    }
-                    return this;
-                },
-                next() {
-                    let index = this._index++;
-                    return this._get(index);
-                },
-                prev() {
-                    let index = this._index++;
-                    return this._get(index);
-                }
-            }
-
+            return new History(this.ActorClass,snap,events,actorType);
         }
         throw new Error("no actor by " + actorId);
     }

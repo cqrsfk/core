@@ -40,5 +40,5 @@ export default class Service {
     create(type: string, data: any): Promise<any>;
     subscribe(event: EventType, handleMethodName: string): Promise<void>;
     unsubscribe(event: EventType): Promise<void>;
-    getHistory(): Promise<any>;
+    getHistory(actorType: string, actorId: string, eventType?: string): Promise<any>;
 }

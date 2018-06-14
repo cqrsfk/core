@@ -439,4 +439,14 @@ export default class Domain {
     }
   }
 
+  getHistory(actorType:string,actorId:string,eventType?:string){
+    const ActorClass = this.ActorClassMap.get(actorType);
+    if(ActorClass){
+      const repo = this.repositorieMap.get(ActorClass);
+      return repo.getHistory(actorId,eventType);
+    }else{
+      throw new Error("no class of "+actorType.toString());
+    }
+  }
+
 }

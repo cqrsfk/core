@@ -27,6 +27,7 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.6.1",
+    "lodash": "^4.17.10",
     "nedb-promise": "^2.0.1",
     "semver": "^5.5.0",
     "socket.io": "^2.0.3",

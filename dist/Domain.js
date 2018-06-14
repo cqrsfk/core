@@ -363,6 +363,16 @@ class Domain {
             this.idManager.unbind(id);
         }
     }
+    getHistory(actorType, actorId, eventType) {
+        const ActorClass = this.ActorClassMap.get(actorType);
+        if (ActorClass) {
+            const repo = this.repositorieMap.get(ActorClass);
+            return repo.getHistory(actorId, eventType);
+        }
+        else {
+            throw new Error("no class of " + actorType.toString());
+        }
+    }
 }
 exports.default = Domain;
 //# sourceMappingURL=Domain.js.map

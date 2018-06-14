@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Snap_1 = require("./Snap");
 const reborn_1 = require("./reborn");
 const events_1 = require("events");
+const History_1 = require("./History");
 const setdata = Symbol.for("setdata");
 class Repository extends events_1.EventEmitter {
     constructor(ActorClass, eventstore, roleMap) {
@@ -29,39 +30,11 @@ class Repository extends events_1.EventEmitter {
     getFromCache(id) {
         return this.cache.get(id);
     }
-    async getHistory(actorId) {
+    async getHistory(actorId, actorType) {
         const snap = await this.eventstore.getSnapshotByIndex(actorId, 0);
         const events = await this.eventstore.getEvents(actorId);
         if (snap) {
-            return {
-                _events: events,
-                _snap: snap,
-                _index: events.length,
-                _validateIndex(index) {
-                    return index > 0 && index <= this._events.length;
-                },
-                done: false,
-                data: reborn_1.default(this.ActorClass, snap, events).json,
-                _get(index) {
-                    if (this._validateIndex(index)) {
-                        let events = this._events.slice(0, index);
-                        this.data = reborn_1.default(this.ActorClass, this._snap, events).json;
-                        this.done = false;
-                    }
-                    else {
-                        this.done = true;
-                    }
-                    return this;
-                },
-                next() {
-                    let index = this._index++;
-                    return this._get(index);
-                },
-                prev() {
-                    let index = this._index++;
-                    return this._get(index);
-                }
-            };
+            return new History_1.default(this.ActorClass, snap, events, actorType);
         }
         throw new Error("no actor by " + actorId);
     }

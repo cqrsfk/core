@@ -192,8 +192,8 @@ class Service {
             }
         }
     }
-    async getHistory() {
-        return await this.repo.getHistory(this.actor.id);
+    async getHistory(actorType, actorId, eventType) {
+        return await this._domain.getHistory(actorType, actorId, eventType);
     }
 }
 exports.default = Service;

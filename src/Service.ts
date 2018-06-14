@@ -223,8 +223,8 @@ export default class Service {
     }
   }
 
-  async getHistory(): Promise<any> {
-    return await this.repo.getHistory(this.actor.id);
+  async getHistory(actorType:string,actorId:string,eventType?:string): Promise<any> {
+    return await this._domain.getHistory(actorType,actorId,eventType);
   }
 
 }

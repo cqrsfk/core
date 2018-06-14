@@ -36,4 +36,5 @@ export default class Domain {
     addRole(name: string | any, supportedActorNames?: string[], methods?: any, updater?: any): this;
     clearCache(id: string): void;
     unbind(id: string): void;
+    getHistory(actorType: string, actorId: string, eventType?: string): Promise<import("./History").default>;
 }
