@@ -4,9 +4,9 @@ import ActorConstructor from "./ActorConstructor";
 export default class History {
     private ActorClass;
     private lastSnap;
-    private events;
+    events: Event[];
     private eventType?;
-    private index;
+    index: number;
     constructor(ActorClass: ActorConstructor, lastSnap: Snap, events: Event[], eventType?: string);
     private validateIndex;
     get(index: any): any;

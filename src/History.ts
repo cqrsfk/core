@@ -5,8 +5,8 @@ import reborn from "./reborn";
 const _ = require("lodash");
 
 export default class History {
-  private index: number;
-  constructor(private ActorClass: ActorConstructor, private lastSnap: Snap, private events: Event[], private eventType?: string) {
+  public index: number;
+  constructor(private ActorClass: ActorConstructor, private lastSnap: Snap, public events: Event[], private eventType?: string) {
     this.index = events.length - 1;
   }
   private validateIndex(index) {
