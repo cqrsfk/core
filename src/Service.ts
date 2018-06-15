@@ -76,7 +76,7 @@ export default class Service {
 
     const updatedData = updater(this.actor.refreshJSON(), event);
     event.updatedData = updatedData;
-    this.actor[setdata] = Object.assign({}, this.actor.refreshJSON(), direct ? data : {}, updatedData);
+    this.actor[setdata] = Object.assign({}, this.actor[setdata], direct ? data : {}, updatedData);
     this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
     this.actor[uncommittedEvents].push(event);
     ++this.actor[latestEventIndex];
