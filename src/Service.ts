@@ -80,9 +80,9 @@ export default class Service {
     this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
     this.actor[uncommittedEvents].push(event);
     ++this.actor[latestEventIndex];
+    this.actor.refreshJSON();
     await this.bus.publish(this.actor);
     this.applied = true;
-    this.actor.refreshJSON();
 
     if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
       const actorType = this.actor.type;

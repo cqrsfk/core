@@ -184,7 +184,6 @@ class Domain {
             roles = actor[1];
             actor = actor[0];
         }
-        // actor.refreshJSON()
         const proxy = new Proxy(actor, {
             get(target, prop) {
                 if (prop === "then") {
