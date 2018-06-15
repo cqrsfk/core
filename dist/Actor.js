@@ -2,29 +2,34 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const uuid = require('uuid').v1;
-exports.setdata = Symbol.for("setdata");
-exports.datakey = Symbol("datakey");
-exports.isLock = Symbol.for("isLock");
-exports.loadEvents = Symbol.for("loadEvents");
-exports.roleMap = Symbol.for("roleMap");
-exports.latestEventIndex = Symbol.for("latestEventIndex");
+const setdata = Symbol.for("setdata");
+const datakey = Symbol("datakey");
+const isLock = Symbol.for("isLock");
+const loadEvents = Symbol.for("loadEvents");
+const roleMap = Symbol.for("roleMap");
+const latestEventIndex = Symbol.for("latestEventIndex");
+const jsonKey = Symbol("json");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
         this[uncommittedEvents] = [];
-        this[exports.datakey] = data;
-        this[exports.datakey].isAlive = true;
-        this[exports.datakey].listeners = {};
-        if (!this[exports.datakey].id) {
-            this[exports.datakey].id = uuid();
+        this[datakey] = data;
+        this[datakey].isAlive = true;
+        this[datakey].listeners = {};
+        if (!this[datakey].id) {
+            this[datakey].id = uuid();
         }
-        this[exports.latestEventIndex] = -1;
+        this[latestEventIndex] = -1;
+        this.refreshJSON();
+    }
+    refreshJSON() {
+        return this[jsonKey] = this.constructor.toJSON(this);
     }
     get type() {
         return this.constructor.getType();
     }
-    set [exports.setdata](data) {
-        this[exports.datakey] = data;
+    set [setdata](data) {
+        this[datakey] = data;
     }
     get id() {
         return this.json.id;
@@ -33,7 +38,7 @@ class Actor {
         return this.name;
     }
     get json() {
-        return this.constructor.toJSON(this);
+        return this[jsonKey];
     }
     get updater() {
         throw new Error("please implements updater() Getter!");
@@ -44,7 +49,7 @@ class Actor {
     unsubscribe(event, listenerId) {
         this.$({ event, listenerId });
     }
-    [exports.isLock](key) {
+    [isLock](key) {
         if (this.lockData.key) {
             if (this.lockData.key === key) {
                 return false;
@@ -75,15 +80,15 @@ class Actor {
             return true;
         }
     }
-    [exports.loadEvents](events) {
+    [loadEvents](events) {
         events.forEach(event => {
-            let role = this.constructor[exports.roleMap].get(event.roleName);
+            let role = this.constructor[roleMap].get(event.roleName);
             let updater = this.updater[event.type] ||
                 this.updater[event.method + "Update"] ||
                 (role ? role.updater[event.type] || role.updater[event.method] : null);
-            const updatedData = updater ? updater(this.json, event) : {};
-            this[exports.setdata] = Object.assign({}, this.json, updatedData);
-            this[exports.latestEventIndex] = event.index;
+            const updatedData = updater ? updater(this.refreshJSON(), event) : {};
+            this[setdata] = Object.assign({}, this.refreshJSON(), updatedData);
+            this[latestEventIndex] = event.index;
         });
     }
     // todo
@@ -93,11 +98,11 @@ class Actor {
         }
     }
     static toJSON(actor) {
-        return JSON.parse(JSON.stringify(actor[exports.datakey]));
+        return JSON.parse(JSON.stringify(actor[datakey]));
     }
     static parse(json) {
         let act = new this(json);
-        act[exports.datakey].id = json.id;
+        act[datakey].id = json.id;
         return act;
     }
     unbind() {

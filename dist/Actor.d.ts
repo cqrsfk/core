@@ -1,11 +1,8 @@
 import Service from "./Service";
 import LockDataType from "./LockDataType";
-export declare const setdata: unique symbol;
-export declare const datakey: unique symbol;
-export declare const isLock: unique symbol;
-export declare const loadEvents: unique symbol;
-export declare const roleMap: unique symbol;
-export declare const latestEventIndex: unique symbol;
+declare const setdata: unique symbol;
+declare const isLock: unique symbol;
+declare const loadEvents: unique symbol;
 export default class Actor {
     private latestLockTime;
     private lockData;
@@ -13,6 +10,7 @@ export default class Actor {
     protected $: Function;
     protected readonly data: any;
     constructor(data?: {});
+    refreshJSON(): any;
     readonly type: string;
     [setdata]: any;
     readonly id: any;
@@ -30,3 +28,4 @@ export default class Actor {
     static parse(json: any): Actor;
     unbind(): void;
 }
+export {};

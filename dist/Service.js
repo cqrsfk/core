@@ -64,6 +64,7 @@ class Service {
         }
         if (!updater)
             return;
+        this.actor.refreshJSON();
         const updatedData = updater(this.actor.json, event);
         event.updatedData = updatedData;
         this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
@@ -72,6 +73,7 @@ class Service {
         ++this.actor[exports.latestEventIndex];
         await this.bus.publish(this.actor);
         this.applied = true;
+        this.actor.refreshJSON();
         if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
             const actorType = this.actor.type;
             setImmediate(async () => {

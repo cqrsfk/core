@@ -3,12 +3,13 @@ import Service from "./Service";
 import LockDataType from "./LockDataType";
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const uuid = require('uuid').v1;
-export const setdata = Symbol.for("setdata");
-export const datakey = Symbol("datakey");
-export const isLock = Symbol.for("isLock");
-export const loadEvents = Symbol.for("loadEvents");
-export const roleMap = Symbol.for("roleMap");
-export const latestEventIndex  = Symbol.for("latestEventIndex");
+const setdata = Symbol.for("setdata");
+const datakey = Symbol("datakey");
+const isLock = Symbol.for("isLock");
+const loadEvents = Symbol.for("loadEvents");
+const roleMap = Symbol.for("roleMap");
+const latestEventIndex  = Symbol.for("latestEventIndex");
+const jsonKey = Symbol("json");
 import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 
@@ -32,6 +33,11 @@ export default class Actor {
             this[datakey].id = uuid();
         }
         this[latestEventIndex] = -1;
+        this.refreshJSON();
+    }
+
+    refreshJSON(){
+      return this[jsonKey] =  (<ActorConstructor>this.constructor).toJSON(this);
     }
 
     get type(): string {
@@ -51,7 +57,7 @@ export default class Actor {
     }
 
     get json() {
-        return (<ActorConstructor>this.constructor).toJSON(this);
+      return this[jsonKey];
     }
 
     get updater():any{
@@ -105,8 +111,8 @@ export default class Actor {
         let updater = this.updater[event.type] ||
                       this.updater[event.method+"Update"] ||
                       (role ? role.updater[event.type] || role.updater[event.method] : null);
-        const updatedData = updater ? updater(this.json,event) : {};
-        this[setdata] = Object.assign({}, this.json, updatedData );
+        const updatedData = updater ? updater(this.refreshJSON(),event) : {};
+        this[setdata] = Object.assign({}, this.refreshJSON(), updatedData );
         this[latestEventIndex] =  event.index;
       });
     }

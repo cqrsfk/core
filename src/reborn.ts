@@ -8,5 +8,6 @@ export const setdata = Symbol.for("setdata");
 export default function reborm(ActorClass: ActorConstructor, snap: Snap, events: Event[]): Actor {
     const actor = ActorClass.parse(snap.data);
     actor[loadEvents](events);
+    actor.refreshJSON();
     return actor;
 };

@@ -236,7 +236,7 @@ export default class Domain {
       actor = actor[0];
     }
 
-
+    // actor.refreshJSON()
 
     const proxy = new Proxy(actor, {
       get(target, prop: string) {

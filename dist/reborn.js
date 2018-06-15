@@ -5,6 +5,7 @@ exports.setdata = Symbol.for("setdata");
 function reborm(ActorClass, snap, events) {
     const actor = ActorClass.parse(snap.data);
     actor[loadEvents](events);
+    actor.refreshJSON();
     return actor;
 }
 exports.default = reborm;
