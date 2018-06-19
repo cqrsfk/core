@@ -64,10 +64,9 @@ class Service {
         }
         if (!updater)
             return;
-        this.actor.refreshJSON();
-        const updatedData = updater(this.actor.json, event);
+        const updatedData = updater(this.actor.refreshJSON(), event);
         event.updatedData = updatedData;
-        this.actor[setdata] = Object.assign({}, this.actor.json, direct ? data : {}, updatedData);
+        this.actor[setdata] = Object.assign({}, this.actor.refreshJSON(), direct ? data : {}, updatedData);
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
         ++this.actor[exports.latestEventIndex];
