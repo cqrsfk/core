@@ -295,7 +295,7 @@ export default class Domain {
                           return iservice.apply(type, data);
                       }
                       service.__proto__ = iservice;
-                      cxt = { service, $: service };
+                      cxt = { service, $: service , proxy};
 
                       cxt.__proto__ = actor;
                       let result
