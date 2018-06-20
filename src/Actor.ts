@@ -10,6 +10,7 @@ const loadEvents = Symbol.for("loadEvents");
 const roleMap = Symbol.for("roleMap");
 const latestEventIndex  = Symbol.for("latestEventIndex");
 const jsonKey = Symbol("json");
+const _ = require("lodash");
 import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 
@@ -125,7 +126,7 @@ export default class Actor {
     }
 
     static toJSON(actor: Actor) {
-        return JSON.parse(JSON.stringify(actor[datakey]));
+        return _.cloneDeep(actor[datakey]);
     }
 
     static parse(json) {

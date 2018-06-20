@@ -9,6 +9,7 @@ const loadEvents = Symbol.for("loadEvents");
 const roleMap = Symbol.for("roleMap");
 const latestEventIndex = Symbol.for("latestEventIndex");
 const jsonKey = Symbol("json");
+const _ = require("lodash");
 class Actor {
     constructor(data = {}) {
         this.lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false };
@@ -98,7 +99,7 @@ class Actor {
         }
     }
     static toJSON(actor) {
-        return JSON.parse(JSON.stringify(actor[datakey]));
+        return _.cloneDeep(actor[datakey]);
     }
     static parse(json) {
         let act = new this(json);
