@@ -6,6 +6,8 @@ declare const loadEvents: unique symbol;
 export default class Actor {
     private latestLockTime;
     private lockData;
+    __proto__: any;
+    static toParse: any;
     protected service: Service;
     protected $: Function;
     protected readonly data: any;

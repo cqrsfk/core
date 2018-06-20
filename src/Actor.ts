@@ -19,6 +19,8 @@ export default class Actor {
     private latestLockTime: Date;
     private lockData = { key: null, timeout: 2000, latestLockTime: new Date(), isLock: false }
 
+    public __proto__;
+    public static toParse;
     // framework provider
     protected service: Service;
     protected $: Function;
@@ -129,9 +131,17 @@ export default class Actor {
         return _.cloneDeep(actor[datakey]);
     }
 
+    // static toParse(){
+    //
+    // }
+
     static parse(json) {
-        let act = new this(json);
-        act[datakey].id = json.id;
+        let act = new Actor();
+        if(this.toParse){
+          json = this.toParse(json);
+        }
+        act[datakey] = json;
+        act.__proto__ = this.prototype;
         return act;
     }
 
