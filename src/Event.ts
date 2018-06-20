@@ -1,8 +1,8 @@
 'use strict';
 
-import Actor from "./Actor";
-const uuid = require('uuid').v1;
-const qs = require('querystring');
+const uuid = require('uuid/v4');
+const _ = require("lodash");
+
 const updatedDataKey = Symbol();
 
 export default class Event {
@@ -44,13 +44,11 @@ export default class Event {
     }
 
     static toJSON(event: Event) {
-        let json = JSON.parse(JSON.stringify(event));
-        json.updatedData = event.updatedData;
-        return json;
+        return _.cloneDeep(event);
     }
 
     static parse(data): Event {
-        let event = JSON.parse(JSON.stringify(data));
+        let event = _.cloneDeep(data);
         let updatedData = event.updatedData;
         delete event.updatedData;
         event[updatedDataKey] = updatedData;

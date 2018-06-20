@@ -1,5 +1,6 @@
-const uuid = require("uuid").v1;
+const uuid = require("uuid/v4");
 import  Actor from "./Actor";
+const _ = require("lodash");
 
 export default class Snap {
 
@@ -23,7 +24,7 @@ export default class Snap {
     }
 
     static parse(data): Snap {
-        let snap = JSON.parse(JSON.stringify(data));
+        let snap = _.cloneDeep(data);
         snap.__proto__ = Snap.prototype;
         return snap;
     }

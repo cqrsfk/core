@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require("uuid").v1;
+const uuid = require("uuid/v4");
+const _ = require("lodash");
 class Snap {
     constructor(actor, index = 0, latestEventIndex = -1) {
         this.index = index;
@@ -16,7 +17,7 @@ class Snap {
         return { id, latestEventIndex, date, actorId, actorType, data, index };
     }
     static parse(data) {
-        let snap = JSON.parse(JSON.stringify(data));
+        let snap = _.cloneDeep(data);
         snap.__proto__ = Snap.prototype;
         return snap;
     }

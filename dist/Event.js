@@ -1,7 +1,7 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require('uuid').v1;
-const qs = require('querystring');
+const uuid = require('uuid/v4');
+const _ = require("lodash");
 const updatedDataKey = Symbol();
 class Event {
     constructor(actor, data, type, method, sagaId, direct = false, roleName) {
@@ -30,12 +30,10 @@ class Event {
         this[updatedDataKey] = v;
     }
     static toJSON(event) {
-        let json = JSON.parse(JSON.stringify(event));
-        json.updatedData = event.updatedData;
-        return json;
+        return _.cloneDeep(event);
     }
     static parse(data) {
-        let event = JSON.parse(JSON.stringify(data));
+        let event = _.cloneDeep(data);
         let updatedData = event.updatedData;
         delete event.updatedData;
         event[updatedDataKey] = updatedData;
