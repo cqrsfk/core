@@ -87,7 +87,7 @@ class Actor {
             let updater = this.updater[event.type] ||
                 this.updater[event.method + "Update"] ||
                 (role ? role.updater[event.type] || role.updater[event.method] : null);
-            const updatedData = updater ? updater(this.refreshJSON(), event) : {};
+            const updatedData = updater ? updater(Actor.toJSON(this), event) : {};
             this[setdata] = Object.assign({}, this.refreshJSON(), updatedData);
             this[latestEventIndex] = event.index;
         });

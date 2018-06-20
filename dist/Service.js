@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Actor_1 = require("./Actor");
 const Event_1 = require("./Event");
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
@@ -64,7 +65,7 @@ class Service {
         }
         if (!updater)
             return;
-        const updatedData = updater(this.actor.refreshJSON(), event);
+        const updatedData = updater(Actor_1.default.toJSON(this.actor), event);
         event.updatedData = updatedData;
         this.actor[setdata] = Object.assign({}, this.actor.refreshJSON(), direct ? data : {}, updatedData);
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
