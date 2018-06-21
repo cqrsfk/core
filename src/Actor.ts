@@ -115,7 +115,7 @@ export default class Actor {
                       this.updater[event.method+"Update"] ||
                       (role ? role.updater[event.type] || role.updater[event.method] : null);
         const updatedData = updater ? updater(Actor.toJSON(this),event) : {};
-        this[setdata] = Object.assign({}, this.refreshJSON(), updatedData );
+        this[setdata] = Object.assign({}, Actor.toJSON(this), updatedData );
         this[latestEventIndex] =  event.index;
       });
     }
