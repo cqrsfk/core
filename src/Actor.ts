@@ -5,13 +5,13 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
 const datakey = Symbol("datakey");
+const cloneDataKey = Symbol("cloneDataKey");
 const isLock = Symbol.for("isLock");
 const loadEvents = Symbol.for("loadEvents");
 const roleMap = Symbol.for("roleMap");
 const latestEventIndex  = Symbol.for("latestEventIndex");
 const jsonKey = Symbol("json");
 const _ = require("lodash");
-import Domain from "./Domain";
 import ActorConstructor from "./ActorConstructor";
 
 export default class Actor {
@@ -25,8 +25,6 @@ export default class Actor {
     protected service: Service;
     protected $: Function;
 
-    protected readonly data:any;
-
     constructor(data = {}) {
         this[uncommittedEvents] = [];
         this[datakey] = data;
@@ -37,6 +35,10 @@ export default class Actor {
         }
         this[latestEventIndex] = -1;
         this.refreshJSON();
+    }
+
+    get data(){
+        return this[cloneDataKey];
     }
 
     refreshJSON(){
@@ -128,7 +130,7 @@ export default class Actor {
     }
 
     static toJSON(actor: Actor) {
-        return _.cloneDeep(actor[datakey]);
+        return actor[cloneDataKey] = _.cloneDeep(actor[datakey]);
     }
 
     // static toParse(){

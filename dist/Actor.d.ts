@@ -10,8 +10,8 @@ export default class Actor {
     static toParse: any;
     protected service: Service;
     protected $: Function;
-    protected readonly data: any;
     constructor(data?: {});
+    readonly data: any;
     refreshJSON(): any;
     readonly type: string;
     [setdata]: any;

@@ -4,6 +4,7 @@ const uncommittedEvents = Symbol.for('uncommittedEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
 const datakey = Symbol("datakey");
+const cloneDataKey = Symbol("cloneDataKey");
 const isLock = Symbol.for("isLock");
 const loadEvents = Symbol.for("loadEvents");
 const roleMap = Symbol.for("roleMap");
@@ -22,6 +23,9 @@ class Actor {
         }
         this[latestEventIndex] = -1;
         this.refreshJSON();
+    }
+    get data() {
+        return this[cloneDataKey];
     }
     refreshJSON() {
         return this[jsonKey] = this.constructor.toJSON(this);
@@ -99,7 +103,7 @@ class Actor {
         }
     }
     static toJSON(actor) {
-        return _.cloneDeep(actor[datakey]);
+        return actor[cloneDataKey] = _.cloneDeep(actor[datakey]);
     }
     // static toParse(){
     //
