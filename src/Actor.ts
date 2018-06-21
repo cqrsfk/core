@@ -45,6 +45,10 @@ export default class Actor {
       return this[jsonKey] =  (<ActorConstructor>this.constructor).toJSON(this);
     }
 
+    refreshData(){
+      return Actor.toJSON(this);
+    }
+
     get type(): string {
         return (<ActorConstructor>this.constructor).getType();
     }
