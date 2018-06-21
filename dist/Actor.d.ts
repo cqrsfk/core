@@ -13,6 +13,7 @@ export default class Actor {
     constructor(data?: {});
     readonly data: any;
     refreshJSON(): any;
+    refreshData(): any;
     readonly type: string;
     [setdata]: any;
     readonly id: any;

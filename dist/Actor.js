@@ -30,6 +30,9 @@ class Actor {
     refreshJSON() {
         return this[jsonKey] = this.constructor.toJSON(this);
     }
+    refreshData() {
+        return Actor.toJSON(this);
+    }
     get type() {
         return this.constructor.getType();
     }
