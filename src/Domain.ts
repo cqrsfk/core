@@ -244,7 +244,7 @@ export default class Domain {
         let member = actor[prop];
         let roleName;
         let role;
-        if ("lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
+        if ("data" ===prop || "lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
           return Reflect.get(target, prop);
         } else {
           if (!member) {
