@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uncommittedEvents = Symbol.for('uncommittedEvents');
 const uuid = require('uuid').v1;
 const setdata = Symbol.for("setdata");
-const datakey = Symbol("datakey");
+const datakey = Symbol.for("datakey");
 const cloneDataKey = Symbol("cloneDataKey");
 const isLock = Symbol.for("isLock");
 const loadEvents = Symbol.for("loadEvents");

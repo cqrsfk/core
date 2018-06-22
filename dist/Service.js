@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Actor_1 = require("./Actor");
 const Event_1 = require("./Event");
+const datakey = Symbol.for("datakey");
+const _ = require("lodash");
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
@@ -65,13 +66,13 @@ class Service {
         }
         if (!updater)
             return;
-        const updatedData = updater(Actor_1.default.toJSON(this.actor), event);
-        event.updatedData = updatedData;
-        this.actor[setdata] = Object.assign({}, Actor_1.default.toJSON(this.actor), direct ? data : {}, updatedData);
+        const updatedData = updater(this.actor[datakey], event);
+        this.actor[datakey] = Object.assign({}, this.actor[datakey], direct ? data : {}, updatedData);
+        event.updatedData = _.omit(this.actor.refreshJSON(), Object.keys(updatedData));
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
         ++this.actor[exports.latestEventIndex];
-        this.actor.refreshJSON();
+        // this.actor.refreshJSON();
         await this.bus.publish(this.actor);
         this.applied = true;
         if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
