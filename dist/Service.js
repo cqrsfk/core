@@ -68,7 +68,7 @@ class Service {
             return;
         const updatedData = updater(this.actor[datakey], event);
         this.actor[datakey] = Object.assign({}, this.actor[datakey], direct ? data : {}, updatedData);
-        event.updatedData = _.omit(this.actor.refreshJSON(), Object.keys(updatedData));
+        event.updatedData = _.pick(this.actor.refreshJSON(), Object.keys(updatedData));
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
         ++this.actor[exports.latestEventIndex];
