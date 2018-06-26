@@ -30,7 +30,7 @@ class Event {
         this[updatedDataKey] = v;
     }
     static toJSON(event) {
-        return _.cloneDeep(event);
+        return JSON.parse(JSON.stringify(event));
     }
     static parse(data) {
         let event = _.cloneDeep(data);

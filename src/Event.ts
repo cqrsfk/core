@@ -44,7 +44,7 @@ export default class Event {
     }
 
     static toJSON(event: Event) {
-        return _.cloneDeep(event);
+        return JSON.parse(JSON.stringify(event));
     }
 
     static parse(data): Event {
