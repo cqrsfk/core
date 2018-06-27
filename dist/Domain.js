@@ -252,8 +252,8 @@ class Domain {
                                                 result = target.call(cxt, ...args);
                                             }
                                             catch (err) {
-                                                if (iservice.isRootSaga) {
-                                                    that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                if (service.isRootSaga) {
+                                                    that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
                                                 }
                                                 else {
                                                     reject(err);
@@ -263,15 +263,15 @@ class Domain {
                                             if (result instanceof Promise) {
                                                 result.then(result => {
                                                     resolve(result);
-                                                    if (!iservice.unbindCalled) {
-                                                        iservice.unbind();
+                                                    if (!service.unbindCalled) {
+                                                        service.unbind();
                                                     }
                                                 }).catch(err => {
-                                                    if (!iservice.unbindCalled) {
-                                                        iservice.unbind();
+                                                    if (!service.unbindCalled) {
+                                                        service.unbind();
                                                     }
-                                                    if (iservice.isRootSaga) {
-                                                        that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                    if (service.isRootSaga) {
+                                                        that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
                                                     }
                                                     else {
                                                         reject(err);
@@ -280,8 +280,8 @@ class Domain {
                                             }
                                             else {
                                                 resolve(result);
-                                                if (iservice.unbindCalled) {
-                                                    iservice.unbind();
+                                                if (service.unbindCalled) {
+                                                    service.unbind();
                                                 }
                                             }
                                         }

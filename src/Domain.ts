@@ -290,11 +290,7 @@ export default class Domain {
                         (type, data) => that.nativeCreateActor(type, data),
                         prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
 
-                      interface IService {
-                        __proto__?:any,
-                        (type:string,data:any):any
-                      }
-                      const service:IService = function (type,data) {
+                      const service:any = function (type,data) {
                           if (arguments.length === 0) {
                             type = prop;
                             data = null;
@@ -305,6 +301,7 @@ export default class Domain {
                           return iservice.apply(type, data);
                       }
                       service.__proto__ = iservice;
+
                       cxt = { service, $: service ,proxy};
 
                       cxt.__proto__ = actor;
@@ -312,8 +309,8 @@ export default class Domain {
                       try {
                         result = target.call(cxt, ...args);
                       } catch (err) {
-                        if(iservice.isRootSaga){
-                          that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                        if(service.isRootSaga){
+                          that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
                         }else{
                           reject(err);
                         }
@@ -322,15 +319,15 @@ export default class Domain {
                       if (result instanceof Promise) {
                         result.then(result => {
                           resolve(result);
-                          if(!iservice.unbindCalled){
-                            iservice.unbind();
+                          if(!service.unbindCalled){
+                            service.unbind();
                           }
                         }).catch(err => {
-                          if(!iservice.unbindCalled){
-                            iservice.unbind();
+                          if(!service.unbindCalled){
+                            service.unbind();
                           }
-                          if(iservice.isRootSaga){
-                            that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                          if(service.isRootSaga){
+                            that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
                           }else{
                             reject(err);
                           }
@@ -338,8 +335,8 @@ export default class Domain {
                       } else {
 
                         resolve(result);
-                        if(iservice.unbindCalled){
-                          iservice.unbind();
+                        if(service.unbindCalled){
+                          service.unbind();
                         }
                       }
                     }
