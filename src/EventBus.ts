@@ -8,6 +8,7 @@ import { getAlias } from "./eventAlias";
 import Snap from "./Snap";
 import Domain from "./Domain";
 import Event from './Event';
+import sleep from "./sleep";
 
 const latestEventIndex = Symbol.for("latestEventIndex");
 
@@ -105,6 +106,7 @@ export default class EventBus {
     }
 
     async rollback(sagaId) {
+        await sleep(100);
         await this.eventstore.killSaga(sagaId);
         const events = await this.eventstore.findEventsBySagaId(sagaId);
         await this.eventstore.removeEventsBySagaId(sagaId);

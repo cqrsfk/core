@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const eventAlias_1 = require("./eventAlias");
 const Snap_1 = require("./Snap");
+const sleep_1 = require("./sleep");
 const latestEventIndex = Symbol.for("latestEventIndex");
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 class EventBus {
@@ -86,6 +87,7 @@ class EventBus {
         }
     }
     async rollback(sagaId) {
+        await sleep_1.default(100);
         await this.eventstore.killSaga(sagaId);
         const events = await this.eventstore.findEventsBySagaId(sagaId);
         await this.eventstore.removeEventsBySagaId(sagaId);

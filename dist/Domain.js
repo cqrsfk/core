@@ -47,6 +47,13 @@ class Domain {
         }
         this.ActorClassMap = new Map();
         this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
+        // TODO: clear undone saga! 
+        (async () => {
+            const sagas = await this.eventstore.findUndoneSaga();
+            for (let saga of sagas) {
+                this.eventbus.rollback(saga.sagaId);
+            }
+        })();
         this.repositorieMap = new Map();
         this.eventbus = options.EventBus ?
             new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
@@ -245,7 +252,12 @@ class Domain {
                                                 result = target.call(cxt, ...args);
                                             }
                                             catch (err) {
-                                                that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                if (iservice.isRootSaga) {
+                                                    that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                }
+                                                else {
+                                                    reject(err);
+                                                }
                                                 return;
                                             }
                                             if (result instanceof Promise) {
@@ -258,7 +270,12 @@ class Domain {
                                                     if (!iservice.unbindCalled) {
                                                         iservice.unbind();
                                                     }
-                                                    that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                    if (iservice.isRootSaga) {
+                                                        that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                                                    }
+                                                    else {
+                                                        reject(err);
+                                                    }
                                                 });
                                             }
                                             else {

@@ -28,12 +28,13 @@ export default class Service {
     applied: boolean;
     unbindCalled: boolean;
     constructor(actor: Actor, bus: EventBus, repo: Repository, _domain: Domain, getActor: any, createActor: any, method: string, sagaId?: string, roleName?: string, role?: Role, parents?: any[]);
+    readonly isRootSaga: boolean;
     apply(type: string, data?: any, direct?: boolean): Promise<void>;
     lock(timeout?: number): void;
     unlock(): void;
     unbind(): void;
-    sagaBegin(): void;
-    sagaEnd(): void;
+    sagaBegin(): Promise<void>;
+    sagaEnd(): Promise<void>;
     rollback(): Promise<void>;
     private actorLock;
     get(type: string, id: string): Promise<any>;

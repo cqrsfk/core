@@ -65,6 +65,16 @@ export default class Domain {
 
     this.ActorClassMap = new Map();
     this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new EventStore());
+    
+    // TODO: clear undone saga! 
+    (async ()=>{
+        const sagas:any[] = await  this.eventstore.findUndoneSaga();
+        for(let saga of sagas){
+          this.eventbus.rollback(saga.sagaId);
+        }
+    })();
+    
+    
     this.repositorieMap = new Map();
     this.eventbus = options.EventBus ?
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
@@ -302,8 +312,11 @@ export default class Domain {
                       try {
                         result = target.call(cxt, ...args);
                       } catch (err) {
-
-                        that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                        if(iservice.isRootSaga){
+                          that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                        }else{
+                          reject(err);
+                        }
                         return;
                       }
                       if (result instanceof Promise) {
@@ -316,7 +329,11 @@ export default class Domain {
                           if(!iservice.unbindCalled){
                             iservice.unbind();
                           }
-                          that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                          if(iservice.isRootSaga){
+                            that.eventbus.rollback(sagaId || iservice.sagaId).then(r => reject(err));
+                          }else{
+                            reject(err);
+                          }
                         })
                       } else {
 

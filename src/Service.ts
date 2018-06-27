@@ -11,7 +11,7 @@ const _ = require("lodash");
 const uuid = require("uuid").v1;
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
-export const latestEventIndex  = Symbol.for("latestEventIndex");
+export const latestEventIndex = Symbol.for("latestEventIndex");
 
 /**
  * When call actor's method , then DI service object.
@@ -21,14 +21,14 @@ export default class Service {
   private lockMode = false;
   private sagaMode = false;
   private key: string = uuid();
-  private subIds : string[] = [];
+  private subIds: string[] = [];
   public applied: boolean = false;
   public unbindCalled: boolean = false;
   constructor(
     private actor: Actor,
     private bus: EventBus,
     private repo: Repository,
-    private _domain:Domain,
+    private _domain: Domain,
     private getActor,
     private createActor,
     private method: string,
@@ -38,6 +38,10 @@ export default class Service {
     private parents?: any[]
   ) {
 
+  }
+
+  get isRootSaga(){
+    return this.sagaMode;
   }
 
   async apply(type: string, data?: any, direct?: boolean) {
@@ -87,9 +91,9 @@ export default class Service {
     if (!["subscribe", "unsubscribe", "_subscribe", "_unsubscribe"].includes(type)) {
       const actorType = this.actor.type;
 
-      setImmediate(async ()=>{
+      setImmediate(async () => {
         const emitter = await this.get("ActorEventEmitter", "ActorEventEmitter" + actorType);
-        if(emitter){
+        if (emitter) {
           emitter.publish(event);
         }
       })
@@ -128,25 +132,27 @@ export default class Service {
     // todo
   }
 
-  unbind(){
+  unbind() {
     this.unbindCalled = true;
 
     this._domain.unbind(this.actor.id);
-    this.subIds.forEach(id=>this._domain.unbind(id));
+    this.subIds.forEach(id => this._domain.unbind(id));
   }
 
-  sagaBegin() {
+  async sagaBegin() {
     if (this.sagaId && !this.sagaMode) {
       throw new Error("Cannot include child Saga");
     }
     this.sagaMode = true;
     this.sagaId = uuid();
+    await this._domain.eventstore.beginSaga(this.sagaId);
   }
 
-  sagaEnd() {
+  async sagaEnd() {
     if (this.sagaMode) {
       this.sagaMode = false;
       this.sagaId = null;
+      await this._domain.eventstore.endSaga(this.sagaId);
     }
   }
 
@@ -179,7 +185,7 @@ export default class Service {
   async get(type: string, id: string) {
     if (id === this.actor.id) throw new Error("Don't be get self");
     this.subIds.push(id);
-    let proxy = await this.getActor(type, id, this.sagaId || null, this.key , this.parents || []);
+    let proxy = await this.getActor(type, id, this.sagaId || null, this.key, this.parents || []);
     if (!proxy) return null;
 
     if (this.lockMode) {
@@ -225,8 +231,8 @@ export default class Service {
     }
   }
 
-  async getHistory(actorType:string,actorId:string,eventType?:string): Promise<any> {
-    return await this._domain.getHistory(actorType,actorId,eventType);
+  async getHistory(actorType: string, actorId: string, eventType?: string): Promise<any> {
+    return await this._domain.getHistory(actorType, actorId, eventType);
   }
 
 }

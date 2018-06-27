@@ -108,9 +108,6 @@ class Actor {
     static toJSON(actor) {
         return actor[cloneDataKey] = _.cloneDeep(actor[datakey]);
     }
-    // static toParse(){
-    //
-    // }
     static parse(json) {
         let act = new Actor();
         if (this.toParse) {

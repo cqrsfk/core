@@ -30,6 +30,9 @@ class Service {
         this.applied = false;
         this.unbindCalled = false;
     }
+    get isRootSaga() {
+        return this.sagaMode;
+    }
     async apply(type, data, direct) {
         const event = new Event_1.default(this.actor, data, type, this.method, this.sagaId, direct || false, this.roleName);
         let updater;
@@ -115,17 +118,19 @@ class Service {
         this._domain.unbind(this.actor.id);
         this.subIds.forEach(id => this._domain.unbind(id));
     }
-    sagaBegin() {
+    async sagaBegin() {
         if (this.sagaId && !this.sagaMode) {
             throw new Error("Cannot include child Saga");
         }
         this.sagaMode = true;
         this.sagaId = uuid();
+        await this._domain.eventstore.beginSaga(this.sagaId);
     }
-    sagaEnd() {
+    async sagaEnd() {
         if (this.sagaMode) {
             this.sagaMode = false;
             this.sagaId = null;
+            await this._domain.eventstore.endSaga(this.sagaId);
         }
     }
     async rollback() {
