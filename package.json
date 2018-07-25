@@ -30,10 +30,10 @@
     "lodash": "^4.17.10",
     "nedb-promise": "^2.0.1",
     "semver": "^5.5.0",
+    "shortid": "^2.2.12",
     "socket.io": "^2.0.3",
     "socket.io-client": "^2.0.3",
-    "uglifyjs-webpack-plugin": "^1.2.5",
-    "uuid": "^3.0.1"
+    "uglifyjs-webpack-plugin": "^1.2.5"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
