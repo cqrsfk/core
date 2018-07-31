@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Event_1 = require("./Event");
 const datakey = Symbol.for("datakey");
 const _ = require("lodash");
-const uuid = require("uuid").v1;
+const uuid = require("shortid");
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
 exports.latestEventIndex = Symbol.for("latestEventIndex");

@@ -1,4 +1,4 @@
-const uuid = require("uuid/v4");
+const uuid = require("shortid");
 import  Actor from "./Actor";
 const _ = require("lodash");
 

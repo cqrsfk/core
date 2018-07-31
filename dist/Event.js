@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid = require('uuid/v4');
+const uuid = require('shortid');
 const _ = require("lodash");
 const updatedDataKey = Symbol();
 class Event {

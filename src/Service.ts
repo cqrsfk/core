@@ -8,7 +8,7 @@ import ActorEventEmitter from "./ActorEventEmitter";
 import Domain from "./Domain";
 const datakey = Symbol.for("datakey");
 const _ = require("lodash");
-const uuid = require("uuid").v1;
+const uuid = require("shortid");
 const uncommittedEvents = Symbol.for("uncommittedEvents");
 const setdata = Symbol.for("setdata");
 export const latestEventIndex = Symbol.for("latestEventIndex");
