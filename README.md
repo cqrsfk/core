@@ -5,7 +5,7 @@ DDD-CQRS-Actor framework.
 
 Version
 =======
-    cqrs@2.10.0
+    cqrs@2.10.11
 
 Install
 =======
@@ -17,7 +17,6 @@ Install
 Consumers
 =========
 + [Auxo](https://github.com/liangzeng/auxo)  (vue & express & cqrs framework)
-+ [Node.js Forum](https://github.com/liangzeng/forum)
 
 EventStore
 ==========
@@ -72,47 +71,35 @@ const userInstance = await domain.get("User",userId); // get a User instance.
 Preview Example
 ===============
 
-see ES6 [Example](https://github.com/liangzeng/cqrs/tree/master/example)
+[Example](https://github.com/liangzeng/cqrs/tree/master/example)
 
 #### User.js
 ```js
-const { Actor } = require("cqrs");
+const { Actor } = require("..");
 
 module.exports = class User extends Actor {
 
     constructor(data) {
-        super({ money: data.money || 0, name: data.name });
+        super({ money: data.money || 0, name: data.name, id:data.id });
     }
 
     changename(name) {
-        this.$(name);
+        this.$.apply("changename", name);
     }
 
-    deduct(money) {
-        this.$("deduct", money);
-    }
-
-    add(money) {
-        this.service.apply("add", money);
-    }
-
-    when(event) {
-        const data = this.json;
-        switch (event.type) {
-            case "changename":
-                return { name: event.name }
-            case "deduct":
-                return { money: data.money - event.data }
-            case "add":
-                return { money: data.money + event.data }
-        }
+    get updater(){
+       return {
+          changename(data,event){
+            return { name: event.name }
+          }
+       }
     }
 
 }
 
+
 ```
 
-#### Transfer.js
 ```js
 const { Actor } = require("cqrs");
 
@@ -123,73 +110,52 @@ module.exports = class Transfer extends Actor {
     }
 
     log(event) {
-        console.log(event);
+        // console.log(event,"21121----2");
     }
 
     async transfe(fromUserId, toUserId, money) {
+      try{
         const $ = this.$;
+        $.sagaBegin();
         $.lock();
-        $.once({ actorType: "User", type: "add" }, "log");
-        const fromUser = await $.get("User", fromUserId);
-        const toUser = await $.get("User", toUserId);
+
+          await $.subscribe({ actorType: "User"}, "log");
+          // await $.unsubscribe({ actorType: "User"});
+          await $.subscribe({ actorType: "User", actorId:toUserId , type: "add" }, "log");
+          // await $.unsubscribe({ actorType: "User", actorId:toUserId , type: "add" });
+
+
+        // console.log(fromUserId,toUserId);
+        const fromUser = await $.get("User.payers", fromUserId);
+        const toUser = await $.get("User.charger", toUserId);
 
         fromUser.deduct(money);
+
         toUser.add(money);
 
+        if (money > 100)
+            throw new Error("hhhh")
+
         $.unlock();
+        $.sagaEnd();
+
         $("finish", null);
+      }catch(e){
+        // console.log(e);
+      }
     }
 
-    when(event) {
-        switch (event.type) {
-            case "finish":
-                return { finish: true }
+
+
+    get updater(){
+      return {
+        finish(data,event) {
+            return { finish: true }
         }
+      }
     }
 
 }
-```
-
-#### main.js
-```js
-const { domain, Actor } = require("cqrs");
-const User = require("./User");
-const Transfer = require("./Transfer");
-
-domain.register(User).register(Transfer);
-
-async function main() {
-
-    let fromUser = await domain.create("User", { name: "fromUser" });
-    fromUser.add(100);
-    let toUser = await domain.create("User", { name: "toUser" });
-    const transfer = await domain.create("Transfer", {});
-    await transfer.transfe(fromUser.id, toUser.id, 15);
-
-
-    fromUser = await domain.get("User", fromUser.id);
-    toUser = await domain.get("User", toUser.id);
-    console.log("fromUser's money is " , fromUser.json.money);
-    console.log("toUser's money is " , toUser.json.money);
-}
-
-main();
-```
-#### out
-```
-fromUser's money is  85
-toUser's money is  15
-Event {
-  data: 100,
-  type: 'add',
-  method: 'add',
-  sagaId: undefined,
-  index: 0,
-  id: '6459e760-558e-11e7-87a3-9b10ea692d1e',
-  actorId: '645887d0-558e-11e7-87a3-9b10ea692d1e',
-  actorType: 'User',
-  actorVersion: '1.0',
-  date: 2017-06-20T07:59:31.542Z }
 ```
 
 LICENSE
