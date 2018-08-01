@@ -100,6 +100,8 @@ module.exports = class User extends Actor {
 
 ```
 
+#### Transfer.js
+
 ```js
 const { Actor } = require("cqrs");
 
