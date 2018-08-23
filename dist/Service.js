@@ -67,11 +67,11 @@ class Service {
                 this.actor.updater[this.method + "Update"] ||
                 (this.role ? this.role.updater[type] || this.role.updater[this.method] : null));
         }
-        if (!updater)
-            return;
-        const updatedData = updater(this.actor[datakey], event);
-        this.actor[datakey] = Object.assign({}, this.actor[datakey], direct ? data : {}, updatedData);
-        event.updatedData = _.pick(this.actor.refreshJSON(), Object.keys(updatedData));
+        if (updater) {
+            const updatedData = updater(this.actor[datakey], event);
+            this.actor[datakey] = Object.assign({}, this.actor[datakey], direct ? data : {}, updatedData);
+            event.updatedData = _.pick(this.actor.refreshJSON(), Object.keys(updatedData));
+        }
         this.actor[uncommittedEvents] = this.actor[uncommittedEvents] || [];
         this.actor[uncommittedEvents].push(event);
         ++this.actor[exports.latestEventIndex];
