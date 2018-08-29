@@ -10,3 +10,4 @@ if(global[cqrsVersionKey]){
 global[cqrsVersionKey] = true;
 // default domain instance.
 export const domain = new Domain();
+export default {domain,Domain}
