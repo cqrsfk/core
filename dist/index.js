@@ -14,5 +14,4 @@ if (global[cqrsVersionKey]) {
 global[cqrsVersionKey] = true;
 // default domain instance.
 exports.domain = new Domain_2.default();
-exports.default = { domain: exports.domain, Domain: Domain_2.default };
 //# sourceMappingURL=index.js.map
