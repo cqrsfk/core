@@ -12,7 +12,6 @@ const IDManager_1 = require("./cluster/IDManager");
 const cio = require("socket.io-client");
 const { version } = require("../package.json");
 const isLock = Symbol.for("isLock");
-const debug = require('debug')('domain');
 const uid = require("shortid");
 exports.roleMap = Symbol.for("roleMap");
 exports.getActorProxy = Symbol.for("getActorProxy");

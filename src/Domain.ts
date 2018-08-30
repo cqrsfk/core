@@ -11,7 +11,6 @@ import { IDManager } from './cluster/IDManager';
 import * as cio from "socket.io-client";
 const {version} = require("../package.json");
 const isLock = Symbol.for("isLock");
-const debug = require('debug')('domain');
 const uid = require("shortid");
 export const roleMap = Symbol.for("roleMap");
 export const getActorProxy = Symbol.for("getActorProxy");
