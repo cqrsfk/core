@@ -9,7 +9,7 @@ import { probe } from './cluster/utils';
 import { IDManagerServer } from './cluster/IDManagerServer';
 import { IDManager } from './cluster/IDManager';
 import * as cio from "socket.io-client";
-const {version} = require("../package.json");
+const { version } = require("../package.json");
 const isLock = Symbol.for("isLock");
 const uid = require("shortid");
 export const roleMap = Symbol.for("roleMap");
@@ -47,14 +47,14 @@ export default class Domain {
 
     if (options.cluster) {
       this._isCluster = true;
-      setImmediate(()=>probe(64321, bool => {
+      setImmediate(() => probe(64321, bool => {
         if (bool) {
           new IDManagerServer();
           this._isMaster = true;
         }
 
         this._isInited = true;
-        setImmediate(()=>this._waitInitList.forEach(fn => fn()));
+        setImmediate(() => this._waitInitList.forEach(fn => fn()));
         const socket = cio('http://localhost:64321');
         this.idManager = new IDManager(this, socket);
       }))
@@ -63,16 +63,16 @@ export default class Domain {
 
     this.ActorClassMap = new Map();
     this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new EventStore());
-    
+
     // TODO: clear undone saga! 
-    (async ()=>{
-        const sagas:any[] = await  this.eventstore.findUndoneSaga();
-        for(let saga of sagas){
-          this.eventbus.rollback(saga.sagaId);
-        }
+    (async () => {
+      const sagas: any[] = await this.eventstore.findUndoneSaga();
+      for (let saga of sagas) {
+        this.eventbus.rollback(saga.sagaId);
+      }
     })();
-    
-    
+
+
     this.repositorieMap = new Map();
     this.eventbus = options.EventBus ?
       new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
@@ -97,8 +97,8 @@ export default class Domain {
     return this._isCluster;
   }
 
-  static get version():string{
-     return version;
+  static get version(): string {
+    return version;
   }
 
   // todo
@@ -130,55 +130,55 @@ export default class Domain {
 
   private async nativeCreateActor(type, data) {
 
-      const actorType = type.split(".").shift();
+    const actorType = type.split(".").shift();
 
-      const ActorClass = this.ActorClassMap.get(actorType);
-      const repo = this.repositorieMap.get(ActorClass);
+    const ActorClass = this.ActorClassMap.get(actorType);
+    const repo = this.repositorieMap.get(ActorClass);
 
-
-      if (ActorClass.beforeCreate) {
-
-
-        try {
-          let uniqueValidatedOk = true;
-          let holded = [];
-          //  unique field value validate
-          if (ActorClass.uniqueFields) {
-            let arr = [];
-            ActorClass.uniqueFields.forEach(key => {
-              let value = data[key];
-              if (value && ['string', 'number'].includes(typeof (value))) {
-                arr.push({ key, value });
-              }
-            });
-            if (arr.length) {
-              let uniqueValidator: UniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
-              if (!uniqueValidator) {
-                uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
-              }
-              try{
-                uniqueValidatedOk = await uniqueValidator.hold(arr);
-              }catch(err){
-                holded = err.holded;
-                uniqueValidatedOk = false;
-              }
-              uniqueValidator.unbind();
-            }
-          }
-          data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk,holded)) || data;
-        } catch (err) {
-          throw err;
-        }
-      }
-
-      const actorId = (await repo.create(data)).json.id;
-      const actor = await this[getActorProxy](type, actorId);
-      if(ActorClass.created){
-        await ActorClass.created(actor,this);
-      }
-      return actor;
-
+    let uniqueValidator: UniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
+    if (!uniqueValidator && ActorClass.uniqueFields) {
+      uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
     }
+
+    if (ActorClass.beforeCreate) {
+
+      try {
+        let uniqueValidatedOk = true;
+        let holded = [];
+        //  unique field value validate
+        if (ActorClass.uniqueFields) {
+          let arr = [];
+          ActorClass.uniqueFields.forEach(key => {
+            let value = data[key];
+            if (value && ['string', 'number'].includes(typeof (value))) {
+              arr.push({ key, value });
+            }
+          });
+          if (arr.length) {
+
+            try {
+              uniqueValidatedOk = await uniqueValidator.hold(arr);
+            } catch (err) {
+              holded = err.holded;
+              uniqueValidatedOk = false;
+            }
+            uniqueValidator.unbind();
+          }
+        }
+        data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk, holded)) || data;
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    const actorId = (await repo.create(data)).json.id;
+    const actor = await this[getActorProxy](type, actorId);
+    if (ActorClass.created) {
+      await ActorClass.created(actor, this);
+    }
+    return actor;
+
+  }
 
   async [getActorProxy](type: string, id: string, sagaId?: string, key?: string, parents?: any[]) {
 
@@ -252,7 +252,7 @@ export default class Domain {
         let member = actor[prop];
         let roleName;
         let role;
-        if ("data" ===prop || "lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
+        if ("data" === prop || "lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
           return Reflect.get(target, prop);
         } else {
           if (!member) {
@@ -270,7 +270,7 @@ export default class Domain {
 
             return new Proxy(member, {
               apply(target, cxt, args) {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                   async function run() {
 
                     for (let i = 0; i < that.beforeCallHandles.length; i++) {
@@ -288,28 +288,28 @@ export default class Domain {
                         (type, data) => that.nativeCreateActor(type, data),
                         prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
 
-                      const service:any = function (type,data) {
-                          if (arguments.length === 0) {
-                            type = prop;
-                            data = null;
-                          } else if (arguments.length === 1) {
-                            data = type;
-                            type = prop;
-                          }
-                          return iservice.apply(type, data);
+                      const service: any = function (type, data) {
+                        if (arguments.length === 0) {
+                          type = prop;
+                          data = null;
+                        } else if (arguments.length === 1) {
+                          data = type;
+                          type = prop;
+                        }
+                        return iservice.apply(type, data);
                       }
                       service.__proto__ = iservice;
 
-                      cxt = { service, $: service ,proxy};
+                      cxt = { service, $: service, proxy };
 
                       cxt.__proto__ = actor;
                       let result
                       try {
                         result = target.call(cxt, ...args);
                       } catch (err) {
-                        if(service.isRootSaga){
+                        if (service.isRootSaga) {
                           that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
-                        }else{
+                        } else {
                           reject(err);
                         }
                         return;
@@ -317,23 +317,23 @@ export default class Domain {
                       if (result instanceof Promise) {
                         result.then(result => {
                           resolve(result);
-                          if(!service.unbindCalled){
+                          if (!service.unbindCalled) {
                             service.unbind();
                           }
                         }).catch(err => {
-                          if(!service.unbindCalled){
+                          if (!service.unbindCalled) {
                             service.unbind();
                           }
-                          if(service.isRootSaga){
+                          if (service.isRootSaga) {
                             that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
-                          }else{
+                          } else {
                             reject(err);
                           }
                         })
                       } else {
 
                         resolve(result);
-                        if(service.unbindCalled){
+                        if (service.unbindCalled) {
                           service.unbind();
                         }
                       }
@@ -368,28 +368,28 @@ export default class Domain {
         const repo = new Repository(Class, this.eventstore, this.roleMap);
         this.repositorieMap.set(Class, repo);
 
-        (async ()=>{
+        (async () => {
           this.waitInited();
-            if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator'  ) {
-              const emitter = await this.get('ActorEventEmitter', "ActorEventEmitter" + type);
-              if (!emitter && (!this.isCluster || this._isMaster)) {
-                this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
-              }
+          if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator') {
+            const emitter = await this.get('ActorEventEmitter', "ActorEventEmitter" + type);
+            if (!emitter && (!this.isCluster || this._isMaster)) {
+              this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
             }
-            repo.on("create", json => {
-              let event = new Event(
-                { id: json.id, type: Class.getType() }, json, "create", "create"
-              )
-              if (type !== 'ActorEventEmitter' && type!=='UniqueValidator') {
-                this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
-                  emitter.publish(event);
-                })
-              }
-              const alias = getAlias(event);
-              for (let name of alias) {
-                this.eventbus.emitter.emit(name, event);
-              }
-            });
+          }
+          repo.on("create", json => {
+            let event = new Event(
+              { id: json.id, type: Class.getType() }, json, "create", "create"
+            )
+            if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator') {
+              this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
+                emitter.publish(event);
+              })
+            }
+            const alias = getAlias(event);
+            for (let name of alias) {
+              this.eventbus.emitter.emit(name, event);
+            }
+          });
         })();
 
 
@@ -444,18 +444,18 @@ export default class Domain {
   }
 
   unbind(id: string) {
-    if(this._isCluster){
+    if (this._isCluster) {
       this.idManager.unbind(id);
     }
   }
 
-  getHistory(actorType:string,actorId:string,eventType?:string){
+  getHistory(actorType: string, actorId: string, eventType?: string) {
     const ActorClass = this.ActorClassMap.get(actorType);
-    if(ActorClass){
+    if (ActorClass) {
       const repo = this.repositorieMap.get(ActorClass);
-      return repo.getHistory(actorId,eventType);
-    }else{
-      throw new Error("no class of "+actorType.toString());
+      return repo.getHistory(actorId, eventType);
+    } else {
+      throw new Error("no class of " + actorType.toString());
     }
   }
 

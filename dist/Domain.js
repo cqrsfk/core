@@ -100,6 +100,10 @@ class Domain {
         const actorType = type.split(".").shift();
         const ActorClass = this.ActorClassMap.get(actorType);
         const repo = this.repositorieMap.get(ActorClass);
+        let uniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
+        if (!uniqueValidator && ActorClass.uniqueFields) {
+            uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
+        }
         if (ActorClass.beforeCreate) {
             try {
                 let uniqueValidatedOk = true;
@@ -114,10 +118,6 @@ class Domain {
                         }
                     });
                     if (arr.length) {
-                        let uniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
-                        if (!uniqueValidator) {
-                            uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
-                        }
                         try {
                             uniqueValidatedOk = await uniqueValidator.hold(arr);
                         }

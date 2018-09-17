@@ -17,7 +17,10 @@ const latestEventIndex = Symbol.for("latestEventIndex");
 
 let uid;
 
-main(15);
+setTimeout(function () {
+  main(15);
+
+},1000)
 
 async function main(money) {
   let fromUser = await domain.create("User.charger.payers", {
