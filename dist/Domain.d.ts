@@ -13,7 +13,6 @@ export default class Domain {
     private roleMap;
     private setEventStore;
     private beforeCallHandles;
-    private idManager;
     private _isCluster;
     private _isInited;
     private _waitInitList;

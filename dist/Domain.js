@@ -6,10 +6,10 @@ const Event_1 = require("./Event");
 const Repository_1 = require("./Repository");
 const DefaultEventStore_1 = require("./DefaultEventStore");
 const EventBus_1 = require("./EventBus");
-const utils_1 = require("./cluster/utils");
-const IDManagerServer_1 = require("./cluster/IDManagerServer");
-const IDManager_1 = require("./cluster/IDManager");
-const cio = require("socket.io-client");
+// import { probe } from './cluster/utils';
+// import { IDManagerServer } from './cluster/IDManagerServer';
+// import { IDManager } from './cluster/IDManager';
+// import * as cio from "socket.io-client";
 const { version } = require("../package.json");
 const isLock = Symbol.for("isLock");
 const uid = require("shortid");
@@ -24,6 +24,7 @@ class Domain {
     constructor(options = {}) {
         this.roleMap = new Map();
         this.beforeCallHandles = [];
+        // private idManager: IDManager;
         this._isCluster = false;
         this._isInited = false;
         this._waitInitList = [];
@@ -31,19 +32,19 @@ class Domain {
         this.id = uid();
         let eventstore;
         // cluster support
-        if (options.cluster) {
-            this._isCluster = true;
-            setImmediate(() => utils_1.probe(64321, bool => {
-                if (bool) {
-                    new IDManagerServer_1.IDManagerServer();
-                    this._isMaster = true;
-                }
-                this._isInited = true;
-                setImmediate(() => this._waitInitList.forEach(fn => fn()));
-                const socket = cio('http://localhost:64321');
-                this.idManager = new IDManager_1.IDManager(this, socket);
-            }));
-        }
+        // if (options.cluster) {
+        //   this._isCluster = true;
+        //   setImmediate(() => probe(64321, bool => {
+        //     if (bool) {
+        //       new IDManagerServer();
+        //       this._isMaster = true;
+        //     }
+        //     this._isInited = true;
+        //     setImmediate(() => this._waitInitList.forEach(fn => fn()));
+        //     const socket = cio('http://localhost:64321');
+        //     this.idManager = new IDManager(this, socket);
+        //   }))
+        // }
         this.ActorClassMap = new Map();
         this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new DefaultEventStore_1.default());
         // TODO: clear undone saga! 
@@ -148,42 +149,41 @@ class Domain {
             return null;
         }
         // cluster support
-        if (this.isCluster) {
-            if (!this.idManager.isHold(id)) {
-                // if timeout , then try loop bind .
-                let looptry = async () => {
-                    const result = await this.idManager.bind(id);
-                    if (result === 'timeout') { // timeout
-                        if (parents) {
-                            for (let parent of parents) {
-                                await this.idManager.unbind(parent.id); // unbind parent actor
-                                const p = await this[exports.getActorProxy](parent.type, parent.id); // rebind parent actor
-                                // parent is removed
-                                if (!p) {
-                                    throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
-                                }
-                            }
-                        }
-                        await looptry();
-                    }
-                };
-                await looptry();
-                if (Array.isArray(actor)) {
-                    let events = await this.eventstore.findFollowEvents(actor[0].id, actor[exports.latestEventIndex]);
-                    actor[0][loadEvents](events);
-                    if (!actor[0].json.isAlive) {
-                        return null;
-                    }
-                }
-                else {
-                    let events = await this.eventstore.findFollowEvents(actor.id, actor[exports.latestEventIndex]);
-                    actor[loadEvents](events);
-                    if (!actor.json.isAlive) {
-                        return null;
-                    }
-                }
-            }
-        }
+        // if (this.isCluster) {
+        //   if (!this.idManager.isHold(id)) {
+        //     // if timeout , then try loop bind .
+        //     let looptry = async () => {
+        //       const result = await this.idManager.bind(id);
+        //       if (result === 'timeout') { // timeout
+        //         if (parents) {
+        //           for (let parent of parents) {
+        //             await this.idManager.unbind(parent.id); // unbind parent actor
+        //             const p = await this[getActorProxy](parent.type, parent.id); // rebind parent actor
+        //             // parent is removed
+        //             if (!p) {
+        //               throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
+        //             }
+        //           }
+        //         }
+        //         await looptry();
+        //       }
+        //     }
+        //     await looptry();
+        //     if (Array.isArray(actor)) {
+        //       let events = await this.eventstore.findFollowEvents(actor[0].id, actor[latestEventIndex]);
+        //       actor[0][loadEvents](events);
+        //       if (!actor[0].json.isAlive) {
+        //         return null;
+        //       }
+        //     } else {
+        //       let events = await this.eventstore.findFollowEvents(actor.id, actor[latestEventIndex]);
+        //       actor[loadEvents](events);
+        //       if (!actor.json.isAlive) {
+        //         return null;
+        //       }
+        //     }
+        //   }
+        // }
         const that = this;
         let roles;
         if (Array.isArray(actor)) {
@@ -375,9 +375,9 @@ class Domain {
         });
     }
     unbind(id) {
-        if (this._isCluster) {
-            this.idManager.unbind(id);
-        }
+        // if (this._isCluster) {
+        //   // this.idManager.unbind(id);
+        // }
     }
     getHistory(actorType, actorId, eventType) {
         const ActorClass = this.ActorClassMap.get(actorType);

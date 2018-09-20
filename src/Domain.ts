@@ -5,10 +5,10 @@ import Event from "./Event";
 import Repository from "./Repository";
 import EventStore from "./DefaultEventStore";
 import EventBus from "./EventBus";
-import { probe } from './cluster/utils';
-import { IDManagerServer } from './cluster/IDManagerServer';
-import { IDManager } from './cluster/IDManager';
-import * as cio from "socket.io-client";
+// import { probe } from './cluster/utils';
+// import { IDManagerServer } from './cluster/IDManagerServer';
+// import { IDManager } from './cluster/IDManager';
+// import * as cio from "socket.io-client";
 const { version } = require("../package.json");
 const isLock = Symbol.for("isLock");
 const uid = require("shortid");
@@ -31,7 +31,7 @@ export default class Domain {
   private roleMap: Map<string, Role> = new Map();
   private setEventStore: Function;
   private beforeCallHandles: any[] = [];
-  private idManager: IDManager;
+  // private idManager: IDManager;
   private _isCluster = false;
   private _isInited = false;
   private _waitInitList = [];
@@ -45,21 +45,21 @@ export default class Domain {
 
     // cluster support
 
-    if (options.cluster) {
-      this._isCluster = true;
-      setImmediate(() => probe(64321, bool => {
-        if (bool) {
-          new IDManagerServer();
-          this._isMaster = true;
-        }
+    // if (options.cluster) {
+    //   this._isCluster = true;
+    //   setImmediate(() => probe(64321, bool => {
+    //     if (bool) {
+    //       new IDManagerServer();
+    //       this._isMaster = true;
+    //     }
 
-        this._isInited = true;
-        setImmediate(() => this._waitInitList.forEach(fn => fn()));
-        const socket = cio('http://localhost:64321');
-        this.idManager = new IDManager(this, socket);
-      }))
+    //     this._isInited = true;
+    //     setImmediate(() => this._waitInitList.forEach(fn => fn()));
+    //     const socket = cio('http://localhost:64321');
+    //     this.idManager = new IDManager(this, socket);
+    //   }))
 
-    }
+    // }
 
     this.ActorClassMap = new Map();
     this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new EventStore());
@@ -191,50 +191,50 @@ export default class Domain {
 
     // cluster support
 
-    if (this.isCluster) {
-      if (!this.idManager.isHold(id)) {
+    // if (this.isCluster) {
+    //   if (!this.idManager.isHold(id)) {
 
-        // if timeout , then try loop bind .
-        let looptry = async () => {
+    //     // if timeout , then try loop bind .
+    //     let looptry = async () => {
 
-          const result = await this.idManager.bind(id);
+    //       const result = await this.idManager.bind(id);
 
-          if (result === 'timeout') { // timeout
+    //       if (result === 'timeout') { // timeout
 
-            if (parents) {
-              for (let parent of parents) {
-                await this.idManager.unbind(parent.id); // unbind parent actor
-                const p = await this[getActorProxy](parent.type, parent.id); // rebind parent actor
+    //         if (parents) {
+    //           for (let parent of parents) {
+    //             await this.idManager.unbind(parent.id); // unbind parent actor
+    //             const p = await this[getActorProxy](parent.type, parent.id); // rebind parent actor
 
-                // parent is removed
-                if (!p) {
-                  throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
-                }
-              }
-            }
+    //             // parent is removed
+    //             if (!p) {
+    //               throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
+    //             }
+    //           }
+    //         }
 
-            await looptry();
+    //         await looptry();
 
-          }
-        }
+    //       }
+    //     }
 
-        await looptry();
+    //     await looptry();
 
-        if (Array.isArray(actor)) {
-          let events = await this.eventstore.findFollowEvents(actor[0].id, actor[latestEventIndex]);
-          actor[0][loadEvents](events);
-          if (!actor[0].json.isAlive) {
-            return null;
-          }
-        } else {
-          let events = await this.eventstore.findFollowEvents(actor.id, actor[latestEventIndex]);
-          actor[loadEvents](events);
-          if (!actor.json.isAlive) {
-            return null;
-          }
-        }
-      }
-    }
+    //     if (Array.isArray(actor)) {
+    //       let events = await this.eventstore.findFollowEvents(actor[0].id, actor[latestEventIndex]);
+    //       actor[0][loadEvents](events);
+    //       if (!actor[0].json.isAlive) {
+    //         return null;
+    //       }
+    //     } else {
+    //       let events = await this.eventstore.findFollowEvents(actor.id, actor[latestEventIndex]);
+    //       actor[loadEvents](events);
+    //       if (!actor.json.isAlive) {
+    //         return null;
+    //       }
+    //     }
+    //   }
+    // }
 
     const that = this;
 
@@ -444,9 +444,9 @@ export default class Domain {
   }
 
   unbind(id: string) {
-    if (this._isCluster) {
-      this.idManager.unbind(id);
-    }
+    // if (this._isCluster) {
+    //   // this.idManager.unbind(id);
+    // }
   }
 
   getHistory(actorType: string, actorId: string, eventType?: string) {
