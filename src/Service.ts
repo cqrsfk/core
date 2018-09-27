@@ -199,7 +199,7 @@ export default class Service {
   }
 
   async create(type: string, data: any) {
-    return this.createActor(...arguments, this.sagaId);
+    return this.createActor(type,data, this.sagaId);
   }
 
   async subscribe(event: EventType, handleMethodName: string) {
