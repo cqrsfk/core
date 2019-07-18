@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "tsc && mocha",
-    "build": "tsc"
+    "build": "tsc",
+    "postinstall": "opencollective-postinstall || true"
   },
   "repository": "https://github.com/liangzeng/cqrs",
   "keywords": [
@@ -29,6 +30,7 @@
     "babel-preset-env": "^1.6.1",
     "lodash": "^4.17.10",
     "nedb-promise": "^2.0.1",
+    "opencollective-postinstall": "^2.0.2",
     "semver": "^5.5.0",
     "shortid": "^2.2.12",
     "socket.io": "^2.0.3",
@@ -49,5 +51,9 @@
   },
   "engines": {
     "node": ">=8.0.0"
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/cqrs"
   }
 }
