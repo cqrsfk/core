@@ -4,14 +4,15 @@ import { OBMiddle } from "./ob-middle";
 import { Change } from "@zalelion/ob-middle-change";
 import { Context } from "./Context";
 import { Event } from "./types/Event";
-import * as sleep from "sleep-promise";
-const patrun = require("patrun");
+import { getAlias } from "./eventAlias";
+import { EventEmitter } from "events";
 
 export class Domain {
   private TypeMap = new Map<string, typeof Actor>();
   private TypeDBMap = new Map<string, PouchDB.Database>();
   private db: PouchDB.Database;
   private eventsBuffer: Event[] = [];
+  private bus = new EventEmitter();
   private publishing = false;
 
   constructor({ db }: { db: PouchDB.Database }) {
@@ -94,8 +95,63 @@ export class Domain {
       return;
     }
     this.publishing = true;
-    const event = this.eventsBuffer.unshift();
+    const event = this.eventsBuffer.shift();
+    if (event) {
+      const eventNames = getAlias(event);
+      eventNames.forEach(e => {
+        this.bus.emit(e, event);
+      });
+    }
+  }
 
+  once(
+    event:
+      | {
+          actor: string;
+          type: string;
+          id: string;
+        }
+      | string,
+    listener
+  ) {
+    this.on(event, listener, true);
+  }
+
+  on(
+    event:
+      | {
+          actor: string;
+          type: string;
+          id: string;
+        }
+      | string,
+    listener,
+    once = false
+  ) {
+    let eventname;
+    if (typeof event === "string") eventname = event;
+    else eventname = this.getEventName(event);
+    if (once) this.bus.once(eventname, listener);
+    else this.bus.on(eventname, listener);
+  }
+
+  getEventName({
+    actor = "",
+    type = "",
+    id = ""
+  }: {
+    actor: string;
+    type: string;
+    id: string;
+  }) {
+    return `${actor}.${id}.${type}`;
+  }
+
+  removeListener(eventname, listener) {
+    this.bus.removeListener(eventname, listener);
+  }
+  removeAllListeners(eventname?: string) {
+    this.bus.removeAllListeners(eventname);
   }
 
   observe<T extends Actor>(actor) {

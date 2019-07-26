@@ -4,12 +4,14 @@ const ob_1 = require("@zalelion/ob");
 const ob_middle_1 = require("./ob-middle");
 const ob_middle_change_1 = require("@zalelion/ob-middle-change");
 const Context_1 = require("./Context");
-const patrun = require("patrun");
+const eventAlias_1 = require("./eventAlias");
+const events_1 = require("events");
 class Domain {
     constructor({ db }) {
         this.TypeMap = new Map();
         this.TypeDBMap = new Map();
         this.eventsBuffer = [];
+        this.bus = new events_1.EventEmitter();
         this.publishing = false;
         this.db = db;
         this.reg = this.reg.bind(this);
@@ -86,7 +88,36 @@ class Domain {
             return;
         }
         this.publishing = true;
-        const event = this.eventsBuffer.unshift();
+        const event = this.eventsBuffer.shift();
+        if (event) {
+            const eventNames = eventAlias_1.getAlias(event);
+            eventNames.forEach(e => {
+                this.bus.emit(e, event);
+            });
+        }
+    }
+    once(event, listener) {
+        this.on(event, listener, true);
+    }
+    on(event, listener, once = false) {
+        let eventname;
+        if (typeof event === "string")
+            eventname = event;
+        else
+            eventname = this.getEventName(event);
+        if (once)
+            this.bus.once(eventname, listener);
+        else
+            this.bus.on(eventname, listener);
+    }
+    getEventName({ actor = "", type = "", id = "" }) {
+        return `${actor}.${id}.${type}`;
+    }
+    removeListener(eventname, listener) {
+        this.bus.removeListener(eventname, listener);
+    }
+    removeAllListeners(eventname) {
+        this.bus.removeAllListeners(eventname);
     }
     observe(actor) {
         const ob = new ob_1.Observer(actor);

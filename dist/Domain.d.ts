@@ -8,6 +8,7 @@ export declare class Domain {
     private TypeDBMap;
     private db;
     private eventsBuffer;
+    private bus;
     private publishing;
     constructor({ db }: {
         db: PouchDB.Database;
@@ -16,6 +17,23 @@ export declare class Domain {
     create<T extends Actor>(type: string, argv: any[]): Promise<T>;
     private changeHandle;
     publish(): Promise<void>;
+    once(event: {
+        actor: string;
+        type: string;
+        id: string;
+    } | string, listener: any): void;
+    on(event: {
+        actor: string;
+        type: string;
+        id: string;
+    } | string, listener: any, once?: boolean): void;
+    getEventName({ actor, type, id }: {
+        actor: string;
+        type: string;
+        id: string;
+    }): string;
+    removeListener(eventname: any, listener: any): void;
+    removeAllListeners(eventname?: string): void;
     observe<T extends Actor>(actor: any): T;
     get<T extends Actor>(type: string, id: string): Promise<T>;
     findRows(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<any[]>;

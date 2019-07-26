@@ -1,11 +1,25 @@
-const patrun = require("patrun");
+var patrun = require('patrun')
 
-const pm = patrun();
-pm.add({a:1},"A")
-pm.add({b:1,c:1},"B")
-pm.add({c:1},"C")
+var many = patrun( function(pat,data){
+    var items = this.find(pat,false) || []
+    items.push(data)
+  
+    return {
+      find: function(args,data){
+          console.log(data)
+        return 0 < items.length ? items : null
+      },
+      remove: function(args,data){
+        items.pop()
+        return 0 == items.length;
+      }
+    }
+  })
 
-
-const r = pm.find({a:1,c:1});
-
-console.log(r)
+  many.add( {Type:"User"}, 'C' )
+  many.add( {Type:"User",id:"001"}, 'B' )
+  many.add( {Type:"User",id:"001",method:"change"}, 'A' )
+  
+  console.log(many.find( {Type:"User"} ,true) )// [ 'A', 'B' ]
+  console.log(many.find( {id:"001"} ,false) )// [ 'A', 'B' ]
+  
