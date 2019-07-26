@@ -6,8 +6,7 @@ import * as sleep from "sleep-promise";
 
 PouchDB.plugin(M);
 
-const db = new PouchDB("test", {adapter:"memory"});
-
+const db = new PouchDB("test", { adapter: "memory" });
 
 var domain = new Domain({ db });
 
@@ -43,19 +42,27 @@ domain.reg(User);
 //    await domain.create<User>("User", ["leo333"]);
 // })();
 
+domain.on(
+  {
+    actor: "User",
+    type:"created"
+  },
+  function(event) {
+    console.log("event......",event)
+  }
+);
 
 (async function() {
-    const u = await domain.create<User>("User", ["leo"]);
-    const u2 = u.$sync(function({ path, newValue }) {
-      set(u2, path, newValue);
-    });
-    //   console.log(u2);
-  
-    u.change("hahahhh111111111----aah");
-    await u.save();
+  const u = await domain.create<User>("User", ["leo"]);
+  const u2 = u.$sync(function({ path, newValue }) {
+    set(u2, path, newValue);
+  });
+  //   console.log(u2);
+
+  u.change("hahahhh111111111----aah");
+  await u.save();
   //   await u.remove();
-    //   console.log(u2);
-    u.change("hahahcc1111");
-    await u.save();
-  
-  })();
+  //   console.log(u2);
+  u.change("hahahcc1111");
+  await u.save();
+})();

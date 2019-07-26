@@ -6,6 +6,7 @@ import { Context } from "./Context";
 import { Event } from "./types/Event";
 import { getAlias } from "./eventAlias";
 import { EventEmitter } from "events";
+import * as sleep from "sleep-promise";
 
 export class Domain {
   private TypeMap = new Map<string, typeof Actor>();
@@ -101,15 +102,20 @@ export class Domain {
       eventNames.forEach(e => {
         this.bus.emit(e, event);
       });
+      await sleep(0);
+      this.publishing = false;
+      await this.publish();
+    } else {
+      this.publishing = false;
     }
   }
 
   once(
     event:
       | {
-          actor: string;
-          type: string;
-          id: string;
+          actor?: string;
+          type?: string;
+          id?: string;
         }
       | string,
     listener
@@ -120,9 +126,9 @@ export class Domain {
   on(
     event:
       | {
-          actor: string;
-          type: string;
-          id: string;
+          actor?: string;
+          type?: string;
+          id?: string;
         }
       | string,
     listener,
@@ -140,9 +146,9 @@ export class Domain {
     type = "",
     id = ""
   }: {
-    actor: string;
-    type: string;
-    id: string;
+    actor?: string;
+    type?: string;
+    id?: string;
   }) {
     return `${actor}.${id}.${type}`;
   }
