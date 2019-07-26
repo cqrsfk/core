@@ -1,165 +1,151 @@
-CQRS
-====
-DDD-CQRS-Actor framework.
-### Document [ [chinese](https://github.com/liangzeng/cqrs/wiki) ]
+# life cycle
 
-Version
-=======
-    cqrs@2.10.11
+beforeCreate
 
-Install
-=======
+created
 
-    npm install cqrs
+beforeApply
 
-    yarn add cqrs
+beforeSend
 
-Consumers
-=========
-+ [Auxo](https://github.com/liangzeng/auxo)  (vue & express & cqrs framework)
+afterSend
 
-EventStore
-==========
-+ [mongodb eventstore](https://github.com/liangzeng/cqrs-mongo-eventstore)
-```js
-const {Domain} = require("cqrs");
-const MongoStore = require("cqrs-mongo-eventstore").default;
-const eventstore = new MongoStore("localhost/test");
-const domain = new Domain({eventstore});
+afterApply
+
+beforeRemove
+
+removed
+
+# API
+
+# Actor
+
+## static beforeCreate(argv:any[])
+
+## static json(actor:Actor): any
+
+## static parse(json:any): Actor
+
+## json():any;
+
+## save()
+
+## remove()
+
+# Service
+
+## send(type:string , data:any)
+
+## subscribe(event:{actorId, actorType , type}, listener:string);
+
+## unsubscribe(event [, listener]);
+
+if handle , then only unsubscribe listener
+else unscribe all listener
+
+## find / findRows
+
+see PouchDB.find API.
+
+## get(type,id)
+
+## createSaga()
+
+# Saga
+
+## async begin(actor:Actor)
+
+## async end
+
+## Example:
+
+```ts
+const t = await this.service.createSaga();
+const user1 = await this.service.get("User", id1);
+const user2 = await this.service.get("User", id2);
+await t.begin(user1, user2);
+
+// try {
+//   user1.pay(100);
+//   user2.recharge(100);
+//   user1.save();
+//   user2.save();
+// } catch (err) {
+//   await t.revert();
+// }
+
+// or
+
+await t.run(() => {
+  user1.pay(100);
+  user2.recharge(100);
+  user1.save();
+  user2.save();
+});
+
+await end();
 ```
 
-Roadmap
-=======
-+ preview core
-+ use typescript rewrite core
-+ saga rollback
-+ join the distributed system
-+ DCI support
-+ ~~use protobuf message~~
-+ ~~actor GC~~
-+ ~~system time travel~~
+```ts
+import { Actor, Domain } from "cqrs";
 
+const db:PouchDB.Database;
 
-Step
-====
+class Book extends Actor {
 
-#### create Actor class
+  static beforeCreate(argv:any[], service:Service){
+      // validate argv
+  }
 
-```js
-const { Actor } = require("cqrs");
-class User extends Actor { /* see example */ }
-class Transfer extends Actor { /* see example */ }
-```
-#### register Actor class to domain
+  constructor(private name: string) {
+    super();
+  }
 
-```js
-const { domain } = require("cqrs"); // get default domain.
-domain.register(User).register(Transfer);
-```
-#### create/get an Actor instance
-```js
+  created(){
 
-// only javascript object
+  }
 
-const user = await domain.create("User", {name:"Leo"});
-user.json; // get actor instance data.
-user.deduct(120.00); // call instance method.
+  beforeApply(){
 
-const userInstance = await domain.get("User",userId); // get a User instance.
-```
+  }
 
-Preview Example
-===============
+  beforeSend(event){
 
-[Example](https://github.com/liangzeng/cqrs/tree/master/example)
+  }
 
-#### User.js
-```js
-const { Actor } = require("..");
+  changeName(name) {
+    // this.service.send("changeNameHandle", name);
+    this.service.send(name);
+  }
 
-module.exports = class User extends Actor {
+  afterSend(event){
 
-    constructor(data) {
-        super({ money: data.money || 0, name: data.name, id:data.id });
-    }
+  }
 
-    changename(name) {
-        this.$.apply("changename", name);
-    }
+  afterApply(){
 
-    get updater(){
-       return {
-          changename(data,event){
-            return { name: event.name }
-          }
-       }
-    }
+  }
+
+  private changeNameHandler(event) {
+    const name = event.data as string;
+    this.name = name;
+  }
+
+  beforeRemove(){
+
+  }
+
+  removed(){
+
+  }
 
 }
 
+const domain = new Domain({
+  defaultDB:db
+});
 
+domain.reg(Book[, db]);
+
+// domain.find("Book",)
 ```
-
-#### Transfer.js
-
-```js
-const { Actor } = require("cqrs");
-
-module.exports = class Transfer extends Actor {
-
-    constructor(data) {
-        super({ finish: false });
-    }
-
-    log(event) {
-        // console.log(event,"21121----2");
-    }
-
-    async transfe(fromUserId, toUserId, money) {
-      try{
-        const $ = this.$;
-        $.sagaBegin();
-        $.lock();
-
-          await $.subscribe({ actorType: "User"}, "log");
-          // await $.unsubscribe({ actorType: "User"});
-          await $.subscribe({ actorType: "User", actorId:toUserId , type: "add" }, "log");
-          // await $.unsubscribe({ actorType: "User", actorId:toUserId , type: "add" });
-
-
-        // console.log(fromUserId,toUserId);
-        const fromUser = await $.get("User.payers", fromUserId);
-        const toUser = await $.get("User.charger", toUserId);
-
-        fromUser.deduct(money);
-
-        toUser.add(money);
-
-        if (money > 100)
-            throw new Error("hhhh")
-
-        $.unlock();
-        $.sagaEnd();
-
-        $("finish", null);
-      }catch(e){
-        // console.log(e);
-      }
-    }
-
-
-
-    get updater(){
-      return {
-        finish(data,event) {
-            return { finish: true }
-        }
-      }
-    }
-
-}
-```
-
-LICENSE
-=======
-MIT

@@ -1,53 +1,42 @@
 {
   "name": "cqrs",
-  "version": "2.10.18",
-  "description": "cqrs for javascript",
+  "version": "3.0.0",
+  "description": "cqrs for javascript/typescript",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "test": "tsc && mocha",
-    "build": "tsc"
-  },
-  "repository": "https://github.com/liangzeng/cqrs",
-  "keywords": [
-    "ddd",
-    "cqrs",
-    "domain",
-    "distributed"
-  ],
-  "author": "Liang Zeng",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/liangzeng/cqrs/issues"
-  },
-  "homepage": "https://github.com/liangzeng/cqrs",
   "dependencies": {
-    "@types/socket.io": "^1.4.29",
-    "@types/socket.io-client": "^1.4.29",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
-    "babel-preset-env": "^1.6.1",
-    "lodash": "^4.17.10",
-    "nedb-promise": "^2.0.1",
-    "semver": "^5.5.0",
-    "shortid": "^2.2.12",
-    "socket.io": "^2.0.3",
-    "socket.io-client": "^2.0.3",
-    "uglifyjs-webpack-plugin": "^1.2.5"
+    "@types/shortid": "0.0.29",
+    "@zalelion/ob": "0.0.3",
+    "@zalelion/ob-middle-change": "0.0.1",
+    "@zalelion/ob-middle-sync": "0.0.2",
+    "lodash": "^4.17.15",
+    "patrun": "^1.0.0",
+    "pouchdb": "^7.1.1",
+    "pouchdb-find": "^7.1.1",
+    "shortid": "^2.2.14",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.41",
-    "@types/node": "^9.6.7",
-    "browserify": "^14.4.0",
-    "mocha": "^2.5.3",
-    "should": "^4.6.5",
-    "source-map-support": "^0.4.18",
-    "typescript": "^2.9.1",
-    "webpack": "^4.6.0",
-    "webpack-cli": "^2.0.15",
-    "webpack-dev-server": "^3.1.3"
+    "@types/lodash": "^4.14.136",
+    "@types/pouchdb": "^6.4.0",
+    "@types/pouchdb-find": "^6.3.4",
+    "object-observer": "^2.1.0",
+    "pouchdb-adapter-memory": "^7.1.1",
+    "sleep-promise": "^8.0.1"
   },
-  "engines": {
-    "node": ">=8.0.0"
-  }
+  "scripts": {
+    "build": "tsc",
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leozale/cqrs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zalelion/cqrs/issues"
+  },
+  "homepage": "https://github.com/zalelion/cqrs#readme"
 }

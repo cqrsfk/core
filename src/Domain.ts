@@ -1,462 +1,145 @@
-import ActorConstructor from "./ActorConstructor";
-import Service from "./Service";
-import { getAlias } from "./eventAlias";
-import Event from "./Event";
-import Repository from "./Repository";
-import EventStore from "./DefaultEventStore";
-import EventBus from "./EventBus";
-import { probe } from './cluster/utils';
-import { IDManagerServer } from './cluster/IDManagerServer';
-import { IDManager } from './cluster/IDManager';
-import * as cio from "socket.io-client";
-const { version } = require("../package.json");
-const isLock = Symbol.for("isLock");
-const uid = require("shortid");
-export const roleMap = Symbol.for("roleMap");
-export const getActorProxy = Symbol.for("getActorProxy");
-export const latestEventIndex = Symbol.for("latestEventIndex");
+import { Actor } from "./Actor";
+import { Observer } from "@zalelion/ob";
+import { OBMiddle } from "./ob-middle";
+import { Change } from "@zalelion/ob-middle-change";
+import { Context } from "./Context";
+import { Event } from "./types/Event";
+import * as sleep from "sleep-promise";
+const patrun = require("patrun");
 
-const loadEvents = Symbol.for("loadEvents");
+export class Domain {
+  private TypeMap = new Map<string, typeof Actor>();
+  private TypeDBMap = new Map<string, PouchDB.Database>();
+  private db: PouchDB.Database;
+  private eventsBuffer: Event[] = [];
+  private publishing = false;
 
-import UniqueValidator from './UniqueValidator';
-import Role from "./Role";
-import ActorEventEmitter from "./ActorEventEmitter";
-
-export default class Domain {
-
-  public eventstore: EventStore;
-  public eventbus: EventBus;
-  public ActorClassMap: Map<string, ActorConstructor>;
-  public repositorieMap: Map<ActorConstructor, Repository>;
-  private roleMap: Map<string, Role> = new Map();
-  private setEventStore: Function;
-  private beforeCallHandles: any[] = [];
-  private idManager: IDManager;
-  private _isCluster = false;
-  private _isInited = false;
-  private _waitInitList = [];
-  private _isMaster = false;
-  public readonly id;
-
-  constructor(options: any = {}) {
-    this.id = uid();
-
-    let eventstore;
-
-    // cluster support
-
-    if (options.cluster) {
-      this._isCluster = true;
-      setImmediate(() => probe(64321, bool => {
-        if (bool) {
-          new IDManagerServer();
-          this._isMaster = true;
-        }
-
-        this._isInited = true;
-        setImmediate(() => this._waitInitList.forEach(fn => fn()));
-        const socket = cio('http://localhost:64321');
-        this.idManager = new IDManager(this, socket);
-      }))
-
-    }
-
-    this.ActorClassMap = new Map();
-    this.eventstore = eventstore || options.eventstore || (options.EventStore ? new options.EventStore : new EventStore());
-
-    // TODO: clear undone saga! 
-    (async () => {
-      const sagas: any[] = await this.eventstore.findUndoneSaga();
-      for (let saga of sagas) {
-        this.eventbus.rollback(saga.sagaId);
-      }
-    })();
-
-
-    this.repositorieMap = new Map();
-    this.eventbus = options.EventBus ?
-      new options.EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap) :
-      new EventBus(this.eventstore, this, this.repositorieMap, this.ActorClassMap);
-
-    this.register(ActorEventEmitter).register(UniqueValidator);
-
+  constructor({ db }: { db: PouchDB.Database }) {
+    this.db = db;
+    this.reg = this.reg.bind(this);
+    this.create = this.create.bind(this);
+    this.get = this.get.bind(this);
+    this.find = this.find.bind(this);
+    this.findRows = this.findRows.bind(this);
+    this.changeHandle = this.changeHandle.bind(this);
+    db.changes({
+      since: "now",
+      live: true,
+      include_docs: true
+    }).on("change", this.changeHandle);
   }
 
-  // TODO:
-  waitInited() {
-    return new Promise(resolve => {
-      if (this._isInited) {
-        resolve();
+  reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
+    this.TypeMap.set(Type.type, Type);
+    if (db) {
+      this.TypeDBMap.set(Type.type, db);
+      db.changes({
+        since: "now",
+        live: true,
+        include_docs: true
+      }).on("change", this.changeHandle);
+    }
+  }
+
+  async create<T extends Actor>(type: string, argv: any[]) {
+    const Type = this.TypeMap.get(type);
+    if (Type) {
+      Type.beforeCreate && (await Type.beforeCreate(argv));
+      const actor = new Type(...argv);
+      const p = this.observe<T>(actor);
+      await p.save();
+      return p;
+    } else throw new Error(type + " type no exist ! ");
+  }
+
+  private changeHandle({
+    doc,
+    deleted
+  }: PouchDB.Core.ChangesResponseChange<Actor>) {
+    if (doc) {
+      const { _rev, $type, $events, $version, _id } = doc;
+      const pn = _rev.split("-")[0];
+      if (pn === "1") {
+        const createEvent: Event = {
+          type: "created",
+          data: doc,
+          actorId: _id,
+          actorType: $type,
+          actorVersion: $version,
+          actorRev: _rev,
+          createTime: Date.now()
+        };
+        this.eventsBuffer.push(createEvent);
+      } else if (deleted) {
+        const deleteEvent: Event = {
+          type: "deleted",
+          data: doc,
+          actorId: _id,
+          actorType: $type,
+          actorVersion: $version,
+          actorRev: _rev,
+          createTime: Date.now()
+        };
+        this.eventsBuffer.push(deleteEvent);
       } else {
-        this._waitInitList.push(resolve);
+        this.eventsBuffer.push(...$events);
       }
-    })
-  }
 
-  get isCluster(): boolean {
-    return this._isCluster;
-  }
-
-  static get version(): string {
-    return version;
-  }
-
-  // todo
-  use(plugin): Domain {
-    plugin({
-      beforeCallHandles: this.beforeCallHandles
-    });
-    return this;
-  }
-
-  private async getNativeActor(type: string, id: string): Promise<any> {
-
-    const roles = type.split(".");
-    const actorType = roles.shift();
-
-    let repo = this.repositorieMap.get(this.ActorClassMap.get(actorType));
-    const actor = await repo.get(id);
-
-    let result;
-
-    if (roles.length) {
-      for (let role of roles) {
-        result = this.roleMap.get(role).wrap(result || actor);
-      }
+      this.publish();
     }
-
-    return result || actor;
   }
 
-  private async nativeCreateActor(type, data) {
-
-    const actorType = type.split(".").shift();
-
-    const ActorClass = this.ActorClassMap.get(actorType);
-    const repo = this.repositorieMap.get(ActorClass);
-
-    let uniqueValidator: UniqueValidator = await this.get('UniqueValidator', ActorClass.getType());
-    if (!uniqueValidator && ActorClass.uniqueFields) {
-      uniqueValidator = await this.create("UniqueValidator", { actotType: ActorClass.getType(), uniqueFields: ActorClass.uniqueFields });
+  async publish() {
+    if (this.publishing) {
+      return;
     }
-
-    if (ActorClass.beforeCreate) {
-
-      try {
-        let uniqueValidatedOk = true;
-        let holded = [];
-        //  unique field value validate
-        if (ActorClass.uniqueFields) {
-          let arr = [];
-          ActorClass.uniqueFields.forEach(key => {
-            let value = data[key];
-            if (value && ['string', 'number'].includes(typeof (value))) {
-              arr.push({ key, value });
-            }
-          });
-          if (arr.length) {
-
-            try {
-              uniqueValidatedOk = await uniqueValidator.hold(arr);
-            } catch (err) {
-              holded = err.holded;
-              uniqueValidatedOk = false;
-            }
-            uniqueValidator.unbind();
-          }
-        }
-        data = (await ActorClass.beforeCreate(data, this, uniqueValidatedOk, holded)) || data;
-      } catch (err) {
-        throw err;
-      }
-    }
-
-    const actorId = (await repo.create(data)).json.id;
-    const actor = await this[getActorProxy](type, actorId);
-    if (ActorClass.created) {
-      await ActorClass.created(actor, this);
-    }
-    return actor;
+    this.publishing = true;
+    const event = this.eventsBuffer.unshift();
 
   }
 
-  async [getActorProxy](type: string, id: string, sagaId?: string, key?: string, parents?: any[]) {
-
-    parents = parents || [];
-
-    let actor = await this.getNativeActor(type, id);
-    if (!actor) {
-      return null;
-    }
-
-    // cluster support
-
-    if (this.isCluster) {
-      if (!this.idManager.isHold(id)) {
-
-        // if timeout , then try loop bind .
-        let looptry = async () => {
-
-          const result = await this.idManager.bind(id);
-
-          if (result === 'timeout') { // timeout
-
-            if (parents) {
-              for (let parent of parents) {
-                await this.idManager.unbind(parent.id); // unbind parent actor
-                const p = await this[getActorProxy](parent.type, parent.id); // rebind parent actor
-
-                // parent is removed
-                if (!p) {
-                  throw new Error(`type=${parent.type} id=${parent.id} 's actor is removed!`);
-                }
-              }
-            }
-
-            await looptry();
-
-          }
-        }
-
-        await looptry();
-
-        if (Array.isArray(actor)) {
-          let events = await this.eventstore.findFollowEvents(actor[0].id, actor[latestEventIndex]);
-          actor[0][loadEvents](events);
-          if (!actor[0].json.isAlive) {
-            return null;
-          }
-        } else {
-          let events = await this.eventstore.findFollowEvents(actor.id, actor[latestEventIndex]);
-          actor[loadEvents](events);
-          if (!actor.json.isAlive) {
-            return null;
-          }
-        }
-      }
-    }
-
-    const that = this;
-
-    let roles;
-    if (Array.isArray(actor)) {
-      roles = actor[1]
-      actor = actor[0];
-    }
-
-    const proxy = new Proxy(actor, {
-      get(target, prop: string) {
-
-        if (prop === "then") { return proxy };
-
-        let member = actor[prop];
-        let roleName;
-        let role;
-        if ("data" === prop || "lock" === prop || "lockData" === prop || prop === "json" || prop === "id" || typeof prop === 'symbol') {
-          return Reflect.get(target, prop);
-        } else {
-          if (!member) {
-            if (roles) {
-              for (let rn in roles) {
-                role = roles[rn];
-                member = role.methods[prop];
-                roleName = rn;
-                if (member) break;
-              }
-            } else return;
-          }
-          if (typeof member === "function") {
-            if (prop in Object.prototype) return undefined;
-
-            return new Proxy(member, {
-              apply(target, cxt, args) {
-                return new Promise(function (resolve, reject) {
-                  async function run() {
-
-                    for (let i = 0; i < that.beforeCallHandles.length; i++) {
-                      await that.beforeCallHandles[i]({ actor, prop });
-                    }
-
-                    const islock = actor[isLock](key);
-
-                    if (islock) {
-                      setTimeout(run, 2000);
-                    } else {
-                      const iservice = new Service(actor, that.eventbus, that.repositorieMap.get(that.ActorClassMap.get(actor.type)),
-                        that,
-                        (type, id, sagaId, key, parent) => that[getActorProxy](type, id, sagaId, key, parent),
-                        (type, data) => that.nativeCreateActor(type, data),
-                        prop, sagaId, roleName, role, [...parents, { type: actor.type, id: actor.id }]);
-
-                      const service: any = function (type, data) {
-                        if (arguments.length === 0) {
-                          type = prop;
-                          data = null;
-                        } else if (arguments.length === 1) {
-                          data = type;
-                          type = prop;
-                        }
-                        return iservice.apply(type, data);
-                      }
-                      service.__proto__ = iservice;
-
-                      cxt = { service, $: service, proxy };
-
-                      cxt.__proto__ = actor;
-                      let result
-                      try {
-                        result = target.call(cxt, ...args);
-                      } catch (err) {
-                        if (service.isRootSaga) {
-                          that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
-                        } else {
-                          reject(err);
-                        }
-                        return;
-                      }
-                      if (result instanceof Promise) {
-                        result.then(result => {
-                          resolve(result);
-                          if (!service.unbindCalled) {
-                            service.unbind();
-                          }
-                        }).catch(err => {
-                          if (!service.unbindCalled) {
-                            service.unbind();
-                          }
-                          if (service.isRootSaga) {
-                            that.eventbus.rollback(sagaId || service.sagaId).then(r => reject(err));
-                          } else {
-                            reject(err);
-                          }
-                        })
-                      } else {
-
-                        resolve(result);
-                        if (service.unbindCalled) {
-                          service.unbind();
-                        }
-                      }
-                    }
-                  }
-                  run();
-                });
-              }
-            });
-          } else return undefined;
-        }
-      }
-    })
+  observe<T extends Actor>(actor) {
+    const ob = new Observer<T>(actor);
+    const { proxy, use } = ob;
+    const cxt = new Context(this.db, proxy, this);
+    use(new Change(ob));
+    use(new OBMiddle(ob, cxt));
     return proxy;
   }
 
-  register(Classes: ActorConstructor[] | ActorConstructor) {
-
-    if (!Array.isArray(Classes)) {
-      Classes = [Classes]
-    }
-
-    (async () => {
-      if (this.isCluster) {
-        await this.waitInited();
-      }
-      for (let Class of Classes) {
-        Class[roleMap] = this.roleMap;
-        const type = Class.getType();
-        if (!type) throw new Error("please implements Actor.getType!");
-        this.ActorClassMap.set(type, Class);
-        const repo = new Repository(Class, this.eventstore, this.roleMap);
-        this.repositorieMap.set(Class, repo);
-
-        (async () => {
-          this.waitInited();
-          if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator') {
-            const emitter = await this.get('ActorEventEmitter', "ActorEventEmitter" + type);
-            if (!emitter && (!this.isCluster || this._isMaster)) {
-              this.create("ActorEventEmitter", { id: "ActorEventEmitter" + type });
-            }
-          }
-          repo.on("create", json => {
-            let event = new Event(
-              { id: json.id, type: Class.getType() }, json, "create", "create"
-            )
-            if (type !== 'ActorEventEmitter' && type !== 'UniqueValidator') {
-              this.get('ActorEventEmitter', 'ActorEventEmitter' + event.actorType).then(emitter => {
-                emitter.publish(event);
-              })
-            }
-            const alias = getAlias(event);
-            for (let name of alias) {
-              this.eventbus.emitter.emit(name, event);
-            }
-          });
-        })();
-
-
-      }
-    })();
-
-    return this;
+  async get<T extends Actor>(type: string, id: string) {
+    const Type = this.TypeMap.get(type);
+    if (Type) {
+      const db = this.TypeDBMap.get(Type.type) || this.db;
+      const row = await db.get(id);
+      const actor = Type.parse<T>(row);
+      return this.observe<T>(actor);
+    } else throw new Error(type + " type no exist ! ");
   }
 
-  async create(type: string, data: any) {
-    return await this.nativeCreateActor(type, data);
+  async findRows(
+    type: string,
+    params: PouchDB.Find.FindRequest<{}>
+  ): Promise<any[]> {
+    const Type = this.TypeMap.get(type);
+    if (Type) {
+      const db = this.TypeDBMap.get(Type.type) || this.db;
+      const { docs } = await db.find(params);
+      return docs;
+    } else throw new Error(type + " type no exist ! ");
   }
 
-  async get(type: string, id: string) {
-    return await this[getActorProxy](type, id);
+  async find<T extends Actor>(
+    type: string,
+    params: PouchDB.Find.FindRequest<{}>
+  ): Promise<T[]> {
+    const Type = this.TypeMap.get(type);
+    if (Type) {
+      const docs = await this.findRows(type, params);
+      return docs.map(doc => {
+        const actor = Type.parse<T>(doc);
+        return this.observe<T>(actor);
+      });
+    } else throw new Error(type + " type no exist ! ");
   }
-
-  on(event, handle) {
-    this.eventbus.on(event, handle);
-  }
-
-  once(event, handle) {
-    this.eventbus.on(event, handle);
-  }
-
-  public getCacheActorIds() {
-    let result = [];
-    for (let [key, Actor] of this.ActorClassMap) {
-      result = result.concat(this.repositorieMap.get(Actor).getCacheActorIds());
-    }
-    return result;
-  }
-
-  public addRole(name: string | any, supportedActorNames?: string[], methods?: any, updater?: any) {
-
-    if (typeof name !== "string") {
-      supportedActorNames = name.types;
-      methods = name.methods;
-      updater = name.updater;
-      name = name.name;
-    }
-
-    if (this.roleMap.has(name)) throw new Error(name + " role is exist. ");
-    this.roleMap.set(name, new Role(name, supportedActorNames, methods, updater));
-    return this;
-  }
-
-  clearCache(id: string) {
-    this.repositorieMap.forEach(repo => {
-      repo.clear(id);
-    })
-  }
-
-  unbind(id: string) {
-    if (this._isCluster) {
-      this.idManager.unbind(id);
-    }
-  }
-
-  getHistory(actorType: string, actorId: string, eventType?: string) {
-    const ActorClass = this.ActorClassMap.get(actorType);
-    if (ActorClass) {
-      const repo = this.repositorieMap.get(ActorClass);
-      return repo.getHistory(actorId, eventType);
-    } else {
-      throw new Error("no class of " + actorType.toString());
-    }
-  }
-
 }
