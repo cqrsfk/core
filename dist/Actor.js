@@ -31,6 +31,15 @@ class Actor {
     get json() {
         return this.statics.json(this);
     }
+    async $recover(sagaId, rev) {
+        if (this.$lockSagaId && sagaId === this.$lockSagaId) {
+            const doc = await this.$cxt.db.get(this._id, { rev });
+            this.statics.lockFields.forEach(key => {
+                this[key] = doc[key];
+            });
+            return await this.save();
+        }
+    }
     async save() {
         const json = this.json;
         const result = await this.$cxt.db.put(json);
@@ -38,6 +47,20 @@ class Actor {
         this.$events = [];
         await sleep(10);
         return result;
+    }
+    async $lock(sagaId) {
+        if (this.$lockSagaId) {
+            throw new Error("locked");
+        }
+        this.$lockSagaId = sagaId;
+        return await this.save();
+    }
+    async $unlock(sagaId) {
+        if (this.$lockSagaId === sagaId) {
+            delete this.$lockSagaId;
+            return this.save();
+        }
+        throw new Error("locked");
     }
     async sync() {
         const latestJSON = await this.$cxt.db.get("mydoc");
@@ -66,5 +89,6 @@ class Actor {
     }
 }
 Actor.version = 1;
+Actor.lockFields = [];
 exports.Actor = Actor;
 //# sourceMappingURL=Actor.js.map

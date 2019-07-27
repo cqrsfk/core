@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const uid = require("shortid");
+const Saga_1 = require("./Saga");
 class Context {
     constructor(db, actor, domain_) {
         this.db = db;
@@ -10,10 +11,10 @@ class Context {
         this.apply = this.apply.bind(this);
         this.find = this.find.bind(this);
     }
-    async get(id) {
+    async get(type, id) {
         if (id === this.actor._id)
             return this.actor;
-        return this.domain_.get(this.actor.$type, id);
+        return this.domain_.get(type, id, this.actor._id);
     }
     async find(type, req) {
         if (arguments.length === 1) {
@@ -36,6 +37,12 @@ class Context {
         };
         this.actor.$events.push(event);
         this.actor.$updater(event);
+    }
+    async createSaga() {
+        if (this.actor instanceof Saga_1.Saga) {
+            throw new Error("saga instance can't createSaga.");
+        }
+        return await this.domain_.create("Saga", []);
     }
 }
 exports.Context = Context;

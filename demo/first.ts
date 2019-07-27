@@ -11,58 +11,70 @@ const db = new PouchDB("test", { adapter: "memory" });
 var domain = new Domain({ db });
 
 class User extends Actor {
-  $sync: any;
-  private name: string;
-  constructor(name) {
+  public money: number = 100;
+  constructor(public name: string = "leo") {
     super();
-    this.name = name;
   }
-  change(name) {
-    this.$cxt.apply("change", name);
+
+  static lockFields: string[] = ["money"];
+
+  plus(money) {
+    this.$cxt.apply("plus", money);
   }
-  changeHandle({
-    type,
-    data,
-    actorId,
-    actorType,
-    actorVersion,
-    id,
-    actorRev,
-    createTime
-  }) {
-    this.name = data;
+
+  plusHandle(event) {
+    this.money += event.data;
+  }
+
+  cut(money) {
+    this.$cxt.apply("cut", money);
+  }
+
+  cutHandle(event) {
+    this.money -= event.data;
+  }
+}
+
+class Transfer extends Actor {
+  constructor() {
+    super();
+  }
+
+  async transfer(fromId, toId) {
+    const t = await this.$cxt.createSaga();
+    const fromUser = await t.lockGet<User>("User", fromId);
+    if (!fromUser) {
+      throw new Error("from user no exist");
+    }
+    const toUser = await t.lockGet<User>("User", toId);
+    if (!toUser) {
+      return await t.recover();
+    }
+
+    if (fromUser && toUser) {
+      fromUser.cut(20);
+      await fromUser.save();
+      toUser.plus(20);
+      await toUser.save();
+      await t.recover();
+      //   console.log(fromUser,toUser)
+    }
   }
 }
 
 domain.reg(User);
-
-// (async function() {
-//    await domain.create<User>("User", ["leo111"]);
-//    await domain.create<User>("User", ["leo222"]);
-//    await domain.create<User>("User", ["leo333"]);
-// })();
-
-domain.on(
-  {
-    actor: "User",
-    type:"created"
-  },
-  function(event) {
-    console.log("event......",event)
-  }
-);
+domain.reg(Transfer);
 
 (async function() {
-  const u = await domain.create<User>("User", ["leo"]);
-  const u2 = u.$sync(function({ path, newValue }) {
-    set(u2, path, newValue);
-  });
-  //   console.log(u2);
-
-  u.change("hahahhh111111111----aah");
-  await u.save();
-  //   await u.remove();
-  //   console.log(u2);
-  u.change("hahahcc1111");
-  await u.save();
+  const fromUser = await domain.create<User>("User", ["from user"]);
+  const toUser = await domain.create<User>("User", ["to user"]);
+  const transfer = await domain.create<Transfer>("Transfer", []);
+  try {
+    await transfer.transfer(fromUser._id, toUser._id);
+    console.log(fromUser);
+    console.log(toUser);
+    console.log(transfer);
+  } catch (err) {
+    console.log(err);
+  }
 })();

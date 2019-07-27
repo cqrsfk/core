@@ -10,6 +10,7 @@ export declare class Domain {
     private eventsBuffer;
     private bus;
     private publishing;
+    private actorBuffer;
     constructor({ db }: {
         db: PouchDB.Database;
     });
@@ -18,24 +19,25 @@ export declare class Domain {
     private changeHandle;
     publish(): Promise<void>;
     once(event: {
-        actor: string;
-        type: string;
-        id: string;
+        actor?: string;
+        type?: string;
+        id?: string;
     } | string, listener: any): void;
     on(event: {
-        actor: string;
-        type: string;
-        id: string;
+        actor?: string;
+        type?: string;
+        id?: string;
     } | string, listener: any, once?: boolean): void;
     getEventName({ actor, type, id }: {
-        actor: string;
-        type: string;
-        id: string;
+        actor?: string;
+        type?: string;
+        id?: string;
     }): string;
     removeListener(eventname: any, listener: any): void;
     removeAllListeners(eventname?: string): void;
-    observe<T extends Actor>(actor: any): T;
-    get<T extends Actor>(type: string, id: string): Promise<T>;
+    private observe;
+    get<T extends Actor>(type: string, id: string, holderId?: string): Promise<T>;
+    private nativeGet;
     findRows(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<any[]>;
     find<T extends Actor>(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<T[]>;
 }

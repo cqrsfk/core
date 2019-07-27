@@ -11,10 +11,12 @@ export class Actor {
   $type: string;
   $version: number;
   $events: Event[] = [];
+  $lockSagaId: string;
 
   // proxy provider
   $cxt: Context;
   static version: number = 1;
+  static lockFields: string[] = [];
 
   constructor(...argv: any[]) {
     this.$type = this.statics.type;
@@ -47,6 +49,16 @@ export class Actor {
     return this.statics.json(this);
   }
 
+  async $recover(sagaId: string, rev: string) {
+    if (this.$lockSagaId && sagaId === this.$lockSagaId) {
+      const doc = await this.$cxt.db.get(this._id, { rev });
+      this.statics.lockFields.forEach(key => {
+        this[key] = doc[key];
+      });
+      return await this.save();
+    }
+  }
+
   async save(): Promise<PouchDB.Core.Response> {
     const json = this.json;
     const result = await this.$cxt.db.put(json);
@@ -54,6 +66,22 @@ export class Actor {
     this.$events = [];
     await sleep(10);
     return result;
+  }
+
+  async $lock(sagaId: string) {
+    if (this.$lockSagaId) {
+      throw new Error("locked");
+    }
+    this.$lockSagaId = sagaId;
+    return await this.save();
+  }
+
+  async $unlock(sagaId: string) {
+    if (this.$lockSagaId === sagaId) {
+      delete this.$lockSagaId;
+      return this.save();
+    }
+    throw new Error("locked");
   }
 
   async sync() {

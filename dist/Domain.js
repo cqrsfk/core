@@ -5,7 +5,9 @@ const ob_middle_1 = require("./ob-middle");
 const ob_middle_change_1 = require("@zalelion/ob-middle-change");
 const Context_1 = require("./Context");
 const eventAlias_1 = require("./eventAlias");
+const Saga_1 = require("./Saga");
 const events_1 = require("events");
+const sleep = require("sleep-promise");
 class Domain {
     constructor({ db }) {
         this.TypeMap = new Map();
@@ -13,6 +15,7 @@ class Domain {
         this.eventsBuffer = [];
         this.bus = new events_1.EventEmitter();
         this.publishing = false;
+        this.actorBuffer = new Map();
         this.db = db;
         this.reg = this.reg.bind(this);
         this.create = this.create.bind(this);
@@ -25,6 +28,7 @@ class Domain {
             live: true,
             include_docs: true
         }).on("change", this.changeHandle);
+        this.reg(Saga_1.Saga, db);
     }
     reg(Type, db) {
         this.TypeMap.set(Type.type, Type);
@@ -42,6 +46,7 @@ class Domain {
         if (Type) {
             Type.beforeCreate && (await Type.beforeCreate(argv));
             const actor = new Type(...argv);
+            this.actorBuffer.set(actor._id, actor);
             const p = this.observe(actor);
             await p.save();
             return p;
@@ -94,6 +99,12 @@ class Domain {
             eventNames.forEach(e => {
                 this.bus.emit(e, event);
             });
+            await sleep(0);
+            this.publishing = false;
+            await this.publish();
+        }
+        else {
+            this.publishing = false;
         }
     }
     once(event, listener) {
@@ -119,21 +130,32 @@ class Domain {
     removeAllListeners(eventname) {
         this.bus.removeAllListeners(eventname);
     }
-    observe(actor) {
+    observe(actor, holderId) {
         const ob = new ob_1.Observer(actor);
         const { proxy, use } = ob;
         const cxt = new Context_1.Context(this.db, proxy, this);
         use(new ob_middle_change_1.Change(ob));
-        use(new ob_middle_1.OBMiddle(ob, cxt));
+        use(new ob_middle_1.OBMiddle(ob, cxt, holderId));
         return proxy;
     }
-    async get(type, id) {
+    async get(type, id, holderId) {
+        const actor = await this.nativeGet(type, id);
+        return this.observe(actor, holderId);
+    }
+    async nativeGet(type, id) {
+        const doc = this.actorBuffer.get(id);
+        if (doc)
+            return doc;
         const Type = this.TypeMap.get(type);
         if (Type) {
             const db = this.TypeDBMap.get(Type.type) || this.db;
             const row = await db.get(id);
-            const actor = Type.parse(row);
-            return this.observe(actor);
+            if (row) {
+                this.actorBuffer.set(id, row);
+                const actor = Type.parse(row);
+                return actor;
+            }
+            return null;
         }
         else
             throw new Error(type + " type no exist ! ");

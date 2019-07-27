@@ -3,10 +3,11 @@ import { Context } from "./Context";
 export declare class OBMiddle {
     private ob;
     private cxt;
+    private holderId?;
     private recording;
     private changes;
     private updaters;
-    constructor(ob: Observer<any>, cxt: Context);
+    constructor(ob: Observer<any>, cxt: Context, holderId?: string | undefined);
     $sync(updater: any): any;
     get({ root, path, parentPath, parent, key, value, ob }: {
         root: any;
@@ -16,6 +17,16 @@ export declare class OBMiddle {
         key: any;
         value: any;
         ob: any;
+    }): any;
+    beforeSet({ newValue, key, root, path, parentPath }: {
+        root: any;
+        path: string;
+        parentPath: string;
+        parent: any;
+        key: string;
+        value: any;
+        newValue: any;
+        ob: Observer<any>;
     }): any;
     beforeApply({ parentPath, key, newArgv }: {
         root: any;

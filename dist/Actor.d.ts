@@ -8,8 +8,10 @@ export declare class Actor {
     $type: string;
     $version: number;
     $events: Event[];
+    $lockSagaId: string;
     $cxt: Context;
     static version: number;
+    static lockFields: string[];
     constructor(...argv: any[]);
     static beforeCreate?(argv: any[]): void;
     static created?(actor: Actor): void;
@@ -18,7 +20,10 @@ export declare class Actor {
     static parse<T extends Actor>(json: any): T;
     readonly statics: typeof Actor;
     readonly json: any;
+    $recover(sagaId: string, rev: string): Promise<PouchDB.Core.Response | undefined>;
     save(): Promise<PouchDB.Core.Response>;
+    $lock(sagaId: string): Promise<PouchDB.Core.Response>;
+    $unlock(sagaId: string): Promise<PouchDB.Core.Response>;
     sync(): Promise<void>;
     remove(): Promise<PouchDB.Core.Response | undefined>;
     $updater(event: Event): void;

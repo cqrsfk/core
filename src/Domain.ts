@@ -5,6 +5,7 @@ import { Change } from "@zalelion/ob-middle-change";
 import { Context } from "./Context";
 import { Event } from "./types/Event";
 import { getAlias } from "./eventAlias";
+import { Saga } from "./Saga";
 import { EventEmitter } from "events";
 import * as sleep from "sleep-promise";
 
@@ -15,6 +16,8 @@ export class Domain {
   private eventsBuffer: Event[] = [];
   private bus = new EventEmitter();
   private publishing = false;
+
+  private actorBuffer = new Map();
 
   constructor({ db }: { db: PouchDB.Database }) {
     this.db = db;
@@ -29,6 +32,8 @@ export class Domain {
       live: true,
       include_docs: true
     }).on("change", this.changeHandle);
+
+    this.reg(Saga, db);
   }
 
   reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
@@ -48,6 +53,7 @@ export class Domain {
     if (Type) {
       Type.beforeCreate && (await Type.beforeCreate(argv));
       const actor = new Type(...argv);
+      this.actorBuffer.set(actor._id, actor);
       const p = this.observe<T>(actor);
       await p.save();
       return p;
@@ -160,22 +166,32 @@ export class Domain {
     this.bus.removeAllListeners(eventname);
   }
 
-  observe<T extends Actor>(actor) {
+  private observe<T extends Actor>(actor, holderId?: string) {
     const ob = new Observer<T>(actor);
     const { proxy, use } = ob;
     const cxt = new Context(this.db, proxy, this);
     use(new Change(ob));
-    use(new OBMiddle(ob, cxt));
+    use(new OBMiddle(ob, cxt, holderId));
     return proxy;
   }
 
-  async get<T extends Actor>(type: string, id: string) {
+  async get<T extends Actor>(type: string, id: string, holderId?: string) {
+    const actor = await this.nativeGet(type, id);
+    return this.observe<T>(actor, holderId);
+  }
+  private async nativeGet<T extends Actor>(type: string, id: string) {
+    const doc = this.actorBuffer.get(id);
+    if (doc) return doc;
     const Type = this.TypeMap.get(type);
     if (Type) {
       const db = this.TypeDBMap.get(Type.type) || this.db;
       const row = await db.get(id);
-      const actor = Type.parse<T>(row);
-      return this.observe<T>(actor);
+      if (row) {
+        this.actorBuffer.set(id, row);
+        const actor = Type.parse<T>(row);
+        return actor;
+      }
+      return null;
     } else throw new Error(type + " type no exist ! ");
   }
 
