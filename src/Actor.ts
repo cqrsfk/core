@@ -12,6 +12,7 @@ export class Actor {
   $version: number;
   $events: Event[] = [];
   $lockSagaId: string;
+  $sync;
 
   // proxy provider
   $cxt: Context;

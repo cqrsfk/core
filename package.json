@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "dependencies": {
     "@types/shortid": "0.0.29",
-    "@zalelion/ob": "0.0.6",
-    "@zalelion/ob-middle-change": "0.0.1",
+    "@zalelion/ob": "0.0.7",
+    "@zalelion/ob-middle-change": "0.0.2",
     "@zalelion/ob-middle-sync": "0.0.2",
     "lodash": "^4.17.15",
     "patrun": "^1.0.0",
