@@ -25,6 +25,7 @@ export class OBMiddle {
     this.beforeApply = this.beforeApply.bind(this);
     this.afterApply = this.afterApply.bind(this);
     this.$sync = this.$sync.bind(this);
+    this.$syncReact = this.$syncReact.bind(this);
 
     ob.emitter.on("change", change => {
       if (this.recording) {
@@ -61,7 +62,7 @@ export class OBMiddle {
       if (sub) {
         sub[obKey] = newOB;
       } else {
-        newState[obKey] = newOB;
+        newState = { [obKey]: newOB };
       }
       vm.setState(newState);
     });

@@ -13,6 +13,7 @@ export class Actor {
   $events: Event[] = [];
   $lockSagaId: string;
   $sync;
+  $syncReact;
 
   // proxy provider
   $cxt: Context;

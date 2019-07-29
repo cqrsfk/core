@@ -3,6 +3,7 @@ import * as M from "pouchdb-adapter-memory";
 import * as PouchDB from "pouchdb";
 import { set, get } from "lodash";
 import * as sleep from "sleep-promise";
+import * as React from "react";
 
 PouchDB.plugin(M);
 
@@ -67,32 +68,48 @@ domain.reg(Transfer);
 
 (async function() {
   const u = await domain.create<User>("User", ["from user"]);
-  let state = u.$sync(updater);
-  function updater({ parentPath, key, isFun, argv, newValue }) {
-    let part = {};
-    if (parentPath) {
-      const pathArr = parentPath.split(".");
-      let sub;
-      for (let i = 0; i < pathArr.length; i++) {
-        if (i === 0) {
-          sub = { ...state[pathArr[0]] };
-          part = { [pathArr[0]]: sub };
-        } else {
-          const key = pathArr[i];
-          const v = sub[key];
-          sub = sub[key] = { ...v };
-        }
-      }
-      sub[key] = newValue;
-    } else {
-      part = { [key]: newValue };
-    }
 
-    state = Object.assign({}, state, part);
-  }
-//   console.log(cu.money);
-  await u.plus(11);
+  let state: any = {};
+
+  var vm = {
+    state,
+    setState: function(newState) {
+      state = { ...state, ...newState };
+    }
+  };
+  state.user = u.$syncReact(vm, "user");
+
+  u.plus(20);
 })();
+
+// (async function() {
+//   const u = await domain.create<User>("User", ["from user"]);
+//   let state = u.$sync(updater);
+//   function updater({ parentPath, key, isFun, argv, newValue }) {
+//     let part = {};
+//     if (parentPath) {
+//       const pathArr = parentPath.split(".");
+//       let sub;
+//       for (let i = 0; i < pathArr.length; i++) {
+//         if (i === 0) {
+//           sub = { ...state[pathArr[0]] };
+//           part = { [pathArr[0]]: sub };
+//         } else {
+//           const key = pathArr[i];
+//           const v = sub[key];
+//           sub = sub[key] = { ...v };
+//         }
+//       }
+//       sub[key] = newValue;
+//     } else {
+//       part = { [key]: newValue };
+//     }
+
+//     state = Object.assign({}, state, part);
+//   }
+// //   console.log(cu.money);
+//   await u.plus(11);
+// })();
 
 // (async function() {
 //     const fromUser = await domain.create<User>("User", ["from user"]);

@@ -10,6 +10,7 @@ export declare class Actor {
     $events: Event[];
     $lockSagaId: string;
     $sync: any;
+    $syncReact: any;
     $cxt: Context;
     static version: number;
     static lockFields: string[];
