@@ -9,6 +9,7 @@ export declare class OBMiddle {
     private updaters;
     constructor(ob: Observer<any>, cxt: Context, holderId?: string | undefined);
     $sync(updater: any): any;
+    $syncReact(vm: any, path: any): any;
     get({ root, path, parentPath, parent, key, value, ob }: {
         root: any;
         path: any;

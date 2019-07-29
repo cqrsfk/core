@@ -9,6 +9,7 @@ export declare class Actor {
     $version: number;
     $events: Event[];
     $lockSagaId: string;
+    $sync: any;
     $cxt: Context;
     static version: number;
     static lockFields: string[];

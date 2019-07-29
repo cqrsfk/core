@@ -7,8 +7,9 @@
 // } from "@zalelion/ob/src/types/Middleware";
 import { Observer } from "@zalelion/ob";
 import { Context } from "./Context";
-import { cloneDeep } from "lodash";
+import { cloneDeep, get } from "lodash";
 import { Actor } from "./Actor";
+import { reactStateSync } from "./utils/reactStateSync";
 
 export class OBMiddle {
   private recording: boolean = false;
@@ -37,12 +38,42 @@ export class OBMiddle {
     return cloneDeep(this.ob.root);
   }
 
+  $syncReact(vm, path) {
+    this.updaters.push(function(change) {
+      const ob = get(vm.state, path);
+      const newOB = reactStateSync({ ...change, state: ob });
+
+      const pathArr = path.split(".");
+      const obKey = pathArr.pop();
+
+      let sub, newState;
+      for (let i = 0; i < pathArr.length; i++) {
+        if (i === 0) {
+          const v = ob[pathArr[0]];
+          sub = { ...v };
+          newState = { [pathArr[0]]: sub };
+        } else {
+          const key = pathArr[i];
+          const v = sub[key];
+          sub = sub[key] = { ...v };
+        }
+      }
+      if (sub) {
+        sub[obKey] = newOB;
+      } else {
+        newState[obKey] = newOB;
+      }
+      vm.setState(newState);
+    });
+    return cloneDeep(this.ob.root);
+  }
+
   get({ root, path, parentPath, parent, key, value, ob }) {
     if (!parentPath && key === "$cxt") {
       return this.cxt;
     }
-    if (root === parent && key === "$sync") {
-      return this.$sync;
+    if ((root === parent && key === "$sync") || key === "$syncReact") {
+      return this[key];
     }
     return value;
   }
