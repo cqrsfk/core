@@ -70,11 +70,26 @@ export class OBMiddle {
   }
 
   get({ root, path, parentPath, parent, key, value, ob }) {
+    const that = this;
     if (!parentPath && key === "$cxt") {
       return this.cxt;
     }
     if ((root === parent && key === "$sync") || key === "$syncReact") {
       return this[key];
+    }
+
+    if (!parentPath) {
+      let fn;
+
+      if (
+        !root[key] &&
+        (fn = root[key + "Handle"]) &&
+        typeof fn === "function"
+      ) {
+        return function(data) {
+          that.cxt.apply(key, data);
+        };
+      }
     }
     return value;
   }
@@ -106,27 +121,13 @@ export class OBMiddle {
     return newValue;
   }
 
-  beforeApply({
-    parentPath,
-    key,
-    newArgv
-  }: {
-    root: any;
-    path: string;
-    parentPath: string;
-    parent: any;
-    fn: any;
-    isNative: boolean;
-    isArray: boolean;
-    key: string;
-    argv: any[];
-    newArgv: any[];
-    ob: Observer<any>;
-  }) {
+  beforeApply(args, args2) {
+    const that = this;
+    let { parentPath, parent, key, argv, fn } = args2;
     if (!parentPath && key === "$updater") {
       this.recording = true;
     }
-    return newArgv;
+    return args2;
   }
 
   afterApply({

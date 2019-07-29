@@ -73,11 +73,16 @@ class OBMiddle {
         }
         return newValue;
     }
-    beforeApply({ parentPath, key, newArgv }) {
+    beforeApply(args, args2) {
+        const that = this;
+        let { parentPath, parent, key, argv, fn } = args2;
         if (!parentPath && key === "$updater") {
             this.recording = true;
         }
-        return newArgv;
+        return Object.assign({}, args2, { fn: fn ||
+                function (data) {
+                    that.cxt.apply(key, data);
+                } });
     }
     afterApply({ parentPath, ob, key, newResult }) {
         if (!parentPath && key === "$updater") {

@@ -19,16 +19,8 @@ class User extends Actor {
 
   static lockFields: string[] = ["money"];
 
-  plus(money: number) {
-    this.$cxt.apply("plus", money);
-  }
-
   plusHandle(event) {
     this.money += event.data;
-  }
-
-  cut(money: number) {
-    this.$cxt.apply("cut", money);
   }
 
   cutHandle(event) {
@@ -43,11 +35,11 @@ class Transfer extends Actor {
 
   async transfer(fromId, toId) {
     const t = await this.$cxt.createSaga();
-    const fromUser = await t.lockGet<User>("User", fromId);
+    const fromUser = await t.lockGet<any>("User", fromId);
     if (!fromUser) {
       throw new Error("from user no exist");
     }
-    const toUser = await t.lockGet<User>("User", toId);
+    const toUser = await t.lockGet<any>("User", toId);
     if (!toUser) {
       return await t.recover();
     }
@@ -67,13 +59,14 @@ domain.reg(User);
 domain.reg(Transfer);
 
 (async function() {
-  const u = await domain.create<User>("User", ["from user"]);
+  const u = await domain.create<any>("User", ["from user"]);
 
   let state: any = {};
 
   var vm = {
     state,
     setState: function(newState) {
+      console.log(newState);
       state = { ...state, ...newState };
     }
   };

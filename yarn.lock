@@ -359,20 +359,20 @@
   resolved "https://registry.npm.taobao.org/@types/shortid/download/@types/shortid-0.0.29.tgz#8093ee0416a6e2bf2aa6338109114b3fbffa0e9b"
   integrity sha1-gJPuBBam4r8qpjOBCRFLP7/6Dps=
 
-"@zalelion/ob-middle-change@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.npm.taobao.org/@zalelion/ob-middle-change/download/@zalelion/ob-middle-change-0.0.2.tgz#1c81f892227aa4b2e5f6f4f2fac2cd268e3316da"
-  integrity sha1-HIH4kiJ6pLLl9vTy+sLNJo4zFto=
+"@zalelion/ob-middle-change@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.npm.taobao.org/@zalelion/ob-middle-change/download/@zalelion/ob-middle-change-0.0.3.tgz#f26515c04aac9ed41e7989ba8de3753dd0ee406b"
+  integrity sha1-8mUVwEqsntQeeYm6jeN1PdDuQGs=
 
 "@zalelion/ob-middle-sync@0.0.2":
   version "0.0.2"
   resolved "https://registry.npm.taobao.org/@zalelion/ob-middle-sync/download/@zalelion/ob-middle-sync-0.0.2.tgz#7785c77b481417087d9775438ee2def5fac6913d"
   integrity sha1-d4XHe0gUFwh9l3VDjuLe9frGkT0=
 
-"@zalelion/ob@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.npm.taobao.org/@zalelion/ob/download/@zalelion/ob-0.0.7.tgz#f9c33b8d25a37a8e53749a2ce0c98552d57dc603"
-  integrity sha1-+cM7jSWjeo5TdJos4MmFUtV9xgM=
+"@zalelion/ob@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.npm.taobao.org/@zalelion/ob/download/@zalelion/ob-0.0.9.tgz?cache=0&sync_timestamp=1564378093343&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40zalelion%2Fob%2Fdownload%2F%40zalelion%2Fob-0.0.9.tgz#29b85277929c3c2fb3170e0b5db26823c2425185"
+  integrity sha1-KbhSd5KcPC+zFw4LXbJoI8JCUYU=
   dependencies:
     lodash "^4.17.15"
 

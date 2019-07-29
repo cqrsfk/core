@@ -29,19 +29,7 @@ export declare class OBMiddle {
         newValue: any;
         ob: Observer<any>;
     }): any;
-    beforeApply({ parentPath, key, newArgv }: {
-        root: any;
-        path: string;
-        parentPath: string;
-        parent: any;
-        fn: any;
-        isNative: boolean;
-        isArray: boolean;
-        key: string;
-        argv: any[];
-        newArgv: any[];
-        ob: Observer<any>;
-    }): any[];
+    beforeApply(args: any, args2: any): any;
     afterApply({ parentPath, ob, key, newResult }: {
         root: any;
         path: string;
