@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 import { Event } from "./types/Event";
 import { Context } from "./Context";
 import * as sleep from "sleep-promise";
+import { History } from "./History";
 
 export class Actor {
   _id: string = uid();
@@ -32,15 +33,15 @@ export class Actor {
     return this.name;
   }
 
-  static json<T extends Actor>(actor: T): any {
+  static json(actor): any {
     return JSON.parse(JSON.stringify(actor));
   }
 
-  static parse<T extends Actor>(json): T {
+  static parse(json): any {
     json = cloneDeep(json);
     json.__proto__ = this.prototype;
     json.constructor = this;
-    return json as T;
+    return json;
   }
 
   get statics() {
@@ -86,6 +87,31 @@ export class Actor {
     throw new Error("locked");
   }
 
+  async history(): Promise<History> {
+    const row = await this.$cxt.db.get(this._id, {
+      revs: true
+    });
+
+    let protoActor: Actor = this;
+    const events: Event[] = [];
+
+    if (row._revisions) {
+      let start = row._revisions.start;
+      let ids = row._revisions.ids.reverse();
+      for (let i = 0; i < start; i++) {
+        const item = await this.$cxt.db.get<Actor>(this._id, {
+          rev: i + 1 + "-" + ids[i]
+        });
+        events.push(...item.$events);
+        if (i === 0) protoActor = this.statics.parse(item);
+      }
+    }
+    events.push(...this.$events);
+    const history = new History(protoActor, events);
+
+    return history;
+  }
+
   async sync() {
     const latestJSON = await this.$cxt.db.get("mydoc");
     if (latestJSON._rev === this._rev) return;
@@ -107,10 +133,11 @@ export class Actor {
     }
   }
 
-  $updater(event: Event) {
+  $updater(event: Event): any {
     const method = event.type;
-    if (this[method + "Handle"]) {
-      this[method + "Handle"](event);
+    if (this[method + "_"]) {
+      const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
+      return this[method + "_"](...argv);
     }
   }
 }

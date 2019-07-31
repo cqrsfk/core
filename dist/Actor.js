@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uid = require("shortid");
 const lodash_1 = require("lodash");
 const sleep = require("sleep-promise");
+const History_1 = require("./History");
 class Actor {
     constructor(...argv) {
         this._id = uid();
@@ -62,6 +63,28 @@ class Actor {
         }
         throw new Error("locked");
     }
+    async history() {
+        const row = await this.$cxt.db.get(this._id, {
+            revs: true
+        });
+        let protoActor = this;
+        const events = [];
+        if (row._revisions) {
+            let start = row._revisions.start;
+            let ids = row._revisions.ids.reverse();
+            for (let i = 0; i < start; i++) {
+                const item = await this.$cxt.db.get(this._id, {
+                    rev: i + 1 + "-" + ids[i]
+                });
+                events.push(...item.$events);
+                if (i === 0)
+                    protoActor = this.statics.parse(item);
+            }
+        }
+        events.push(...this.$events);
+        const history = new History_1.History(protoActor, events);
+        return history;
+    }
     async sync() {
         const latestJSON = await this.$cxt.db.get("mydoc");
         if (latestJSON._rev === this._rev)
@@ -83,8 +106,9 @@ class Actor {
     }
     $updater(event) {
         const method = event.type;
-        if (this[method + "Handle"]) {
-            this[method + "Handle"](event);
+        if (this[method + "_"]) {
+            const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
+            return this[method + "_"](...argv);
         }
     }
 }

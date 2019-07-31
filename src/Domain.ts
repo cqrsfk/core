@@ -188,7 +188,7 @@ export class Domain {
       const row = await db.get(id);
       if (row) {
         this.actorBuffer.set(id, row);
-        const actor = Type.parse<T>(row);
+        const actor = Type.parse(row);
         return actor;
       }
       return null;
@@ -215,7 +215,7 @@ export class Domain {
     if (Type) {
       const docs = await this.findRows(type, params);
       return docs.map(doc => {
-        const actor = Type.parse<T>(doc);
+        const actor = Type.parse(doc);
         return this.observe<T>(actor);
       });
     } else throw new Error(type + " type no exist ! ");

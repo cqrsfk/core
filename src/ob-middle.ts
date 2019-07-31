@@ -81,13 +81,9 @@ export class OBMiddle {
     if (!parentPath) {
       let fn;
 
-      if (
-        !root[key] &&
-        (fn = root[key + "Handle"]) &&
-        typeof fn === "function"
-      ) {
-        return function(data) {
-          that.cxt.apply(key, data);
+      if (!root[key] && (fn = root[key + "_"]) && typeof fn === "function") {
+        return function(...argv) {
+          return that.cxt.apply(key, argv);
         };
       }
     }

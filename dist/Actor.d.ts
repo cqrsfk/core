@@ -1,6 +1,7 @@
 /// <reference types="pouchdb-core" />
 import { Event } from "./types/Event";
 import { Context } from "./Context";
+import { History } from "./History";
 export declare class Actor {
     _id: string;
     _deleted: boolean;
@@ -18,15 +19,16 @@ export declare class Actor {
     static beforeCreate?(argv: any[]): void;
     static created?(actor: Actor): void;
     static readonly type: string;
-    static json<T extends Actor>(actor: T): any;
-    static parse<T extends Actor>(json: any): T;
+    static json(actor: any): any;
+    static parse(json: any): any;
     readonly statics: typeof Actor;
     readonly json: any;
     $recover(sagaId: string, rev: string): Promise<PouchDB.Core.Response | undefined>;
     save(): Promise<PouchDB.Core.Response>;
     $lock(sagaId: string): Promise<PouchDB.Core.Response>;
     $unlock(sagaId: string): Promise<PouchDB.Core.Response>;
+    history(): Promise<History>;
     sync(): Promise<void>;
     remove(): Promise<PouchDB.Core.Response | undefined>;
-    $updater(event: Event): void;
+    $updater(event: Event): any;
 }

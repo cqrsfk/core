@@ -13,6 +13,6 @@ export declare class Context {
     get<T extends Actor>(type: string, id: string): Promise<Actor>;
     find(type: string, req: PouchDB.Find.FindRequest<{}>): any;
     find(req: PouchDB.Find.FindRequest<{}>): any;
-    apply(type: string, data: any): void;
+    apply(type: string, data: any): any;
     createSaga(): Promise<Saga>;
 }

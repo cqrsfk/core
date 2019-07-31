@@ -55,11 +55,20 @@ class OBMiddle {
         return lodash_1.cloneDeep(this.ob.root);
     }
     get({ root, path, parentPath, parent, key, value, ob }) {
+        const that = this;
         if (!parentPath && key === "$cxt") {
             return this.cxt;
         }
         if ((root === parent && key === "$sync") || key === "$syncReact") {
             return this[key];
+        }
+        if (!parentPath) {
+            let fn;
+            if (!root[key] && (fn = root[key + "_"]) && typeof fn === "function") {
+                return function (...argv) {
+                    return that.cxt.apply(key, argv);
+                };
+            }
         }
         return value;
     }
@@ -79,10 +88,7 @@ class OBMiddle {
         if (!parentPath && key === "$updater") {
             this.recording = true;
         }
-        return Object.assign({}, args2, { fn: fn ||
-                function (data) {
-                    that.cxt.apply(key, data);
-                } });
+        return args2;
     }
     afterApply({ parentPath, ob, key, newResult }) {
         if (!parentPath && key === "$updater") {
