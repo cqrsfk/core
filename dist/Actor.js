@@ -106,9 +106,9 @@ class Actor {
     }
     $updater(event) {
         const method = event.type;
-        if (this[method + "_"]) {
+        if (this[method]) {
             const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
-            return this[method + "_"](...argv);
+            return this[method](...argv);
         }
     }
 }

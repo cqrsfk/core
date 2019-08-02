@@ -6,6 +6,7 @@ import * as sleep from "sleep-promise";
 import { History } from "./History";
 
 export class Actor {
+
   _id: string = uid();
   _deleted: boolean = false;
   _rev?: string;
@@ -135,9 +136,10 @@ export class Actor {
 
   $updater(event: Event): any {
     const method = event.type;
-    if (this[method + "_"]) {
+    if (this[method]) {
       const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
-      return this[method + "_"](...argv);
+      return this[method](...argv);
     }
   }
+
 }

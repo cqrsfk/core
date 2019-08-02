@@ -18,13 +18,14 @@ class User extends Actor {
   }
 
   static lockFields: string[] = ["money"];
+  static funcs = ["plus","cut"];
 
-  plusHandle(event) {
-    this.money += event.data;
+  plus(money) {
+    this.money += money;
   }
 
-  cutHandle(event) {
-    this.money -= event.data;
+  cut(money) {
+    this.money -= money;
   }
 }
 
@@ -50,7 +51,6 @@ class Transfer extends Actor {
       toUser.plus(20);
       await toUser.save();
       await t.recover();
-      //   console.log(fromUser,toUser)
     }
   }
 }
@@ -66,11 +66,12 @@ domain.reg(Transfer);
   var vm = {
     state,
     setState: function(newState) {
-      console.log(newState);
-      state = { ...state, ...newState };
+      state = Object.assign({},state,newState);
+      console.log(state)
     }
   };
   state.user = u.$syncReact(vm, "user");
+
 
   u.plus(20);
 })();

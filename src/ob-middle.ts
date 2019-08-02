@@ -1,10 +1,4 @@
-// import {
-//   Middleware,
-//   GetMiddle,
-//   AfterSetMiddle,
-//   BeforeApplyMiddle,
-//   AfterApplyMiddle
-// } from "@zalelion/ob/src/types/Middleware";
+ 
 import { Observer } from "@zalelion/ob";
 import { Context } from "./Context";
 import { cloneDeep, get } from "lodash";
@@ -79,11 +73,21 @@ export class OBMiddle {
     }
 
     if (!parentPath) {
-      let fn;
-
-      if (!root[key] && (fn = root[key + "_"]) && typeof fn === "function") {
+      const funcs = root.constructor.funcs;
+      if (
+        !this.recording &&
+        value &&
+        typeof value === "function" &&
+        funcs &&
+        funcs.includes(key)
+      ) {
         return function(...argv) {
-          return that.cxt.apply(key, argv);
+          try {
+            return that.cxt.apply(key, argv);
+          } catch (err) {
+            this.recording = false;
+            throw err;
+          }
         };
       }
     }
@@ -118,9 +122,12 @@ export class OBMiddle {
   }
 
   beforeApply(args, args2) {
+
     const that = this;
     let { parentPath, parent, key, argv, fn } = args2;
+
     if (!parentPath && key === "$updater") {
+
       this.recording = true;
     }
     return args2;

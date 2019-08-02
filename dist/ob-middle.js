@@ -63,10 +63,20 @@ class OBMiddle {
             return this[key];
         }
         if (!parentPath) {
-            let fn;
-            if (!root[key] && (fn = root[key + "_"]) && typeof fn === "function") {
+            const funcs = root.constructor.funcs;
+            if (!this.recording &&
+                value &&
+                typeof value === "function" &&
+                funcs &&
+                funcs.includes(key)) {
                 return function (...argv) {
-                    return that.cxt.apply(key, argv);
+                    try {
+                        return that.cxt.apply(key, argv);
+                    }
+                    catch (err) {
+                        this.recording = false;
+                        throw err;
+                    }
                 };
             }
         }
