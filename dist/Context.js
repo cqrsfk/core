@@ -35,8 +35,9 @@ class Context {
             actorRev: this.actor._rev,
             createTime: Date.now()
         };
+        const result = this.actor.$updater(event);
         this.actor.$events.push(event);
-        return this.actor.$updater(event);
+        return result;
     }
     async createSaga() {
         if (this.actor instanceof Saga_1.Saga) {

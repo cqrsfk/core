@@ -1,4 +1,3 @@
- 
 import { Observer } from "@zalelion/ob";
 import { Context } from "./Context";
 import { cloneDeep, get } from "lodash";
@@ -122,12 +121,10 @@ export class OBMiddle {
   }
 
   beforeApply(args, args2) {
-
     const that = this;
     let { parentPath, parent, key, argv, fn } = args2;
 
     if (!parentPath && key === "$updater") {
-
       this.recording = true;
     }
     return args2;
