@@ -6,7 +6,6 @@ import * as sleep from "sleep-promise";
 import { History } from "./History";
 
 export class Actor {
-
   _id: string = uid();
   _deleted: boolean = false;
   _rev?: string;
@@ -63,12 +62,24 @@ export class Actor {
     }
   }
 
+  beforeSave;
+  afterSave;
+
   async save(): Promise<PouchDB.Core.Response> {
+    if (this.beforeSave) {
+      await this.beforeSave();
+    }
+
     const json = this.json;
     const result = await this.$cxt.db.put(json);
     this._rev = result.rev;
     this.$events = [];
     await sleep(10);
+
+    if (this.afterSave) {
+      await this.afterSave();
+    }
+
     return result;
   }
 
@@ -125,11 +136,20 @@ export class Actor {
     }
   }
 
+  beforeRemove;
+  afterRemove;
+
+  removed(rev) {
+    this._deleted = true;
+    this._rev = rev;
+  }
+
   async remove() {
     if (this._rev) {
+      this.beforeRemove && (await this.beforeRemove());
       const result = await this.$cxt.db.remove(this._id, this._rev);
-      this._rev = result.rev;
-      this._deleted = true;
+      this.$cxt.apply("removed", result.rev);
+      this.afterRemove && (await this.afterRemove());
       return result;
     }
   }
@@ -141,5 +161,4 @@ export class Actor {
       return this[method](...argv);
     }
   }
-
 }

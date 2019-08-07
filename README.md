@@ -1,154 +1,33 @@
-# Rewriting
 
+## Contributors
 
-# life cycle
+### Code Contributors
 
-beforeCreate
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/cqrs2/cqrs/graphs/contributors"><img src="https://opencollective.com/cqrs/contributors.svg?width=890&button=false" /></a>
 
-created
+### Financial Contributors
 
-beforeApply
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/cqrs/contribute)]
 
-beforeSend
+#### Individuals
 
-afterSend
+<a href="https://opencollective.com/cqrs"><img src="https://opencollective.com/cqrs/individuals.svg?width=890"></a>
 
-afterApply
+#### Organizations
 
-beforeRemove
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/cqrs/contribute)]
 
-removed
+<a href="https://opencollective.com/cqrs/organization/0/website"><img src="https://opencollective.com/cqrs/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/1/website"><img src="https://opencollective.com/cqrs/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/2/website"><img src="https://opencollective.com/cqrs/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/3/website"><img src="https://opencollective.com/cqrs/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/4/website"><img src="https://opencollective.com/cqrs/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/5/website"><img src="https://opencollective.com/cqrs/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/6/website"><img src="https://opencollective.com/cqrs/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/7/website"><img src="https://opencollective.com/cqrs/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/8/website"><img src="https://opencollective.com/cqrs/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/cqrs/organization/9/website"><img src="https://opencollective.com/cqrs/organization/9/avatar.svg"></a>
 
-# API
-
-# Actor
-
-## static beforeCreate(argv:any[])
-
-## static json(actor:Actor): any
-
-## static parse(json:any): Actor
-
-## json():any;
-
-## save()
-
-## remove()
-
-# Service
-
-## send(type:string , data:any)
-
-## subscribe(event:{actorId, actorType , type}, listener:string);
-
-## unsubscribe(event [, listener]);
-
-if handle , then only unsubscribe listener
-else unscribe all listener
-
-## find / findRows
-
-see PouchDB.find API.
-
-## get(type,id)
-
-## createSaga()
-
-# Saga
-
-## async begin(actor:Actor)
-
-## async end
-
-## Example:
-
-```ts
-const t = await this.service.createSaga();
-const user1 = await this.service.get("User", id1);
-const user2 = await this.service.get("User", id2);
-await t.begin(user1, user2);
-
-// try {
-//   user1.pay(100);
-//   user2.recharge(100);
-//   user1.save();
-//   user2.save();
-// } catch (err) {
-//   await t.revert();
-// }
-
-// or
-
-await t.run(() => {
-  user1.pay(100);
-  user2.recharge(100);
-  user1.save();
-  user2.save();
-});
-
-await end();
-```
-
-```ts
-import { Actor, Domain } from "cqrs";
-
-const db:PouchDB.Database;
-
-class Book extends Actor {
-
-  static beforeCreate(argv:any[], service:Service){
-      // validate argv
-  }
-
-  constructor(private name: string) {
-    super();
-  }
-
-  created(){
-
-  }
-
-  beforeApply(){
-
-  }
-
-  beforeSend(event){
-
-  }
-
-  changeName(name) {
-    // this.service.send("changeNameHandle", name);
-    this.service.send(name);
-  }
-
-  afterSend(event){
-
-  }
-
-  afterApply(){
-
-  }
-
-  private changeNameHandler(event) {
-    const name = event.data as string;
-    this.name = name;
-  }
-
-  beforeRemove(){
-
-  }
-
-  removed(){
-
-  }
-
-}
-
-const domain = new Domain({
-  defaultDB:db
-});
-
-domain.reg(Book[, db]);
-
-// domain.find("Book",)
-```
+# License
+Apache-2.0

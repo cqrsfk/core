@@ -42,11 +42,17 @@ class Actor {
         }
     }
     async save() {
+        if (this.beforeSave) {
+            await this.beforeSave();
+        }
         const json = this.json;
         const result = await this.$cxt.db.put(json);
         this._rev = result.rev;
         this.$events = [];
         await sleep(10);
+        if (this.afterSave) {
+            await this.afterSave();
+        }
         return result;
     }
     async $lock(sagaId) {
@@ -96,11 +102,16 @@ class Actor {
             }
         }
     }
+    removed(rev) {
+        this._deleted = true;
+        this._rev = rev;
+    }
     async remove() {
         if (this._rev) {
+            this.beforeRemove && (await this.beforeRemove());
             const result = await this.$cxt.db.remove(this._id, this._rev);
-            this._rev = result.rev;
-            this._deleted = true;
+            this.$cxt.apply("removed", result.rev);
+            this.afterRemove && (await this.afterRemove());
             return result;
         }
     }

@@ -93,7 +93,6 @@ class OBMiddle {
         return newValue;
     }
     beforeApply(args, args2) {
-        const that = this;
         let { parentPath, parent, key, argv, fn } = args2;
         if (!parentPath && key === "$updater") {
             this.recording = true;

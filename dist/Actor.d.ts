@@ -24,11 +24,16 @@ export declare class Actor {
     readonly statics: typeof Actor;
     readonly json: any;
     $recover(sagaId: string, rev: string): Promise<PouchDB.Core.Response | undefined>;
+    beforeSave: any;
+    afterSave: any;
     save(): Promise<PouchDB.Core.Response>;
     $lock(sagaId: string): Promise<PouchDB.Core.Response>;
     $unlock(sagaId: string): Promise<PouchDB.Core.Response>;
     history(): Promise<History>;
     sync(): Promise<void>;
+    beforeRemove: any;
+    afterRemove: any;
+    removed(rev: any): void;
     remove(): Promise<PouchDB.Core.Response | undefined>;
     $updater(event: Event): any;
 }
