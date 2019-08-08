@@ -30,4 +30,4 @@ Support this project with your organization. Your logo will show up here with a 
 <a href="https://opencollective.com/cqrs/organization/9/website"><img src="https://opencollective.com/cqrs/organization/9/avatar.svg"></a>
 
 # License
-Apache-2.0
+GPL-3.0
