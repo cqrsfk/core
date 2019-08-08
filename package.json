@@ -1,6 +1,6 @@
 {
-  "name": "cqrs",
-  "version": "3.0.0",
+  "name": "@cqrsfk/core",
+  "version": "1.0.1",
   "description": "cqrs for javascript/typescript",
   "main": "dist/index.js",
   "dependencies": {
@@ -40,13 +40,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zalelion/cqrs.git"
+    "url": "git+https://github.com/cqrsfk/core.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/zalelion/cqrs/issues"
+    "url": "https://github.com/cqrsfk/core/issues"
   },
-  "homepage": "https://github.com/zalelion/cqrs#readme"
+  "homepage": "https://github.com/cqrsfk/core#readme"
 }
