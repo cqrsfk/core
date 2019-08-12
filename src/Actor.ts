@@ -124,7 +124,7 @@ export class Actor {
     return history;
   }
 
-  async sync() {
+  async refresh() {
     const latestJSON = await this.$cxt.db.get("mydoc");
     if (latestJSON._rev === this._rev) return;
 
