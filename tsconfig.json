@@ -4,16 +4,18 @@
     "allowSyntheticDefaultImports": false,
     "declaration": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "experimentalDecorators":true,
     "lib": ["dom", "es2017"],
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es2017",
     "typeRoots": ["node_modules/@types"],
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "jsx": "react",
+    "jsxFactory": "React.createElement"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"],
   "compileOnSave": false,
   "downlevelIteration": true

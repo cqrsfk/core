@@ -5,9 +5,9 @@ import { Change } from "@zalelion/ob-middle-change";
 import { Context } from "./Context";
 import { Event } from "./types/Event";
 import { getAlias } from "./eventAlias";
-import { Saga } from "./Saga";
 import { EventEmitter } from "events";
 import * as sleep from "sleep-promise";
+import * as uid from "shortid";
 
 export class Domain {
   private TypeMap = new Map<string, typeof Actor>();
@@ -32,8 +32,6 @@ export class Domain {
       live: true,
       include_docs: true
     }).on("change", this.changeHandle);
-
-    this.reg(Saga, db);
   }
 
   reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
@@ -55,7 +53,7 @@ export class Domain {
       const actor = new Type(...argv);
       this.actorBuffer.set(actor._id, actor);
       const p = this.observe<T>(actor);
-      await p.save();
+      await p.save(true);
       return p;
     } else throw new Error(type + " type no exist ! ");
   }
@@ -69,6 +67,7 @@ export class Domain {
       const pn = _rev.split("-")[0];
       if (pn === "1") {
         const createEvent: Event = {
+          id: uid(),
           type: "created",
           data: doc,
           actorId: _id,
@@ -80,6 +79,7 @@ export class Domain {
         this.eventsBuffer.push(createEvent);
       } else if (deleted) {
         const deleteEvent: Event = {
+          id: uid(),
           type: "deleted",
           data: doc,
           actorId: _id,
@@ -166,20 +166,37 @@ export class Domain {
     this.bus.removeAllListeners(eventname);
   }
 
-  private observe<T extends Actor>(actor, holderId?: string) {
+  /**
+   * TODO: FDSFDSFSFS
+   * @param actor
+   * @param holderId
+   */
+  private observe<T extends Actor>(
+    actor,
+    holderId?: string,
+    recoverEventId = ""
+  ) {
     const ob = new Observer<T>(actor);
     const { proxy, use } = ob;
     const cxt = new Context(this.db, proxy, this);
     use(new Change(ob));
-    use(new OBMiddle(ob, cxt, holderId));
+    use(new OBMiddle(ob, cxt, holderId, recoverEventId));
     return proxy;
   }
 
-  async get<T extends Actor>(type: string, id: string, holderId?: string) {
-    const actor = await this.nativeGet(type, id);
-    return this.observe<T>(actor, holderId);
+  async get<T extends Actor>(
+    type: string,
+    id: string,
+    holderId?: string,
+    recoverEventId = ""
+  ) {
+    const actor = await this.nativeGet<T>(type, id);
+    return this.observe<T>(actor, holderId, recoverEventId) as T;
   }
-  private async nativeGet<T extends Actor>(type: string, id: string) {
+  private async nativeGet<T extends Actor>(
+    type: string,
+    id: string
+  ): Promise<T | null> {
     const doc = this.actorBuffer.get(id);
     if (doc) return doc;
     const Type = this.TypeMap.get(type);
@@ -189,7 +206,7 @@ export class Domain {
       if (row) {
         this.actorBuffer.set(id, row);
         const actor = Type.parse(row);
-        return actor;
+        return actor as T;
       }
       return null;
     } else throw new Error(type + " type no exist ! ");

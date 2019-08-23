@@ -3,8 +3,10 @@ export interface Event {
   readonly actorId: string;
   readonly actorType: string;
   readonly actorVersion: number;
-  readonly id?: string;
+  readonly id: string;
   readonly data: any;
   readonly createTime: number;
   readonly actorRev?: string;
+  readonly sagaId?: string;
+  readonly recoverEventId?: string;
 }

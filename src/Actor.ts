@@ -4,22 +4,23 @@ import { Event } from "./types/Event";
 import { Context } from "./Context";
 import * as sleep from "sleep-promise";
 import { History } from "./History";
+import "reflect-metadata";
 
 export class Actor {
   _id: string = uid();
   _deleted: boolean = false;
   _rev?: string;
   $type: string;
-  $version: number;
   $events: Event[] = [];
-  $lockSagaId: string;
-  $sync;
-  $syncReact;
+  $version: number;
+  $listeners: any = {};
 
-  // proxy provider
+  // proxy provide
+  $sagaId: string;
+  $sync;
+  $stopSync;
+  $recoverEventId: string;
   $cxt: Context;
-  static version: number = 1;
-  static lockFields: string[] = [];
 
   constructor(...argv: any[]) {
     this.$type = this.statics.type;
@@ -32,6 +33,8 @@ export class Actor {
   static get type() {
     return this.name;
   }
+
+  static version = 1.0;
 
   static json(actor): any {
     return JSON.parse(JSON.stringify(actor));
@@ -52,28 +55,35 @@ export class Actor {
     return this.statics.json(this);
   }
 
-  async $recover(sagaId: string, rev: string) {
-    if (this.$lockSagaId && sagaId === this.$lockSagaId) {
-      const doc = await this.$cxt.db.get(this._id, { rev });
-      this.statics.lockFields.forEach(key => {
-        this[key] = doc[key];
-      });
-      return await this.save();
-    }
-  }
-
   beforeSave;
   afterSave;
 
-  async save(): Promise<PouchDB.Core.Response> {
+  async save(force = false): Promise<PouchDB.Core.Response | void> {
+    if (!force && !this.$events.length) return;
+
     if (this.beforeSave) {
       await this.beforeSave();
     }
 
+    for (let evt of this.$events) {
+      const l = this.$listeners[evt.type];
+      if (l) {
+        for (let id in l) {
+          const handles = l[id];
+          for (let h of handles) {
+            const [type, id, method] = (h as string).split(".");
+            const act = await this.$cxt.get(type, id);
+            await act[method](evt);
+          }
+        }
+      }
+    }
+
     const json = this.json;
-    const result = await this.$cxt.db.put(json);
+    let result = await this.$cxt.db.put(json);
     this._rev = result.rev;
     this.$events = [];
+
     await sleep(10);
 
     if (this.afterSave) {
@@ -83,20 +93,50 @@ export class Actor {
     return result;
   }
 
-  async $lock(sagaId: string) {
-    if (this.$lockSagaId) {
-      throw new Error("locked");
+  async subscribe({
+    event,
+    type,
+    id,
+    method
+  }: {
+    type: string;
+    event: string;
+    id: string;
+    method: string;
+  }) {
+    let l = this.$listeners[event];
+    if (!l) {
+      l = this.$listeners[event] = {};
     }
-    this.$lockSagaId = sagaId;
-    return await this.save();
+    if (!l[id]) {
+      l[id] = [];
+    }
+
+    const lset = new Set(l[id]);
+    lset.add(`${type}.${id}.${method}`);
+
+    l[id] = [...lset];
+    return await this.save(true);
   }
 
-  async $unlock(sagaId: string) {
-    if (this.$lockSagaId === sagaId) {
-      delete this.$lockSagaId;
-      return this.save();
+  async unsubscribe({
+    event,
+    type,
+    id,
+    method
+  }: {
+    type: string;
+    event: string;
+    id: string;
+    method: string;
+  }) {
+    const l = this.$listeners[event];
+    if (l && l[id]) {
+      const lset = new Set(l[id]);
+      lset.delete(`${type}.${id}.${method}`);
+      l[id] = [...lset];
+      return await this.save(true);
     }
-    throw new Error("locked");
   }
 
   async history(): Promise<History> {
@@ -155,10 +195,10 @@ export class Actor {
   }
 
   $updater(event: Event): any {
-    const method = event.type;
-    if (this[method]) {
-      const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
-      return this[method](...argv);
+    const changers = Reflect.getMetadata("changers", this.constructor) || {};
+    const method = changers[event.type];
+    if (method && this[method]) {
+      return this[method](event);
     }
   }
 }

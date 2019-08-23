@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const uid = require("shortid");
 const Saga_1 = require("./Saga");
+const uid = require("shortid");
 class Context {
     constructor(db, actor, domain_) {
         this.db = db;
@@ -11,10 +11,12 @@ class Context {
         this.apply = this.apply.bind(this);
         this.find = this.find.bind(this);
     }
-    async get(type, id) {
+    async get(type, id, recoverEventId = "") {
         if (id === this.actor._id)
             return this.actor;
-        return this.domain_.get(type, id, this.actor._id);
+        return this.actor instanceof Saga_1.Saga
+            ? this.domain_.get(type, id, this.actor._id, recoverEventId)
+            : this.domain_.get(type, id);
     }
     async find(type, req) {
         if (arguments.length === 1) {
@@ -25,7 +27,7 @@ class Context {
         }
     }
     apply(type, data) {
-        const event = {
+        let event = {
             type,
             data,
             actorId: this.actor._id,
@@ -33,17 +35,36 @@ class Context {
             actorVersion: this.actor.$version,
             id: uid(),
             actorRev: this.actor._rev,
-            createTime: Date.now()
+            createTime: Date.now(),
+            sagaId: this.actor.$sagaId,
+            recoverEventId: this.actor.$recoverEventId
         };
         const result = this.actor.$updater(event);
         this.actor.$events.push(event);
         return result;
     }
-    async createSaga() {
-        if (this.actor instanceof Saga_1.Saga) {
-            throw new Error("saga instance can't createSaga.");
+    // subscribe(event: string, id: string, method: string){
+    async subscribe({ event, type, id, method }) {
+        const act = await this.domain_.get(type, id);
+        if (act) {
+            act.subscribe({
+                event,
+                type: this.actor.$type,
+                id: this.actor._id,
+                method
+            });
         }
-        return await this.domain_.create("Saga", []);
+    }
+    async unsubscribe({ type, id, event, method }) {
+        const act = await this.domain_.get(type, id);
+        if (act) {
+            act.unsubscribe({
+                event,
+                type: this.actor.$type,
+                id: this.actor._id,
+                method
+            });
+        }
     }
 }
 exports.Context = Context;

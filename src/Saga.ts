@@ -1,45 +1,61 @@
 import { Actor } from "./Actor";
+import { Event } from "./types/Event";
+import { Action } from "./decorators/Action";
+import { Changer } from "./decorators/Changer";
 
-export class Saga extends Actor {
-  public finished: boolean = false;
-  private actorInfo: { [id: string]: { type: string; rev: string } } = {};
+export abstract class Saga extends Actor {
+  private finish = false;
+  private actorInfos: { type: string; rev?: string; id: string }[] = [];
+
   constructor() {
     super();
   }
 
-  async lockGet<T extends Actor>(type: string, id: string) {
-    const actor = await this.$cxt.get<T>(type, id);
-    if (!actor) return null;
-    await actor.$lock(this._id);
-    this.actorInfo = Object.assign({}, this.actorInfo, {
-      [actor._id]: { type: actor.$type, rev: actor._rev }
-    });
-
-    await this.save();
-    return actor as T;
-  }
-
-  async end() {
-    for (let aid in this.actorInfo) {
-      let { type, rev } = this.actorInfo[aid];
-      const actor = await this.$cxt.get(type, aid);
-      await actor.$unlock(this._id);
-    }
-    await this.save();
-    this.$cxt.apply("finish", []);
-  }
-
-  finish() {
-    this.finished = true;
-  }
-
+  @Action()
   async recover() {
-    if (!this.finished) {
-      for (let aid in this.actorInfo) {
-        let { type, rev } = this.actorInfo[aid];
-        const actor = await this.$cxt.get(type, aid);
-        await actor.$recover(this._id, rev);
-      }
+    if (this.finish) return;
+    let events: Event[] = [];
+    for (let info of this.actorInfos) {
+      const { rev, id, type } = info;
+      const act = await this.$cxt.get(type, id);
+      const history = await act.history();
+      events = [...events, ...history.getUndoneEvents(this._id)];
     }
+
+    await this.recoverHandle(events);
+  }
+
+  abstract recoverHandle(events: Event[]):Promise<void>;
+
+  @Action()
+  async begin(acts: Actor[]) {
+    if (this.finish) return;
+
+    this.$cxt.apply("begin", acts);
+    await this.save();
+  }
+
+  @Changer("begin")
+  private setActorInfos(event) {
+    for (let act of event.data) {
+      const type = act.$type;
+      this.actorInfos.push({
+        type,
+        id: act._id,
+        rev: act._rev
+      });
+    }
+  }
+
+  @Action()
+  async end() {
+    if (this.finish) return;
+    this.$cxt.apply("finish", []);
+    await this.save();
+  }
+
+  @Changer("finish")
+  private setFinish() {
+    this.finish = true;
   }
 }

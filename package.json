@@ -2,7 +2,7 @@
   "name": "@cqrsfk/core",
   "version": "1.0.1",
   "description": "cqrs for javascript/typescript",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "dependencies": {
     "@types/shortid": "0.0.29",
     "@zalelion/ob": "^0.0.9",
@@ -12,6 +12,7 @@
     "patrun": "^1.0.0",
     "pouchdb": "^7.1.1",
     "pouchdb-find": "^7.1.1",
+    "reflect-metadata": "^0.1.13",
     "seneca": "^3.12.1",
     "shortid": "^2.2.14",
     "ts-node": "^8.3.0",
@@ -21,17 +22,33 @@
     "@types/lodash": "^4.14.136",
     "@types/pouchdb": "^6.4.0",
     "@types/pouchdb-find": "^6.3.4",
-    "@types/react": "^16.8.23",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
     "@types/seneca": "^2.1.9",
+    "ava": "^2.2.0",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-16": "^1.14.0",
     "object-observer": "^2.1.0",
     "pouchdb-adapter-memory": "^7.1.1",
     "react": "^16.8.6",
+    "react-addons-test-utils": "^15.6.2",
+    "react-dom": "^16.9.0",
     "sleep-promise": "^8.0.1"
   },
   "scripts": {
     "build": "tsc",
-    "test": "",
+    "test": "ava",
     "postinstall": "opencollective-postinstall || true"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts",
+      "tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   },
   "repository": {
     "type": "git",

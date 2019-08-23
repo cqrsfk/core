@@ -5,12 +5,12 @@ import { cloneDeep } from "lodash";
 export class History {
   private index = 0;
   private currentActor: Actor;
-  constructor(private protoActor: Actor, private events: Event[]) {
+  constructor(private protoActor: Actor, public readonly events: Event[]) {
     this.currentActor = cloneDeep(this.protoActor);
     events.forEach(e => this.currentActor.$updater(e));
   }
-  get() {
-    return this.currentActor;
+  get<T extends Actor>() {
+    return this.currentActor as T;
   }
 
   getIndex() {
@@ -21,8 +21,24 @@ export class History {
     if (this.index >= this.events.length) {
       return this.currentActor;
     }
-    const events = this.events.slice(this.index, this.index + 1);
+    const events = this.events.slice(0, ++this.index);
+    console.log(events);
     events.forEach(e => this.currentActor.$updater(e));
+  }
+
+  getUndoneEvents(sagaId) {
+    const events = this.events.filter(evt => evt.sagaId === sagaId);
+    const recoverEventIds: string[] = [];
+
+    for (let evt of this.events) {
+      if (evt.recoverEventId) {
+        recoverEventIds.push(evt.recoverEventId);
+      }
+    }
+
+    return events.filter(
+      evt => !recoverEventIds.includes(evt.sagaId as string)
+    );
   }
 
   prev() {

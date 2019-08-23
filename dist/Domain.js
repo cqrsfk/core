@@ -5,9 +5,9 @@ const ob_middle_1 = require("./ob-middle");
 const ob_middle_change_1 = require("@zalelion/ob-middle-change");
 const Context_1 = require("./Context");
 const eventAlias_1 = require("./eventAlias");
-const Saga_1 = require("./Saga");
 const events_1 = require("events");
 const sleep = require("sleep-promise");
+const uid = require("shortid");
 class Domain {
     constructor({ db }) {
         this.TypeMap = new Map();
@@ -28,7 +28,6 @@ class Domain {
             live: true,
             include_docs: true
         }).on("change", this.changeHandle);
-        this.reg(Saga_1.Saga, db);
     }
     reg(Type, db) {
         this.TypeMap.set(Type.type, Type);
@@ -48,7 +47,7 @@ class Domain {
             const actor = new Type(...argv);
             this.actorBuffer.set(actor._id, actor);
             const p = this.observe(actor);
-            await p.save();
+            await p.save(true);
             return p;
         }
         else
@@ -60,6 +59,7 @@ class Domain {
             const pn = _rev.split("-")[0];
             if (pn === "1") {
                 const createEvent = {
+                    id: uid(),
                     type: "created",
                     data: doc,
                     actorId: _id,
@@ -72,6 +72,7 @@ class Domain {
             }
             else if (deleted) {
                 const deleteEvent = {
+                    id: uid(),
                     type: "deleted",
                     data: doc,
                     actorId: _id,
@@ -130,17 +131,22 @@ class Domain {
     removeAllListeners(eventname) {
         this.bus.removeAllListeners(eventname);
     }
-    observe(actor, holderId) {
+    /**
+     * TODO: FDSFDSFSFS
+     * @param actor
+     * @param holderId
+     */
+    observe(actor, holderId, recoverEventId = "") {
         const ob = new ob_1.Observer(actor);
         const { proxy, use } = ob;
         const cxt = new Context_1.Context(this.db, proxy, this);
         use(new ob_middle_change_1.Change(ob));
-        use(new ob_middle_1.OBMiddle(ob, cxt, holderId));
+        use(new ob_middle_1.OBMiddle(ob, cxt, holderId, recoverEventId));
         return proxy;
     }
-    async get(type, id, holderId) {
+    async get(type, id, holderId, recoverEventId = "") {
         const actor = await this.nativeGet(type, id);
-        return this.observe(actor, holderId);
+        return this.observe(actor, holderId, recoverEventId);
     }
     async nativeGet(type, id) {
         const doc = this.actorBuffer.get(id);

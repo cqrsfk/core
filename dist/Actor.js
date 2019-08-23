@@ -4,11 +4,13 @@ const uid = require("shortid");
 const lodash_1 = require("lodash");
 const sleep = require("sleep-promise");
 const History_1 = require("./History");
+require("reflect-metadata");
 class Actor {
     constructor(...argv) {
         this._id = uid();
         this._deleted = false;
         this.$events = [];
+        this.$listeners = {};
         this.$type = this.statics.type;
         this.$version = this.statics.version;
     }
@@ -32,21 +34,27 @@ class Actor {
     get json() {
         return this.statics.json(this);
     }
-    async $recover(sagaId, rev) {
-        if (this.$lockSagaId && sagaId === this.$lockSagaId) {
-            const doc = await this.$cxt.db.get(this._id, { rev });
-            this.statics.lockFields.forEach(key => {
-                this[key] = doc[key];
-            });
-            return await this.save();
-        }
-    }
-    async save() {
+    async save(force = false) {
+        if (!force && !this.$events.length)
+            return;
         if (this.beforeSave) {
             await this.beforeSave();
         }
+        for (let evt of this.$events) {
+            const l = this.$listeners[evt.type];
+            if (l) {
+                for (let id in l) {
+                    const handles = l[id];
+                    for (let h of handles) {
+                        const [type, id, method] = h.split(".");
+                        const act = await this.$cxt.get(type, id);
+                        await act[method](evt);
+                    }
+                }
+            }
+        }
         const json = this.json;
-        const result = await this.$cxt.db.put(json);
+        let result = await this.$cxt.db.put(json);
         this._rev = result.rev;
         this.$events = [];
         await sleep(10);
@@ -55,19 +63,27 @@ class Actor {
         }
         return result;
     }
-    async $lock(sagaId) {
-        if (this.$lockSagaId) {
-            throw new Error("locked");
+    async subscribe({ event, type, id, method }) {
+        let l = this.$listeners[event];
+        if (!l) {
+            l = this.$listeners[event] = {};
         }
-        this.$lockSagaId = sagaId;
-        return await this.save();
+        if (!l[id]) {
+            l[id] = [];
+        }
+        const lset = new Set(l[id]);
+        lset.add(`${type}.${id}.${method}`);
+        l[id] = [...lset];
+        return await this.save(true);
     }
-    async $unlock(sagaId) {
-        if (this.$lockSagaId === sagaId) {
-            delete this.$lockSagaId;
-            return this.save();
+    async unsubscribe({ event, type, id, method }) {
+        const l = this.$listeners[event];
+        if (l && l[id]) {
+            const lset = new Set(l[id]);
+            lset.delete(`${type}.${id}.${method}`);
+            l[id] = [...lset];
+            return await this.save(true);
         }
-        throw new Error("locked");
     }
     async history() {
         const row = await this.$cxt.db.get(this._id, {
@@ -91,7 +107,7 @@ class Actor {
         const history = new History_1.History(protoActor, events);
         return history;
     }
-    async sync() {
+    async refresh() {
         const latestJSON = await this.$cxt.db.get("mydoc");
         if (latestJSON._rev === this._rev)
             return;
@@ -116,14 +132,13 @@ class Actor {
         }
     }
     $updater(event) {
-        const method = event.type;
-        if (this[method]) {
-            const argv = Array.isArray(event.data) ? [...event.data] : [event.data];
-            return this[method](...argv);
+        const changers = Reflect.getMetadata("changers", this.constructor) || {};
+        const method = changers[event.type];
+        if (method && this[method]) {
+            return this[method](event);
         }
     }
 }
-Actor.version = 1;
-Actor.lockFields = [];
+Actor.version = 1.0;
 exports.Actor = Actor;
 //# sourceMappingURL=Actor.js.map

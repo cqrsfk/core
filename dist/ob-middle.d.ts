@@ -1,15 +1,18 @@
 import { Observer } from "@zalelion/ob";
 import { Context } from "./Context";
+import "reflect-metadata";
 export declare class OBMiddle {
     private ob;
     private cxt;
-    private holderId?;
+    private $sagaId?;
+    private $recoverEventId;
     private recording;
     private changes;
     private updaters;
-    constructor(ob: Observer<any>, cxt: Context, holderId?: string | undefined);
+    constructor(ob: Observer<any>, cxt: Context, $sagaId?: string | undefined, $recoverEventId?: string);
+    readonly watching: boolean;
     $sync(updater: any): any;
-    $syncReact(vm: any, path: any): any;
+    $stopSync(updater?: any): void;
     get({ root, path, parentPath, parent, key, value, ob }: {
         root: any;
         path: any;
@@ -18,16 +21,6 @@ export declare class OBMiddle {
         key: any;
         value: any;
         ob: any;
-    }): any;
-    beforeSet({ newValue, key, root, path, parentPath }: {
-        root: any;
-        path: string;
-        parentPath: string;
-        parent: any;
-        key: string;
-        value: any;
-        newValue: any;
-        ob: Observer<any>;
     }): any;
     beforeApply(args: any, args2: any): any;
     afterApply({ parentPath, ob, key, newResult }: {

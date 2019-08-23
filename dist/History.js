@@ -19,8 +19,19 @@ class History {
         if (this.index >= this.events.length) {
             return this.currentActor;
         }
-        const events = this.events.slice(this.index, this.index + 1);
+        const events = this.events.slice(0, ++this.index);
+        console.log(events);
         events.forEach(e => this.currentActor.$updater(e));
+    }
+    getUndoneEvents(sagaId) {
+        const events = this.events.filter(evt => evt.sagaId === sagaId);
+        const recoverEventIds = [];
+        for (let evt of this.events) {
+            if (evt.recoverEventId) {
+                recoverEventIds.push(evt.recoverEventId);
+            }
+        }
+        return events.filter(evt => !recoverEventIds.includes(evt.sagaId));
     }
     prev() {
         if (this.index === 0) {
