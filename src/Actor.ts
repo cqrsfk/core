@@ -196,9 +196,17 @@ export class Actor {
 
   $updater(event: Event): any {
     const changers = Reflect.getMetadata("changers", this.constructor) || {};
+    const mutations = Reflect.getMetadata("mutations", this.constructor) || {};
     const method = changers[event.type];
     if (method && this[method]) {
       return this[method](event);
+    } else {
+      for (let method in mutations) {
+        let v = mutations[method];
+        if (v.event === event.type) {
+          return this[method](...event.data);
+        }
+      }
     }
   }
 }

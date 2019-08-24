@@ -7,7 +7,8 @@ export class History {
   private currentActor: Actor;
   constructor(private protoActor: Actor, public readonly events: Event[]) {
     this.currentActor = cloneDeep(this.protoActor);
-    events.forEach(e => this.currentActor.$updater(e));
+    
+    // events.forEach(e => this.currentActor.$updater(e));
   }
   get<T extends Actor>() {
     return this.currentActor as T;
@@ -22,7 +23,6 @@ export class History {
       return this.currentActor;
     }
     const events = this.events.slice(0, ++this.index);
-    console.log(events);
     events.forEach(e => this.currentActor.$updater(e));
   }
 

@@ -44,8 +44,7 @@ test("test", async function(t) {
 
   const history = await u.history();
   const user = history.get<User>();
-  t.is(user.money,0)
+  t.is(user.money, 0);
   history.next();
-  t.is(user.money,10)
-
+  t.is(user.money, 10);
 });

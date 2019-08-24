@@ -1,9 +1,11 @@
 import { Observer } from "@zalelion/ob";
 import { Context } from "./Context";
+import { Event } from "./types/Event";
 import { cloneDeep, get } from "lodash";
 import { Actor } from "./Actor";
 import { reactStateSync } from "./utils/reactStateSync";
 import "reflect-metadata";
+import * as uid from "shortid";
 
 export class OBMiddle {
   private recording: boolean = false;
@@ -16,7 +18,6 @@ export class OBMiddle {
     private $sagaId?: string,
     private $recoverEventId = ""
   ) {
-
     this.get = this.get.bind(this);
     this.beforeApply = this.beforeApply.bind(this);
     this.afterApply = this.afterApply.bind(this);
@@ -118,8 +119,20 @@ export class OBMiddle {
               if (validater) validater(...argv);
 
               that.recording = true;
-
-              that.cxt.apply(event, argv);
+              const actor = root as Actor;
+              const myevent: Event = {
+                type: event,
+                data: argv,
+                actorId: actor._id,
+                actorType: actor.$type,
+                actorVersion: actor.$version,
+                id: uid(),
+                actorRev: actor._rev,
+                createTime: Date.now(),
+                sagaId: this.$sagaId,
+                recoverEventId: this.$recoverEventId
+              };
+              actor.$events.push(myevent);
               const result = value.apply(this, argv);
               that.recording = false;
 
