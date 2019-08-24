@@ -43,8 +43,25 @@ test("test", async function(t) {
   await u.save();
 
   const history = await u.history();
-  const user = history.get<User>();
+  let user = history.get<User>();
   t.is(user.money, 0);
   history.next();
-  t.is(user.money, 10);
+  history.next();
+  history.next();
+  history.next();
+  history.next();
+  history.next();
+  history.next();
+  history.next();
+  user = history.next<User>();
+  t.is(user.money, 50);
+
+  user = history.prev<User>();
+  user = history.prev<User>();
+  t.is(user.money, 30);
+
+  user = history.latest();
+
+  t.is(user.money, 50);
+
 });

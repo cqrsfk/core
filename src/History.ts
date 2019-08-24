@@ -7,8 +7,6 @@ export class History {
   private currentActor: Actor;
   constructor(private protoActor: Actor, public readonly events: Event[]) {
     this.currentActor = cloneDeep(this.protoActor);
-    
-    // events.forEach(e => this.currentActor.$updater(e));
   }
   get<T extends Actor>() {
     return this.currentActor as T;
@@ -18,12 +16,14 @@ export class History {
     return this.index;
   }
 
-  next() {
+  next<T extends Actor>() {
     if (this.index >= this.events.length) {
-      return this.currentActor;
+      return this.currentActor as T;
     }
     const events = this.events.slice(0, ++this.index);
+    this.currentActor = cloneDeep(this.protoActor);
     events.forEach(e => this.currentActor.$updater(e));
+    return this.currentActor as T;
   }
 
   getUndoneEvents(sagaId) {
@@ -41,17 +41,19 @@ export class History {
     );
   }
 
-  prev() {
+  prev<T extends Actor>() {
     if (this.index === 0) {
-      return this.currentActor;
+      return this.currentActor as T;
     }
-    const events = this.events.slice(this.index - 1, this.index);
+    const events = this.events.slice(0, --this.index);
+    this.currentActor = cloneDeep(this.protoActor);
     events.forEach(e => this.currentActor.$updater(e));
+    return this.currentActor as T;
   }
 
-  latest() {
+  latest<T extends Actor>() {
     this.currentActor = cloneDeep(this.protoActor);
     this.events.forEach(e => this.currentActor.$updater(e));
-    return this.currentActor;
+    return this.currentActor as T;
   }
 }

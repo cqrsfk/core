@@ -15,8 +15,6 @@ root object cache √
 TODO 难点
 1) 解决 OB 的 async function 问题
 
-
-
 1) think saga √
 2) saga function implement
     1) actor.history.getUndoneEvents √
@@ -24,7 +22,5 @@ TODO 难点
     3) How add event.recoverEventId   √
     4) Unit test √
 
-3) Unit test 'History'
-4) Unit test 'Context'
-5) Unit test 'Domain'
+3) Unit test 'History' √
 
