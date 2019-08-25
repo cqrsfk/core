@@ -1,13 +1,21 @@
+import { isBrowser } from "./env";
 import { Actor } from "./Actor";
 import { Observer } from "@zalelion/ob";
 import { OBMiddle } from "./ob-middle";
 import { Change } from "@zalelion/ob-middle-change";
 import { Context } from "./Context";
+import { Saga } from "./Saga";
 import { Event } from "./types/Event";
 import { getAlias } from "./eventAlias";
 import { EventEmitter } from "events";
 import * as sleep from "sleep-promise";
 import * as uid from "shortid";
+import { publish } from "./publish";
+
+if (!isBrowser) {
+  var lockfile = require("proper-lockfile");
+  var { writeFileSync, mkdirSync, readdirSync, readFileSync } = require("fs");
+}
 
 export class Domain {
   private TypeMap = new Map<string, typeof Actor>();
@@ -15,34 +23,101 @@ export class Domain {
   private db: PouchDB.Database;
   private eventsBuffer: Event[] = [];
   private bus = new EventEmitter();
+  public localBus = new EventEmitter();
   private publishing = false;
-
+  readonly id;
+  private readonly name: string;
   private actorBuffer = new Map();
 
-  constructor({ db }: { db: PouchDB.Database }) {
+  private processInfo: { sagaIds: string[] } = {
+    sagaIds: []
+  };
+
+  constructor({ name, db }: { name: string; db: PouchDB.Database }) {
     this.db = db;
+    this.name = name;
+    this.id = uid();
     this.reg = this.reg.bind(this);
     this.create = this.create.bind(this);
     this.get = this.get.bind(this);
     this.find = this.find.bind(this);
     this.findRows = this.findRows.bind(this);
-    this.changeHandle = this.changeHandle.bind(this);
-    db.changes({
-      since: "now",
-      live: true,
-      include_docs: true
-    }).on("change", this.changeHandle);
+
+    if (!isBrowser) {
+      try {
+        mkdirSync(name);
+      } catch (err) {}
+      // find unlock lock's files
+      const locknames = readdirSync(name);
+      for (let n of locknames) {
+        if (!lockfile.checkSync(name + "/" + n)) {
+          lockfile.lockSync(name + "/" + n);
+
+          // handle unfinish sagas
+          const buf = readFileSync(name + "/" + n, "utf8");
+          console.log(buf);
+          const json = JSON.parse(buf);
+          const sagaIds = json.sagaIds as string[];
+
+          for (let typeid of sagaIds) {
+            const [type, id] = typeid.split(".");
+            this.recoverSaga(type, id);
+          }
+        }
+      }
+
+      writeFileSync(name + "/" + this.id, JSON.stringify(this.processInfo));
+      lockfile.lockSync(name + "/" + this.id);
+
+    }
+
+    // this.changeHandle = this.changeHandle.bind(this);
+    // db.changes({
+    //   since: "now",
+    //   live: true,
+    //   include_docs: true
+    // }).on("change", this.changeHandle);
+
+    // writeFileSync(this.id,JSON.stringify());
+  }
+
+  private async recoverSaga(type, id) {
+    const saga = await this.get<Saga>(type, id);
+    await saga.recover();
   }
 
   reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
     this.TypeMap.set(Type.type, Type);
+
+    if (!isBrowser) {
+      if (Type.prototype instanceof Saga) {
+        this.on({ actor: Type.type, type: "created" }, (event: Event) => {
+          this.processInfo.sagaIds.push(event.actorType + "." + event.actorId);
+          writeFileSync(
+            this.name + "/" + this.id,
+            JSON.stringify(this.processInfo)
+          );
+        });
+
+        this.on({ actor: Type.type, type: "finish" }, (event: Event) => {
+          const sagaIds = new Set(this.processInfo.sagaIds);
+          sagaIds.delete(event.actorType + "." + event.actorId);
+          this.processInfo.sagaIds = [...sagaIds];
+          writeFileSync(
+            this.name + "/" + this.id,
+            JSON.stringify(this.processInfo)
+          );
+        });
+      }
+    }
+
     if (db) {
       this.TypeDBMap.set(Type.type, db);
-      db.changes({
-        since: "now",
-        live: true,
-        include_docs: true
-      }).on("change", this.changeHandle);
+      // db.changes({
+      //   since: "now",
+      //   live: true,
+      //   include_docs: true
+      // }).on("change", this.changeHandle);
     }
   }
 
@@ -54,6 +129,18 @@ export class Domain {
       this.actorBuffer.set(actor._id, actor);
       const p = this.observe<T>(actor);
       await p.save(true);
+      const e: Event = {
+        id: uid(),
+        type: "created",
+        data: actor.json,
+        actorId: actor._id,
+        actorType: actor.$type,
+        actorVersion: actor.$version,
+        actorRev: actor._rev,
+        createTime: Date.now()
+      };
+      publish([e], this.localBus);
+
       return p;
     } else throw new Error(type + " type no exist ! ");
   }
@@ -116,7 +203,7 @@ export class Domain {
     }
   }
 
-  once(
+  addEventListener(
     event:
       | {
           actor?: string;
@@ -124,9 +211,18 @@ export class Domain {
           id?: string;
         }
       | string,
-    listener
+    listener,
+    { local = false, once = false }: { local: boolean; once: boolean } = {
+      local: false,
+      once: false
+    }
   ) {
-    this.on(event, listener, true);
+    let eventname;
+    const bus = local ? this.localBus : this.bus;
+    if (typeof event === "string") eventname = event;
+    else eventname = this.getEventName(event);
+    if (once) bus.once(eventname, listener);
+    else bus.on(eventname, listener);
   }
 
   on(
@@ -138,13 +234,23 @@ export class Domain {
         }
       | string,
     listener,
-    once = false
+    local: boolean = true
   ) {
-    let eventname;
-    if (typeof event === "string") eventname = event;
-    else eventname = this.getEventName(event);
-    if (once) this.bus.once(eventname, listener);
-    else this.bus.on(eventname, listener);
+    this.addEventListener(event, listener, { once: false, local });
+  }
+
+  once(
+    event:
+      | {
+          actor?: string;
+          type?: string;
+          id?: string;
+        }
+      | string,
+    listener,
+    local: boolean = true
+  ) {
+    this.addEventListener(event, listener, { once: true, local });
   }
 
   getEventName({

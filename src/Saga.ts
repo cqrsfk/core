@@ -23,6 +23,7 @@ export abstract class Saga extends Actor {
     }
 
     await this.recoverHandle(events);
+    await this.end();
   }
 
   abstract recoverHandle(events: Event[]):Promise<void>;

@@ -8,13 +8,17 @@ export class Context {
   constructor(
     public db: PouchDB.Database,
     private actor: Actor | Saga,
-    private domain_: Domain
+    public domain_: Domain
   ) {
     this.get = this.get.bind(this);
     this.apply = this.apply.bind(this);
     this.find = this.find.bind(this);
   }
-  async get<T extends Actor>(type: string, id: string, recoverEventId = ""): Promise<T> {
+  async get<T extends Actor>(
+    type: string,
+    id: string,
+    recoverEventId = ""
+  ): Promise<T> {
     if (id === this.actor._id) return this.actor as T;
     return this.actor instanceof Saga
       ? this.domain_.get<T>(type, id, this.actor._id, recoverEventId)
@@ -40,7 +44,7 @@ export class Context {
       actorRev: this.actor._rev,
       createTime: Date.now(),
       sagaId: this.actor.$sagaId,
-      recoverEventId:this.actor.$recoverEventId
+      recoverEventId: this.actor.$recoverEventId
     };
 
     const result = this.actor.$updater(event);

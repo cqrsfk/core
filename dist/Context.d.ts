@@ -8,7 +8,7 @@ import { Domain } from "./Domain";
 export declare class Context {
     db: PouchDB.Database;
     private actor;
-    private domain_;
+    domain_: Domain;
     constructor(db: PouchDB.Database, actor: Actor | Saga, domain_: Domain);
     get<T extends Actor>(type: string, id: string, recoverEventId?: string): Promise<T>;
     find(type: string, req: PouchDB.Find.FindRequest<{}>): any;

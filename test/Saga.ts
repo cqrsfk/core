@@ -61,7 +61,7 @@ class Transfer extends Saga {
 }
 
 test("Saga", async function(t) {
-  var domain = new Domain({ db });
+  var domain = new Domain({ name:"test2",db });
   domain.reg(Transfer);
   domain.reg(User);
 

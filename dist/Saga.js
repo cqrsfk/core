@@ -29,6 +29,7 @@ class Saga extends Actor_1.Actor {
             events = [...events, ...history.getUndoneEvents(this._id)];
         }
         await this.recoverHandle(events);
+        await this.end();
     }
     async begin(acts) {
         if (this.finish)

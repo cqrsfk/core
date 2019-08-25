@@ -12,6 +12,7 @@
     "patrun": "^1.0.0",
     "pouchdb": "^7.1.1",
     "pouchdb-find": "^7.1.1",
+    "proper-lockfile": "^4.1.1",
     "reflect-metadata": "^0.1.13",
     "seneca": "^3.12.1",
     "shortid": "^2.2.14",
@@ -37,8 +38,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "ava",
-    "postinstall": "opencollective-postinstall || true"
+    "test": "ava"
   },
   "ava": {
     "compileEnhancements": false,

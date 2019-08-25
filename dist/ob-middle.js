@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = require("lodash");
 require("reflect-metadata");
 const uid = require("shortid");
+const publish_1 = require("./publish");
 class OBMiddle {
     constructor(ob, cxt, $sagaId, $recoverEventId = "") {
         this.ob = ob;
@@ -81,6 +82,14 @@ class OBMiddle {
                 key === "$sagaId" ||
                 key === "$recoverEventId")) {
             return this[key];
+        }
+        if (!parentPath && key === "save") {
+            return async function (force) {
+                const events = [...this.$events];
+                const result = await value.apply(this, [force]);
+                publish_1.publish(events, that.cxt.domain_.localBus);
+                return result;
+            };
         }
         if (!parentPath) {
             if (!this.recording &&

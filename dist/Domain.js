@@ -1,43 +1,99 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const env_1 = require("./env");
 const ob_1 = require("@zalelion/ob");
 const ob_middle_1 = require("./ob-middle");
 const ob_middle_change_1 = require("@zalelion/ob-middle-change");
 const Context_1 = require("./Context");
+const Saga_1 = require("./Saga");
 const eventAlias_1 = require("./eventAlias");
 const events_1 = require("events");
 const sleep = require("sleep-promise");
 const uid = require("shortid");
+const publish_1 = require("./publish");
+if (!env_1.isBrowser) {
+    var lockfile = require("proper-lockfile");
+    var { writeFileSync, mkdirSync, readdirSync, readFileSync } = require("fs");
+}
 class Domain {
-    constructor({ db }) {
+    constructor({ name, db }) {
         this.TypeMap = new Map();
         this.TypeDBMap = new Map();
         this.eventsBuffer = [];
         this.bus = new events_1.EventEmitter();
+        this.localBus = new events_1.EventEmitter();
         this.publishing = false;
         this.actorBuffer = new Map();
+        this.processInfo = {
+            sagaIds: []
+        };
         this.db = db;
+        this.name = name;
+        this.id = uid();
         this.reg = this.reg.bind(this);
         this.create = this.create.bind(this);
         this.get = this.get.bind(this);
         this.find = this.find.bind(this);
         this.findRows = this.findRows.bind(this);
-        this.changeHandle = this.changeHandle.bind(this);
-        db.changes({
-            since: "now",
-            live: true,
-            include_docs: true
-        }).on("change", this.changeHandle);
+        if (!env_1.isBrowser) {
+            try {
+                mkdirSync(name);
+            }
+            catch (err) { }
+            // find unlock lock's files
+            const locknames = readdirSync(name);
+            for (let n of locknames) {
+                if (!lockfile.checkSync(name + "/" + n)) {
+                    lockfile.lockSync(name + "/" + n);
+                    // handle unfinish sagas
+                    const buf = readFileSync(name + "/" + n, "utf8");
+                    console.log(buf);
+                    const json = JSON.parse(buf);
+                    const sagaIds = json.sagaIds;
+                    for (let typeid of sagaIds) {
+                        const [type, id] = typeid.split(".");
+                        this.recoverSaga(type, id);
+                    }
+                }
+            }
+            writeFileSync(name + "/" + this.id, JSON.stringify(this.processInfo));
+            lockfile.lockSync(name + "/" + this.id);
+        }
+        // this.changeHandle = this.changeHandle.bind(this);
+        // db.changes({
+        //   since: "now",
+        //   live: true,
+        //   include_docs: true
+        // }).on("change", this.changeHandle);
+        // writeFileSync(this.id,JSON.stringify());
+    }
+    async recoverSaga(type, id) {
+        const saga = await this.get(type, id);
+        await saga.recover();
     }
     reg(Type, db) {
         this.TypeMap.set(Type.type, Type);
+        if (!env_1.isBrowser) {
+            if (Type.prototype instanceof Saga_1.Saga) {
+                this.on({ actor: Type.type, type: "created" }, (event) => {
+                    this.processInfo.sagaIds.push(event.actorType + "." + event.actorId);
+                    writeFileSync(this.name + "/" + this.id, JSON.stringify(this.processInfo));
+                });
+                this.on({ actor: Type.type, type: "finish" }, (event) => {
+                    const sagaIds = new Set(this.processInfo.sagaIds);
+                    sagaIds.delete(event.actorType + "." + event.actorId);
+                    this.processInfo.sagaIds = [...sagaIds];
+                    writeFileSync(this.name + "/" + this.id, JSON.stringify(this.processInfo));
+                });
+            }
+        }
         if (db) {
             this.TypeDBMap.set(Type.type, db);
-            db.changes({
-                since: "now",
-                live: true,
-                include_docs: true
-            }).on("change", this.changeHandle);
+            // db.changes({
+            //   since: "now",
+            //   live: true,
+            //   include_docs: true
+            // }).on("change", this.changeHandle);
         }
     }
     async create(type, argv) {
@@ -48,6 +104,17 @@ class Domain {
             this.actorBuffer.set(actor._id, actor);
             const p = this.observe(actor);
             await p.save(true);
+            const e = {
+                id: uid(),
+                type: "created",
+                data: actor.json,
+                actorId: actor._id,
+                actorType: actor.$type,
+                actorVersion: actor.$version,
+                actorRev: actor._rev,
+                createTime: Date.now()
+            };
+            publish_1.publish([e], this.localBus);
             return p;
         }
         else
@@ -108,19 +175,26 @@ class Domain {
             this.publishing = false;
         }
     }
-    once(event, listener) {
-        this.on(event, listener, true);
-    }
-    on(event, listener, once = false) {
+    addEventListener(event, listener, { local = false, once = false } = {
+        local: false,
+        once: false
+    }) {
         let eventname;
+        const bus = local ? this.localBus : this.bus;
         if (typeof event === "string")
             eventname = event;
         else
             eventname = this.getEventName(event);
         if (once)
-            this.bus.once(eventname, listener);
+            bus.once(eventname, listener);
         else
-            this.bus.on(eventname, listener);
+            bus.on(eventname, listener);
+    }
+    on(event, listener, local = true) {
+        this.addEventListener(event, listener, { once: false, local });
+    }
+    once(event, listener, local = true) {
+        this.addEventListener(event, listener, { once: true, local });
     }
     getEventName({ actor = "", type = "", id = "" }) {
         return `${actor}.${id}.${type}`;

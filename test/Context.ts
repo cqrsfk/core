@@ -62,7 +62,7 @@ class Log extends Actor {
 }
 
 test("Context", async function(t) {
-  var domain = new Domain({ db });
+  var domain = new Domain({ name: "test4", db });
   domain.reg(User);
   domain.reg(Log);
 

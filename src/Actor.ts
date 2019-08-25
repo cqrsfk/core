@@ -4,6 +4,8 @@ import { Event } from "./types/Event";
 import { Context } from "./Context";
 import * as sleep from "sleep-promise";
 import { History } from "./History";
+import {publish} from "./publish";
+
 import "reflect-metadata";
 
 export class Actor {

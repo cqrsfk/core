@@ -4245,6 +4245,15 @@ prop-types@^15.6.2, prop-types@^15.7.2:
     object-assign "^4.1.1"
     react-is "^16.8.1"
 
+proper-lockfile@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.npm.taobao.org/proper-lockfile/download/proper-lockfile-4.1.1.tgz#284cf9db9e30a90e647afad69deb7cb06881262c"
+  integrity sha1-KEz5254wqQ5kevrWnet8sGiBJiw=
+  dependencies:
+    graceful-fs "^4.1.11"
+    retry "^0.12.0"
+    signal-exit "^3.0.2"
+
 prr@~1.0.1:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/prr/download/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
@@ -4586,6 +4595,11 @@ ret@~0.1.10:
   version "0.1.15"
   resolved "https://registry.npm.taobao.org/ret/download/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha1-uKSCXVvbH8P29Twrwz+BOIaBx7w=
+
+retry@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.npm.taobao.org/retry/download/retry-0.12.0.tgz#1b42a6266a21f07421d1b0b54b7dc167b01c013b"
+  integrity sha1-G0KmJmoh8HQh0bC1S33BZ7AcATs=
 
 reusify@^1.0.0:
   version "1.0.4"

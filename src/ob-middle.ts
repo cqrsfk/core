@@ -3,9 +3,9 @@ import { Context } from "./Context";
 import { Event } from "./types/Event";
 import { cloneDeep, get } from "lodash";
 import { Actor } from "./Actor";
-import { reactStateSync } from "./utils/reactStateSync";
 import "reflect-metadata";
 import * as uid from "shortid";
+import { publish } from "./publish";
 
 export class OBMiddle {
   private recording: boolean = false;
@@ -98,6 +98,15 @@ export class OBMiddle {
         key === "$recoverEventId")
     ) {
       return this[key];
+    }
+
+    if (!parentPath && key === "save") {
+      return async function(force) {
+        const events = [...this.$events];
+        const result = await value.apply(this, [force]);
+        publish(events, that.cxt.domain_.localBus);
+        return result;
+      };
     }
 
     if (!parentPath) {

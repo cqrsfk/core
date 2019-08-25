@@ -29,7 +29,7 @@ class User extends Actor {
 }
 
 test("test", async function(t) {
-  var domain = new Domain({ db });
+  var domain = new Domain({ name: "test5", db });
   domain.reg(User);
 
   const u = await domain.create<User>("User", []);
@@ -63,5 +63,4 @@ test("test", async function(t) {
   user = history.latest();
 
   t.is(user.money, 50);
-
 });

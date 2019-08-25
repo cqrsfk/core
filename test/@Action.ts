@@ -36,7 +36,7 @@ class User extends Actor {
 }
 
 test("@Action", async function(t) {
-  var domain = new Domain({ db });
+  var domain = new Domain({ name: "test3", db });
   var pass = false;
   domain.reg(User);
   domain.on(
@@ -59,7 +59,7 @@ test("@Action", async function(t) {
 });
 
 test("@Mutation", async function(t) {
-  var domain = new Domain({ db });
+  var domain = new Domain({ name: "test000", db });
   var pass = false;
   domain.reg(User);
   domain.on(
