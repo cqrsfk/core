@@ -10,6 +10,7 @@ class Context {
         this.get = this.get.bind(this);
         this.apply = this.apply.bind(this);
         this.find = this.find.bind(this);
+        this.create = this.create.bind(this);
     }
     async get(type, id, recoverEventId = "") {
         if (id === this.actor._id)
@@ -42,6 +43,9 @@ class Context {
         const result = this.actor.$updater(event);
         this.actor.$events.push(event);
         return result;
+    }
+    async create(type, argv) {
+        return this.domain_.create(type, argv);
     }
     // subscribe(event: string, id: string, method: string){
     async subscribe({ event, type, id, method }) {

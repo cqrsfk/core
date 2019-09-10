@@ -2,9 +2,9 @@ import * as uid from "shortid";
 import { cloneDeep } from "lodash";
 import { Event } from "./types/Event";
 import { Context } from "./Context";
+import { Changer } from "./decorators/Changer";
 import * as sleep from "sleep-promise";
 import { History } from "./History";
-import {publish} from "./publish";
 
 import "reflect-metadata";
 
@@ -29,8 +29,8 @@ export class Actor {
     this.$version = this.statics.version;
   }
 
-  static beforeCreate?(argv: any[]) {}
-  static created?(actor: Actor) {}
+  static beforeCreate?(argv: any[]) { }
+  static created?(actor: Actor) { }
 
   static get type() {
     return this.name;
@@ -101,11 +101,11 @@ export class Actor {
     id,
     method
   }: {
-    type: string;
-    event: string;
-    id: string;
-    method: string;
-  }) {
+      type: string;
+      event: string;
+      id: string;
+      method: string;
+    }) {
     let l = this.$listeners[event];
     if (!l) {
       l = this.$listeners[event] = {};
@@ -127,11 +127,11 @@ export class Actor {
     id,
     method
   }: {
-    type: string;
-    event: string;
-    id: string;
-    method: string;
-  }) {
+      type: string;
+      event: string;
+      id: string;
+      method: string;
+    }) {
     const l = this.$listeners[event];
     if (l && l[id]) {
       const lset = new Set(l[id]);
@@ -181,16 +181,18 @@ export class Actor {
   beforeRemove;
   afterRemove;
 
-  removed(rev) {
+  @Changer("removed")
+  private removed(event: Event) {
     this._deleted = true;
-    this._rev = rev;
+    this._rev = event.data[0];
   }
 
   async remove() {
+
     if (this._rev) {
       this.beforeRemove && (await this.beforeRemove());
       const result = await this.$cxt.db.remove(this._id, this._rev);
-      this.$cxt.apply("removed", result.rev);
+      this.$cxt.apply("removed", [result.rev]);
       this.afterRemove && (await this.afterRemove());
       return result;
     }

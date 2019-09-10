@@ -13,6 +13,7 @@ export class Context {
     this.get = this.get.bind(this);
     this.apply = this.apply.bind(this);
     this.find = this.find.bind(this);
+    this.create = this.create.bind(this);
   }
   async get<T extends Actor>(
     type: string,
@@ -52,6 +53,10 @@ export class Context {
     return result;
   }
 
+  async create<T extends Actor>(type: string, argv: any[]) {
+    return this.domain_.create<T>(type, argv)
+  }
+
   // subscribe(event: string, id: string, method: string){
   async subscribe({
     event,
@@ -59,11 +64,11 @@ export class Context {
     id,
     method
   }: {
-    event: string;
-    type: string;
-    id: string;
-    method: string;
-  }) {
+      event: string;
+      type: string;
+      id: string;
+      method: string;
+    }) {
     const act = await this.domain_.get(type, id);
     if (act) {
       act.subscribe({
@@ -81,11 +86,11 @@ export class Context {
     event,
     method
   }: {
-    type: string;
-    id: string;
-    event: string;
-    method: string;
-  }) {
+      type: string;
+      id: string;
+      event: string;
+      method: string;
+    }) {
     const act = await this.domain_.get(type, id);
     if (act) {
       act.unsubscribe({

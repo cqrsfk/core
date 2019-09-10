@@ -1,7 +1,17 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const uid = require("shortid");
 const lodash_1 = require("lodash");
+const Changer_1 = require("./decorators/Changer");
 const sleep = require("sleep-promise");
 const History_1 = require("./History");
 require("reflect-metadata");
@@ -118,15 +128,15 @@ class Actor {
             }
         }
     }
-    removed(rev) {
+    removed(event) {
         this._deleted = true;
-        this._rev = rev;
+        this._rev = event.data[0];
     }
     async remove() {
         if (this._rev) {
             this.beforeRemove && (await this.beforeRemove());
             const result = await this.$cxt.db.remove(this._id, this._rev);
-            this.$cxt.apply("removed", result.rev);
+            this.$cxt.apply("removed", [result.rev]);
             this.afterRemove && (await this.afterRemove());
             return result;
         }
@@ -149,5 +159,11 @@ class Actor {
     }
 }
 Actor.version = 1.0;
+__decorate([
+    Changer_1.Changer("removed"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], Actor.prototype, "removed", null);
 exports.Actor = Actor;
 //# sourceMappingURL=Actor.js.map

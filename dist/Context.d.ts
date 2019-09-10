@@ -14,6 +14,7 @@ export declare class Context {
     find(type: string, req: PouchDB.Find.FindRequest<{}>): any;
     find(req: PouchDB.Find.FindRequest<{}>): any;
     apply(type: string, data: any): any;
+    create<T extends Actor>(type: string, argv: any[]): Promise<T>;
     subscribe({ event, type, id, method }: {
         event: string;
         type: string;

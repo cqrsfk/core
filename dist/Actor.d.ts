@@ -44,7 +44,7 @@ export declare class Actor {
     refresh(): Promise<void>;
     beforeRemove: any;
     afterRemove: any;
-    removed(rev: any): void;
+    private removed;
     remove(): Promise<PouchDB.Core.Response | undefined>;
     $updater(event: Event): any;
 }

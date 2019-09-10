@@ -211,7 +211,7 @@ export class Domain {
           id?: string;
         }
       | string,
-    listener,
+    listener:any,
     { local = false, once = false }: { local: boolean; once: boolean } = {
       local: false,
       once: false
