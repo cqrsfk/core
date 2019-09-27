@@ -7,6 +7,8 @@ import "reflect-metadata";
 import * as uid from "shortid";
 import { publish } from "./publish";
 
+// var globalThis = typeof window === "undefined" ? global : window;
+
 export class OBMiddle {
   private recording: boolean = false;
   private changes: any[] = [];
@@ -81,6 +83,7 @@ export class OBMiddle {
   // }
 
   get({ root, path, parentPath, parent, key, value, ob }) {
+    
     const that = this;
 
     if (key === "constructor") {
@@ -144,8 +147,7 @@ export class OBMiddle {
               actor.$events.push(myevent);
               const result = value.apply(this, argv);
               that.recording = false;
-
-              if (this.watching) {
+              if (that.watching) {
                 const changes = [...that.changes];
                 that.changes = [];
                 that.updaters.forEach(updater => {

@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import { Event } from "./types/Event";
 import { Context } from "./Context";
 import { Changer } from "./decorators/Changer";
-import * as sleep from "sleep-promise";
+import sleep from "sleep-promise";
 import { History } from "./History";
 
 import "reflect-metadata";
@@ -85,8 +85,7 @@ export class Actor {
     let result = await this.$cxt.db.put(json);
     this._rev = result.rev;
     this.$events = [];
-
-    await sleep(10);
+    await sleep(20);
 
     if (this.afterSave) {
       await this.afterSave();
@@ -194,6 +193,7 @@ export class Actor {
       const result = await this.$cxt.db.remove(this._id, this._rev);
       this.$cxt.apply("removed", [result.rev]);
       this.afterRemove && (await this.afterRemove());
+      await this.save();
       return result;
     }
   }

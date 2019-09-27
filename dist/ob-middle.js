@@ -4,6 +4,7 @@ const lodash_1 = require("lodash");
 require("reflect-metadata");
 const uid = require("shortid");
 const publish_1 = require("./publish");
+// var globalThis = typeof window === "undefined" ? global : window;
 class OBMiddle {
     constructor(ob, cxt, $sagaId, $recoverEventId = "") {
         this.ob = ob;
@@ -124,7 +125,7 @@ class OBMiddle {
                             actor.$events.push(myevent);
                             const result = value.apply(this, argv);
                             that.recording = false;
-                            if (this.watching) {
+                            if (that.watching) {
                                 const changes = [...that.changes];
                                 that.changes = [];
                                 that.updaters.forEach(updater => {

@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const uid = require("shortid");
 const lodash_1 = require("lodash");
 const Changer_1 = require("./decorators/Changer");
-const sleep = require("sleep-promise");
+const sleep_promise_1 = require("sleep-promise");
 const History_1 = require("./History");
 require("reflect-metadata");
 class Actor {
@@ -67,7 +67,7 @@ class Actor {
         let result = await this.$cxt.db.put(json);
         this._rev = result.rev;
         this.$events = [];
-        await sleep(10);
+        await sleep_promise_1.default(20);
         if (this.afterSave) {
             await this.afterSave();
         }
@@ -138,6 +138,7 @@ class Actor {
             const result = await this.$cxt.db.remove(this._id, this._rev);
             this.$cxt.apply("removed", [result.rev]);
             this.afterRemove && (await this.afterRemove());
+            await this.save();
             return result;
         }
     }
