@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const env_1 = require("./env");
-const ob_1 = require("@zalelion/ob");
+const ob_1 = require("@cqrsfk/ob");
+const ob_middle_change_1 = require("@cqrsfk/ob-middle-change");
+const ob_middle_sync_1 = require("@cqrsfk/ob-middle-sync");
 const ob_middle_1 = require("./ob-middle");
-const ob_middle_change_1 = require("@zalelion/ob-middle-change");
 const Context_1 = require("./Context");
 const Saga_1 = require("./Saga");
 const eventAlias_1 = require("./eventAlias");
@@ -40,14 +41,13 @@ class Domain {
                 mkdirSync(name);
             }
             catch (err) { }
-            // find unlock lock's files
+            // TODO:  find unlock lock's files  
             const locknames = readdirSync(name);
             for (let n of locknames) {
                 if (!lockfile.checkSync(name + "/" + n)) {
                     lockfile.lockSync(name + "/" + n);
                     // handle unfinish sagas
                     const buf = readFileSync(name + "/" + n, "utf8");
-                    console.log(buf);
                     const json = JSON.parse(buf);
                     const sagaIds = json.sagaIds;
                     for (let typeid of sagaIds) {
@@ -69,7 +69,9 @@ class Domain {
     }
     async recoverSaga(type, id) {
         const saga = await this.get(type, id);
-        await saga.recover();
+        if (saga) {
+            await saga.recover();
+        }
     }
     reg(Type, db) {
         this.TypeMap.set(Type.type, Type);
@@ -101,8 +103,9 @@ class Domain {
         if (Type) {
             Type.beforeCreate && (await Type.beforeCreate(argv));
             const actor = new Type(...argv);
-            this.actorBuffer.set(actor._id, actor);
-            const p = this.observe(actor);
+            const proxy = this.proxy(actor);
+            this.actorBuffer.set(actor._id, proxy);
+            const p = this.observe(proxy);
             await p.save(true);
             const e = {
                 id: uid(),
@@ -206,7 +209,7 @@ class Domain {
         this.bus.removeAllListeners(eventname);
     }
     /**
-     * TODO: FDSFDSFSFS
+     * TODO:
      * @param actor
      * @param holderId
      */
@@ -214,24 +217,37 @@ class Domain {
         const ob = new ob_1.Observer(actor);
         const { proxy, use } = ob;
         const cxt = new Context_1.Context(this.db, proxy, this);
-        use(new ob_middle_change_1.Change(ob));
-        use(new ob_middle_1.OBMiddle(ob, cxt, holderId, recoverEventId));
+        use(new ob_middle_1.OBMiddle(cxt, holderId, recoverEventId));
         return proxy;
     }
     async get(type, id, holderId, recoverEventId = "") {
-        const actor = await this.nativeGet(type, id);
-        return this.observe(actor, holderId, recoverEventId);
+        let proxy = this.actorBuffer.get(id);
+        if (!proxy) {
+            const actor = await this.nativeGet(type, id);
+            if (actor) {
+                proxy = this.proxy(actor);
+                this.actorBuffer.set(actor._id, proxy);
+            }
+            else {
+                return null;
+            }
+        }
+        return this.observe(proxy, holderId, recoverEventId);
+    }
+    proxy(actor) {
+        const ob = new ob_1.Observer(actor, "cqrs");
+        ob.use(ob_middle_change_1.Change);
+        ob.use(ob_middle_sync_1.Sync);
+        return ob.proxy;
     }
     async nativeGet(type, id) {
-        const doc = this.actorBuffer.get(id);
-        if (doc)
-            return doc;
+        // const doc = this.actorBuffer.get(id);
+        // if (doc) return doc;
         const Type = this.TypeMap.get(type);
         if (Type) {
             const db = this.TypeDBMap.get(Type.type) || this.db;
             const row = await db.get(id);
             if (row) {
-                this.actorBuffer.set(id, row);
                 const actor = Type.parse(row);
                 return actor;
             }

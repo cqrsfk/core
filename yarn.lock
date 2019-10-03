@@ -273,6 +273,24 @@
   dependencies:
     arrify "^1.0.1"
 
+"@cqrsfk/ob-middle-change@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.npm.taobao.org/@cqrsfk/ob-middle-change/download/@cqrsfk/ob-middle-change-0.0.3.tgz#f2f8f92ece4a4efe9001f48abaac3ddcb1a042af"
+  integrity sha1-8vj5Ls5KTv6QAfSKuqw93LGgQq8=
+
+"@cqrsfk/ob-middle-sync@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.npm.taobao.org/@cqrsfk/ob-middle-sync/download/@cqrsfk/ob-middle-sync-0.0.2.tgz#34f29e9af040785fac8b652d2e09d875e404d8c9"
+  integrity sha1-NPKemvBAeF+si2UtLgnYdeQE2Mk=
+
+"@cqrsfk/ob@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.npm.taobao.org/@cqrsfk/ob/download/@cqrsfk/ob-0.0.16.tgz?cache=0&sync_timestamp=1570053176344&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40cqrsfk%2Fob%2Fdownload%2F%40cqrsfk%2Fob-0.0.16.tgz#5ed1095c6248872b735e7cb0fbe7b7cc4769078e"
+  integrity sha1-XtEJXGJIhytzXnyw++e3zEdpB44=
+  dependencies:
+    debug "^4.1.1"
+    lodash "^4.17.15"
+
 "@hapi/address@2.x.x":
   version "2.0.0"
   resolved "https://registry.npm.taobao.org/@hapi/address/download/@hapi/address-2.0.0.tgz#9f05469c88cb2fd3dcd624776b54ee95c312126a"
@@ -653,23 +671,6 @@
   version "0.0.29"
   resolved "https://registry.npm.taobao.org/@types/shortid/download/@types/shortid-0.0.29.tgz#8093ee0416a6e2bf2aa6338109114b3fbffa0e9b"
   integrity sha1-gJPuBBam4r8qpjOBCRFLP7/6Dps=
-
-"@zalelion/ob-middle-change@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.npm.taobao.org/@zalelion/ob-middle-change/download/@zalelion/ob-middle-change-0.0.3.tgz#f26515c04aac9ed41e7989ba8de3753dd0ee406b"
-  integrity sha1-8mUVwEqsntQeeYm6jeN1PdDuQGs=
-
-"@zalelion/ob-middle-sync@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.npm.taobao.org/@zalelion/ob-middle-sync/download/@zalelion/ob-middle-sync-0.0.2.tgz#7785c77b481417087d9775438ee2def5fac6913d"
-  integrity sha1-d4XHe0gUFwh9l3VDjuLe9frGkT0=
-
-"@zalelion/ob@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.npm.taobao.org/@zalelion/ob/download/@zalelion/ob-0.0.9.tgz?cache=0&sync_timestamp=1564378093343&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40zalelion%2Fob%2Fdownload%2F%40zalelion%2Fob-0.0.9.tgz#29b85277929c3c2fb3170e0b5db26823c2425185"
-  integrity sha1-KbhSd5KcPC+zFw4LXbJoI8JCUYU=
-  dependencies:
-    lodash "^4.17.15"
 
 abstract-leveldown@2.4.1:
   version "2.4.1"

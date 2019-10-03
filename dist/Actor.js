@@ -58,7 +58,9 @@ class Actor {
                     for (let h of handles) {
                         const [type, id, method] = h.split(".");
                         const act = await this.$cxt.get(type, id);
-                        await act[method](evt);
+                        if (act) {
+                            await act[method](evt);
+                        }
                     }
                 }
             }
@@ -118,7 +120,7 @@ class Actor {
         return history;
     }
     async refresh() {
-        const latestJSON = await this.$cxt.db.get("mydoc");
+        const latestJSON = await this.$cxt.db.get(this._id);
         if (latestJSON._rev === this._rev)
             return;
         const latestActor = this.statics.parse(latestJSON);

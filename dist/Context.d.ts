@@ -10,7 +10,7 @@ export declare class Context {
     private actor;
     domain_: Domain;
     constructor(db: PouchDB.Database, actor: Actor | Saga, domain_: Domain);
-    get<T extends Actor>(type: string, id: string, recoverEventId?: string): Promise<T>;
+    get<T extends Actor>(type: string, id: string, recoverEventId?: string): Promise<T | null>;
     find(type: string, req: PouchDB.Find.FindRequest<{}>): any;
     find(req: PouchDB.Find.FindRequest<{}>): any;
     apply(type: string, data: any): any;

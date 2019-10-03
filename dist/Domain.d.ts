@@ -52,12 +52,13 @@ export declare class Domain {
     removeListener(eventname: any, listener: any): void;
     removeAllListeners(eventname?: string): void;
     /**
-     * TODO: FDSFDSFSFS
+     * TODO:
      * @param actor
      * @param holderId
      */
     private observe;
-    get<T extends Actor>(type: string, id: string, holderId?: string, recoverEventId?: string): Promise<T>;
+    get<T extends Actor>(type: string, id: string, holderId?: string, recoverEventId?: string): Promise<T | null>;
+    private proxy;
     private nativeGet;
     findRows(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<any[]>;
     find<T extends Actor>(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<T[]>;

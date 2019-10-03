@@ -19,8 +19,9 @@ export class Context {
     type: string,
     id: string,
     recoverEventId = ""
-  ): Promise<T> {
+  ): Promise<T | null> {
     if (id === this.actor._id) return this.actor as T;
+
     return this.actor instanceof Saga
       ? this.domain_.get<T>(type, id, this.actor._id, recoverEventId)
       : this.domain_.get<T>(type, id);

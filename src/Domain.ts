@@ -1,8 +1,9 @@
 import { isBrowser } from "./env";
 import { Actor } from "./Actor";
-import { Observer } from "@zalelion/ob";
+import { Observer } from "@cqrsfk/ob";
+import { Change } from "@cqrsfk/ob-middle-change";
+import { Sync } from "@cqrsfk/ob-middle-sync";
 import { OBMiddle } from "./ob-middle";
-import { Change } from "@zalelion/ob-middle-change";
 import { Context } from "./Context";
 import { Saga } from "./Saga";
 import { Event } from "./types/Event";
@@ -46,8 +47,8 @@ export class Domain {
     if (!isBrowser) {
       try {
         mkdirSync(name);
-      } catch (err) {}
-      // find unlock lock's files
+      } catch (err) { }
+      // TODO:  find unlock lock's files  
       const locknames = readdirSync(name);
       for (let n of locknames) {
         if (!lockfile.checkSync(name + "/" + n)) {
@@ -55,7 +56,6 @@ export class Domain {
 
           // handle unfinish sagas
           const buf = readFileSync(name + "/" + n, "utf8");
-          console.log(buf);
           const json = JSON.parse(buf);
           const sagaIds = json.sagaIds as string[];
 
@@ -83,7 +83,9 @@ export class Domain {
 
   private async recoverSaga(type, id) {
     const saga = await this.get<Saga>(type, id);
-    await saga.recover();
+    if (saga) {
+      await saga.recover();
+    }
   }
 
   reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
@@ -126,8 +128,9 @@ export class Domain {
     if (Type) {
       Type.beforeCreate && (await Type.beforeCreate(argv));
       const actor = new Type(...argv);
-      this.actorBuffer.set(actor._id, actor);
-      const p = this.observe<T>(actor);
+      const proxy = this.proxy(actor);
+      this.actorBuffer.set(actor._id, proxy);
+      const p = this.observe<T>(proxy);
       await p.save(true);
       const e: Event = {
         id: uid(),
@@ -206,12 +209,12 @@ export class Domain {
   addEventListener(
     event:
       | {
-          actor?: string;
-          type?: string;
-          id?: string;
-        }
+        actor?: string;
+        type?: string;
+        id?: string;
+      }
       | string,
-    listener:any,
+    listener: any,
     { local = false, once = false }: { local: boolean; once: boolean } = {
       local: false,
       once: false
@@ -228,10 +231,10 @@ export class Domain {
   on(
     event:
       | {
-          actor?: string;
-          type?: string;
-          id?: string;
-        }
+        actor?: string;
+        type?: string;
+        id?: string;
+      }
       | string,
     listener,
     local: boolean = true
@@ -242,10 +245,10 @@ export class Domain {
   once(
     event:
       | {
-          actor?: string;
-          type?: string;
-          id?: string;
-        }
+        actor?: string;
+        type?: string;
+        id?: string;
+      }
       | string,
     listener,
     local: boolean = true
@@ -258,10 +261,10 @@ export class Domain {
     type = "",
     id = ""
   }: {
-    actor?: string;
-    type?: string;
-    id?: string;
-  }) {
+      actor?: string;
+      type?: string;
+      id?: string;
+    }) {
     return `${actor}.${id}.${type}`;
   }
 
@@ -273,20 +276,19 @@ export class Domain {
   }
 
   /**
-   * TODO: FDSFDSFSFS
+   * TODO:  
    * @param actor
    * @param holderId
    */
   private observe<T extends Actor>(
-    actor,
+    actor: Actor,
     holderId?: string,
     recoverEventId = ""
   ) {
     const ob = new Observer<T>(actor);
     const { proxy, use } = ob;
     const cxt = new Context(this.db, proxy, this);
-    use(new Change(ob));
-    use(new OBMiddle(ob, cxt, holderId, recoverEventId));
+    use(new OBMiddle(cxt, holderId, recoverEventId));
     return proxy;
   }
 
@@ -296,21 +298,39 @@ export class Domain {
     holderId?: string,
     recoverEventId = ""
   ) {
-    const actor = await this.nativeGet<T>(type, id);
-    return this.observe<T>(actor, holderId, recoverEventId) as T;
+    let proxy = this.actorBuffer.get(id) as Actor;
+
+    if (!proxy) {
+      const actor = await this.nativeGet<T>(type, id);
+      if (actor) {
+        proxy = this.proxy(actor);
+        this.actorBuffer.set(actor._id, proxy);
+      } else {
+        return null;
+      }
+    }
+    return this.observe<T>(proxy, holderId, recoverEventId) as T;
+
   }
+
+  private proxy(actor: Actor) {
+    const ob = new Observer(actor, "cqrs");
+    ob.use(Change);
+    ob.use(Sync);
+    return ob.proxy as Actor;
+  }
+
   private async nativeGet<T extends Actor>(
     type: string,
     id: string
   ): Promise<T | null> {
-    const doc = this.actorBuffer.get(id);
-    if (doc) return doc;
+    // const doc = this.actorBuffer.get(id);
+    // if (doc) return doc;
     const Type = this.TypeMap.get(type);
     if (Type) {
       const db = this.TypeDBMap.get(Type.type) || this.db;
       const row = await db.get(id);
       if (row) {
-        this.actorBuffer.set(id, row);
         const actor = Type.parse(row);
         return actor as T;
       }

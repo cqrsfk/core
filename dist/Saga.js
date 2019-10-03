@@ -25,8 +25,10 @@ class Saga extends Actor_1.Actor {
         for (let info of this.actorInfos) {
             const { rev, id, type } = info;
             const act = await this.$cxt.get(type, id);
-            const history = await act.history();
-            events = [...events, ...history.getUndoneEvents(this._id)];
+            if (act) {
+                const history = await act.history();
+                events = [...events, ...history.getUndoneEvents(this._id)];
+            }
         }
         await this.recoverHandle(events);
         await this.end();
