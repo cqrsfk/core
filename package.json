@@ -1,6 +1,6 @@
 {
   "name": "@cqrsfk/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "cqrs for javascript/typescript",
   "main": "dist/main.js",
   "dependencies": {
