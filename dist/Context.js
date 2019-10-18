@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Saga_1 = require("./Saga");
-const uid = require("shortid");
+const shortid_1 = __importDefault(require("shortid"));
 class Context {
     constructor(db, actor, domain_) {
         this.db = db;
@@ -34,7 +37,7 @@ class Context {
             actorId: this.actor._id,
             actorType: this.actor.$type,
             actorVersion: this.actor.$version,
-            id: uid(),
+            id: shortid_1.default(),
             actorRev: this.actor._rev,
             createTime: Date.now(),
             sagaId: this.actor.$sagaId,

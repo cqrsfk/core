@@ -4,7 +4,7 @@ import { Event } from "./types/Event";
 import { cloneDeep, get } from "lodash";
 import { Actor } from "./Actor";
 import "reflect-metadata";
-import * as uid from "shortid";
+import uid from "shortid";
 import { publish } from "./publish";
 
 

@@ -9,8 +9,8 @@ import { Saga } from "./Saga";
 import { Event } from "./types/Event";
 import { getAlias } from "./eventAlias";
 import { EventEmitter } from "events";
-import * as sleep from "sleep-promise";
-import * as uid from "shortid";
+import sleep from "sleep-promise";
+import uid from "shortid";
 import { publish } from "./publish";
 
 if (!isBrowser) {

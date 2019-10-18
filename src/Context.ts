@@ -1,7 +1,7 @@
 import { Actor } from "./Actor";
 import { Saga } from "./Saga";
 import { Event } from "./types/Event";
-import * as uid from "shortid";
+import uid from "shortid";
 import { Domain } from "./Domain";
 
 export class Context {

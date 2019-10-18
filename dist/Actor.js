@@ -8,16 +8,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const uid = require("shortid");
+const shortid_1 = __importDefault(require("shortid"));
 const lodash_1 = require("lodash");
 const Changer_1 = require("./decorators/Changer");
-const sleep_promise_1 = require("sleep-promise");
+const sleep_promise_1 = __importDefault(require("sleep-promise"));
 const History_1 = require("./History");
 require("reflect-metadata");
 class Actor {
     constructor(...argv) {
-        this._id = uid();
+        this._id = shortid_1.default();
         this._deleted = false;
         this.$events = [];
         this.$listeners = {};

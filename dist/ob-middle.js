@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
-const uid = require("shortid");
+const shortid_1 = __importDefault(require("shortid"));
 const publish_1 = require("./publish");
 class OBMiddle {
     constructor(cxt, $sagaId, $recoverEventId = "") {
@@ -49,7 +52,7 @@ class OBMiddle {
                             actorId: actor._id,
                             actorType: actor.$type,
                             actorVersion: actor.$version,
-                            id: uid(),
+                            id: shortid_1.default(),
                             actorRev: actor._rev,
                             createTime: Date.now(),
                             sagaId: this.$sagaId,

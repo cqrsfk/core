@@ -1,4 +1,4 @@
-import * as uid from "shortid";
+import uid from "shortid";
 import { cloneDeep } from "lodash";
 import { Event } from "./types/Event";
 import { Context } from "./Context";

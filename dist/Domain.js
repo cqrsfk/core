@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const env_1 = require("./env");
 const ob_1 = require("@cqrsfk/ob");
@@ -9,8 +12,8 @@ const Context_1 = require("./Context");
 const Saga_1 = require("./Saga");
 const eventAlias_1 = require("./eventAlias");
 const events_1 = require("events");
-const sleep = require("sleep-promise");
-const uid = require("shortid");
+const sleep_promise_1 = __importDefault(require("sleep-promise"));
+const shortid_1 = __importDefault(require("shortid"));
 const publish_1 = require("./publish");
 if (!env_1.isBrowser) {
     var lockfile = require("proper-lockfile");
@@ -30,7 +33,7 @@ class Domain {
         };
         this.db = db;
         this.name = name;
-        this.id = uid();
+        this.id = shortid_1.default();
         this.reg = this.reg.bind(this);
         this.create = this.create.bind(this);
         this.get = this.get.bind(this);
@@ -108,7 +111,7 @@ class Domain {
             const p = this.observe(proxy);
             await p.save(true);
             const e = {
-                id: uid(),
+                id: shortid_1.default(),
                 type: "created",
                 data: actor.json,
                 actorId: actor._id,
@@ -129,7 +132,7 @@ class Domain {
             const pn = _rev.split("-")[0];
             if (pn === "1") {
                 const createEvent = {
-                    id: uid(),
+                    id: shortid_1.default(),
                     type: "created",
                     data: doc,
                     actorId: _id,
@@ -142,7 +145,7 @@ class Domain {
             }
             else if (deleted) {
                 const deleteEvent = {
-                    id: uid(),
+                    id: shortid_1.default(),
                     type: "deleted",
                     data: doc,
                     actorId: _id,
@@ -170,7 +173,7 @@ class Domain {
             eventNames.forEach(e => {
                 this.bus.emit(e, event);
             });
-            await sleep(0);
+            await sleep_promise_1.default(0);
             this.publishing = false;
             await this.publish();
         }
