@@ -10,8 +10,8 @@ import {
   Event
 } from "../src/main";
 
-import * as M from "pouchdb-adapter-memory";
-import * as PouchDB from "pouchdb";
+import M from "pouchdb-adapter-memory";
+import PouchDB from "pouchdb";
 
 PouchDB.plugin(M);
 
@@ -42,15 +42,15 @@ class Transfer extends Saga {
           evt.actorId,
           this._id
         );
-        await u.add(-evt.data);
+        await (u as User).add(-evt.data);
       }
     }
   }
 
   @Action()
   async run(fromUserId, toUserId) {
-    const fromUser = await this.$cxt.get<User>("User", fromUserId);
-    const toUser = await this.$cxt.get<User>("User", toUserId);
+    const fromUser = await this.$cxt.get<User>("User", fromUserId) as User;
+    const toUser = await this.$cxt.get<User>("User", toUserId) as User;
     fromUser.add(-100);
     toUser.add(100);
 
@@ -60,8 +60,8 @@ class Transfer extends Saga {
   }
 }
 
-test("Saga", async function(t) {
-  var domain = new Domain({ name:"test2",db });
+test("Saga", async function (t) {
+  var domain = new Domain({ name: "test2", db });
   domain.reg(Transfer);
   domain.reg(User);
 

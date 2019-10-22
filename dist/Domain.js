@@ -15,6 +15,8 @@ const events_1 = require("events");
 const sleep_promise_1 = __importDefault(require("sleep-promise"));
 const shortid_1 = __importDefault(require("shortid"));
 const publish_1 = require("./publish");
+const updater_1 = require("./updater");
+const rootkey = Symbol.for("root");
 if (!env_1.isBrowser) {
     var lockfile = require("proper-lockfile");
     var { writeFileSync, mkdirSync, readdirSync, readFileSync } = require("fs");
@@ -25,6 +27,7 @@ class Domain {
         this.TypeDBMap = new Map();
         this.eventsBuffer = [];
         this.bus = new events_1.EventEmitter();
+        this.isSync = false;
         this.localBus = new events_1.EventEmitter();
         this.publishing = false;
         this.actorBuffer = new Map();
@@ -37,6 +40,7 @@ class Domain {
         this.reg = this.reg.bind(this);
         this.create = this.create.bind(this);
         this.get = this.get.bind(this);
+        this.localGet = this.localGet.bind(this);
         this.find = this.find.bind(this);
         this.findRows = this.findRows.bind(this);
         if (!env_1.isBrowser) {
@@ -76,6 +80,17 @@ class Domain {
             await saga.recover();
         }
     }
+    enableSync() {
+        if (!this.isSync) {
+            this.isSync = true;
+            this.actorBuffer = new Map();
+        }
+    }
+    disableSync() {
+        if (this.isSync) {
+            this.isSync = false;
+        }
+    }
     reg(Type, db) {
         this.TypeMap.set(Type.type, Type);
         if (!env_1.isBrowser) {
@@ -101,12 +116,12 @@ class Domain {
             // }).on("change", this.changeHandle);
         }
     }
-    async create(type, argv) {
+    async create(type, argv, isSync) {
         const Type = this.TypeMap.get(type);
         if (Type) {
             Type.beforeCreate && (await Type.beforeCreate(argv));
             const actor = new Type(...argv);
-            const proxy = this.proxy(actor);
+            const proxy = (isSync || this.isSync) ? this.proxy(actor) : actor;
             this.actorBuffer.set(actor._id, proxy);
             const p = this.observe(proxy);
             await p.save(true);
@@ -223,12 +238,15 @@ class Domain {
         use(new ob_middle_1.OBMiddle(cxt, holderId, recoverEventId));
         return proxy;
     }
-    async get(type, id, holderId, recoverEventId = "") {
+    async get(type, id, isSync) {
+        return this.localGet(type, id, "", "", isSync);
+    }
+    async localGet(type, id, holderId, recoverEventId = "", isSync = false) {
         let proxy = this.actorBuffer.get(id);
         if (!proxy) {
             const actor = await this.nativeGet(type, id);
             if (actor) {
-                proxy = this.proxy(actor);
+                proxy = (isSync || this.isSync) ? this.proxy(actor) : actor;
                 this.actorBuffer.set(actor._id, proxy);
             }
             else {
@@ -241,6 +259,9 @@ class Domain {
         const ob = new ob_1.Observer(actor, "cqrs");
         ob.use(ob_middle_change_1.Change);
         ob.use(ob_middle_sync_1.Sync);
+        const proto = actor[rootkey] || actor;
+        const unsubscribe = ob.proxy.$sync(updater_1.updater(proto, data => {
+        }));
         return ob.proxy;
     }
     async nativeGet(type, id) {

@@ -11,6 +11,7 @@ export declare class Domain {
     private db;
     private eventsBuffer;
     private bus;
+    private isSync;
     localBus: EventEmitter;
     private publishing;
     readonly id: any;
@@ -22,8 +23,10 @@ export declare class Domain {
         db: PouchDB.Database;
     });
     private recoverSaga;
+    enableSync(): void;
+    disableSync(): void;
     reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database): void;
-    create<T extends Actor>(type: string, argv: any[]): Promise<T>;
+    create<T extends Actor>(type: string, argv: any[], isSync?: boolean): Promise<T>;
     private changeHandle;
     publish(): Promise<void>;
     addEventListener(event: {
@@ -57,7 +60,8 @@ export declare class Domain {
      * @param holderId
      */
     private observe;
-    get<T extends Actor>(type: string, id: string, holderId?: string, recoverEventId?: string): Promise<T | null>;
+    get<T extends Actor>(type: string, id: string, isSync?: boolean): Promise<T | null>;
+    localGet<T extends Actor>(type: string, id: string, holderId?: string, recoverEventId?: string, isSync?: boolean): Promise<T | null>;
     private proxy;
     private nativeGet;
     findRows(type: string, params: PouchDB.Find.FindRequest<{}>): Promise<any[]>;

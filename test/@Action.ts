@@ -2,9 +2,9 @@ import test from "ava";
 
 import { Actor, Domain, Action, Changer, Mutation } from "../src/main";
 
-import * as M from "pouchdb-adapter-memory";
-import * as PouchDB from "pouchdb";
-import * as sleep from "sleep-promise";
+import M from "pouchdb-adapter-memory";
+import PouchDB from "pouchdb";
+import sleep from "sleep-promise";
 
 PouchDB.plugin(M);
 
@@ -35,7 +35,7 @@ class User extends Actor {
   }
 }
 
-test("@Action", async function(t) {
+test("@Action", async function (t) {
   var domain = new Domain({ name: "test3", db });
   var pass = false;
   domain.reg(User);
@@ -44,7 +44,7 @@ test("@Action", async function(t) {
       type: "change",
       actor: "User"
     },
-    function() {
+    function () {
       pass = true;
     }
   );
@@ -58,7 +58,7 @@ test("@Action", async function(t) {
   t.is("leo", u.name);
 });
 
-test("@Mutation", async function(t) {
+test("@Mutation", async function (t) {
   var domain = new Domain({ name: "test000", db });
   var pass = false;
   domain.reg(User);
@@ -67,7 +67,7 @@ test("@Mutation", async function(t) {
       type: "change2",
       actor: "User"
     },
-    function() {
+    function () {
       pass = true;
     }
   );

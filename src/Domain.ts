@@ -2,7 +2,7 @@ import { isBrowser } from "./env";
 import { Actor } from "./Actor";
 import { Observer } from "@cqrsfk/ob";
 import { Change } from "@cqrsfk/ob-middle-change";
-import { Sync } from "@cqrsfk/ob-middle-sync";
+import { Sync, Synchronizer } from "@cqrsfk/ob-middle-sync";
 import { OBMiddle } from "./ob-middle";
 import { Context } from "./Context";
 import { Saga } from "./Saga";
@@ -12,6 +12,8 @@ import { EventEmitter } from "events";
 import sleep from "sleep-promise";
 import uid from "shortid";
 import { publish } from "./publish";
+import { updater } from "./updater";
+
 
 if (!isBrowser) {
   var lockfile = require("proper-lockfile");
@@ -24,11 +26,14 @@ export class Domain {
   private db: PouchDB.Database;
   private eventsBuffer: Event[] = [];
   private bus = new EventEmitter();
+
+  private isSync = false;
+
   public localBus = new EventEmitter();
   private publishing = false;
   readonly id;
   private readonly name: string;
-  private actorBuffer = new Map();
+  private actorBuffer = new Map<string, Actor>();
 
   private processInfo: { sagaIds: string[] } = {
     sagaIds: []
@@ -41,6 +46,7 @@ export class Domain {
     this.reg = this.reg.bind(this);
     this.create = this.create.bind(this);
     this.get = this.get.bind(this);
+    this.localGet = this.localGet.bind(this);
     this.find = this.find.bind(this);
     this.findRows = this.findRows.bind(this);
 
@@ -88,6 +94,19 @@ export class Domain {
     }
   }
 
+  enableSync() {
+    if (!this.isSync) {
+      this.isSync = true;
+      this.actorBuffer = new Map<string, Actor>();
+    }
+  }
+
+  disableSync() {
+    if (this.isSync) {
+      this.isSync = false;
+    }
+  }
+
   reg<T extends typeof Actor>(Type: T, db?: PouchDB.Database) {
     this.TypeMap.set(Type.type, Type);
 
@@ -123,12 +142,14 @@ export class Domain {
     }
   }
 
-  async create<T extends Actor>(type: string, argv: any[]) {
+  async create<T extends Actor>(type: string, argv: any[], isSync?: boolean) {
     const Type = this.TypeMap.get(type);
     if (Type) {
       Type.beforeCreate && (await Type.beforeCreate(argv));
       const actor = new Type(...argv);
-      const proxy = this.proxy(actor);
+
+      const proxy = (isSync || this.isSync) ? this.proxy(actor) : actor;
+
       this.actorBuffer.set(actor._id, proxy);
       const p = this.observe<T>(proxy);
       await p.save(true);
@@ -230,7 +251,7 @@ export class Domain {
 
   on(
     event:
-      | {
+      {
         actor?: string;
         type?: string;
         id?: string;
@@ -244,7 +265,7 @@ export class Domain {
 
   once(
     event:
-      | {
+      {
         actor?: string;
         type?: string;
         id?: string;
@@ -295,28 +316,55 @@ export class Domain {
   async get<T extends Actor>(
     type: string,
     id: string,
-    holderId?: string,
-    recoverEventId = ""
+    isSync?: boolean
   ) {
+    return this.localGet<T>(type, id, "", "", isSync);
+  }
+
+  async localGet<T extends Actor>(
+    type: string,
+    id: string,
+    holderId?: string,
+    recoverEventId = "",
+    isSync = false
+  ) {
+
+
     let proxy = this.actorBuffer.get(id) as Actor;
 
     if (!proxy) {
       const actor = await this.nativeGet<T>(type, id);
       if (actor) {
-        proxy = this.proxy(actor);
+        proxy = (isSync || this.isSync) ? this.proxy(actor) : actor;
         this.actorBuffer.set(actor._id, proxy);
       } else {
         return null;
       }
     }
+
     return this.observe<T>(proxy, holderId, recoverEventId) as T;
 
   }
 
+
   private proxy(actor: Actor) {
-    const ob = new Observer(actor, "cqrs");
+    const ob = new Observer<Synchronizer>(actor, "cqrs");
     ob.use(Change);
     ob.use(Sync);
+    const proto = actor.clone();
+    const unsubscribe = ob.proxy.$sync(updater(proto, data => {
+      const e: Event = {
+        id: uid(),
+        type: "$change",
+        data,
+        actorId: data._id,
+        actorType: data.$type,
+        actorVersion: data.$version,
+        actorRev: data._rev,
+        createTime: Date.now()
+      };
+      publish([e], this.localBus);
+    }));
     return ob.proxy as Actor;
   }
 

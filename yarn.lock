@@ -493,10 +493,17 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
-"@types/lodash@^4.14.136":
-  version "4.14.141"
-  resolved "https://registry.npm.taobao.org/@types/lodash/download/@types/lodash-4.14.141.tgz#d81f4d0c562abe28713406b571ffb27692a82ae6"
-  integrity sha1-2B9NDFYqvihxNAa1cf+ydpKoKuY=
+"@types/immutability-helper@^2.6.3":
+  version "2.6.3"
+  resolved "https://registry.npm.taobao.org/@types/immutability-helper/download/@types/immutability-helper-2.6.3.tgz#9c864d84dabf45176904ececce439257cefdbc3c"
+  integrity sha1-nIZNhNq/RRdpBOzszkOSV879vDw=
+  dependencies:
+    immutability-helper "*"
+
+"@types/lodash@^4.14.144":
+  version "4.14.144"
+  resolved "https://registry.npm.taobao.org/@types/lodash/download/@types/lodash-4.14.144.tgz#12e57fc99064bce45e5ab3c8bc4783feb75eab8e"
+  integrity sha1-EuV/yZBkvOReWrPIvEeD/rdeq44=
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -2299,6 +2306,13 @@ immediate@^3.2.3, immediate@~3.2.3:
   resolved "https://registry.npm.taobao.org/immediate/download/immediate-3.2.3.tgz#d140fa8f614659bd6541233097ddaac25cdd991c"
   integrity sha1-0UD6j2FGWb1lQSMwl92qwlzdmRw=
 
+immutability-helper@*, immutability-helper@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.npm.taobao.org/immutability-helper/download/immutability-helper-3.0.1.tgz#4f609c5afbf8d78cb297970e8af2fba8b0eda1d6"
+  integrity sha1-T2CcWvv414yyl5cOivL7qLDtodY=
+  dependencies:
+    invariant "^2.2.4"
+
 import-fresh@^3.0.0:
   version "3.1.0"
   resolved "https://registry.npm.taobao.org/import-fresh/download/import-fresh-3.1.0.tgz#6d33fa1dcef6df930fae003446f33415af905118"
@@ -2376,6 +2390,13 @@ inquirer@^6.4.1:
     string-width "^2.1.0"
     strip-ansi "^5.1.0"
     through "^2.3.6"
+
+invariant@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.npm.taobao.org/invariant/download/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
+  integrity sha1-YQ88ksk1nOHbYW5TgAjSP/NRWOY=
+  dependencies:
+    loose-envify "^1.0.0"
 
 irregular-plurals@^2.0.0:
   version "2.0.0"
@@ -2885,7 +2906,7 @@ log-symbols@^2.2.0:
   dependencies:
     chalk "^2.0.1"
 
-loose-envify@^1.1.0, loose-envify@^1.4.0:
+loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
   version "1.4.0"
   resolved "https://registry.npm.taobao.org/loose-envify/download/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
   integrity sha1-ce5R+nvkyuwaY4OffmgtgTLTDK8=

@@ -23,8 +23,8 @@ export class Context {
     if (id === this.actor._id) return this.actor as T;
 
     return this.actor instanceof Saga
-      ? this.domain_.get<T>(type, id, this.actor._id, recoverEventId)
-      : this.domain_.get<T>(type, id);
+      ? this.domain_.localGet<T>(type, id, this.actor._id, recoverEventId)
+      : this.domain_.localGet<T>(type, id);
   }
   async find(type: string, req: PouchDB.Find.FindRequest<{}>);
   async find(req: PouchDB.Find.FindRequest<{}>);
@@ -70,9 +70,9 @@ export class Context {
       id: string;
       method: string;
     }) {
-    const act = await this.domain_.get(type, id);
+    const act = await this.domain_.localGet(type, id);
     if (act) {
-      act.subscribe({
+      await act.subscribe({
         event,
         type: this.actor.$type,
         id: this.actor._id,
@@ -92,7 +92,7 @@ export class Context {
       event: string;
       method: string;
     }) {
-    const act = await this.domain_.get(type, id);
+    const act = await this.domain_.localGet(type, id);
     if (act) {
       act.unsubscribe({
         event,

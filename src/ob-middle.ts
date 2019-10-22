@@ -1,7 +1,5 @@
-import { Observer } from "@cqrsfk/ob";
 import { Context } from "./Context";
 import { Event } from "./types/Event";
-import { cloneDeep, get } from "lodash";
 import { Actor } from "./Actor";
 import "reflect-metadata";
 import uid from "shortid";

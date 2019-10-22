@@ -10,8 +10,8 @@ import {
   Event
 } from "../src/main";
 
-import * as M from "pouchdb-adapter-memory";
-import * as PouchDB from "pouchdb";
+import  M from "pouchdb-adapter-memory";
+import  PouchDB from "pouchdb";
 
 PouchDB.plugin(M);
 

@@ -5,6 +5,7 @@ import { Context } from "./Context";
 import { Changer } from "./decorators/Changer";
 import sleep from "sleep-promise";
 import { History } from "./History";
+const rootkey = Symbol.for("root");
 
 import "reflect-metadata";
 
@@ -42,6 +43,7 @@ export class Actor {
     return JSON.parse(JSON.stringify(actor));
   }
 
+
   static parse(json): any {
     json = cloneDeep(json);
     json.__proto__ = this.prototype;
@@ -55,6 +57,11 @@ export class Actor {
 
   get json() {
     return this.statics.json(this);
+  }
+
+  clone() {
+    const proto = this[rootkey] || this;
+    return cloneDeep(proto);
   }
 
   beforeSave;
@@ -85,6 +92,7 @@ export class Actor {
 
     const json = this.json;
     let result = await this.$cxt.db.put(json);
+
     this._rev = result.rev;
     this.$events = [];
     await sleep(20);
@@ -94,6 +102,7 @@ export class Actor {
     }
 
     return result;
+
   }
 
   async subscribe({

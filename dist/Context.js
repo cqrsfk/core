@@ -19,8 +19,8 @@ class Context {
         if (id === this.actor._id)
             return this.actor;
         return this.actor instanceof Saga_1.Saga
-            ? this.domain_.get(type, id, this.actor._id, recoverEventId)
-            : this.domain_.get(type, id);
+            ? this.domain_.localGet(type, id, this.actor._id, recoverEventId)
+            : this.domain_.localGet(type, id);
     }
     async find(type, req) {
         if (arguments.length === 1) {
@@ -52,7 +52,7 @@ class Context {
     }
     // subscribe(event: string, id: string, method: string){
     async subscribe({ event, type, id, method }) {
-        const act = await this.domain_.get(type, id);
+        const act = await this.domain_.localGet(type, id);
         if (act) {
             act.subscribe({
                 event,
@@ -63,7 +63,7 @@ class Context {
         }
     }
     async unsubscribe({ type, id, event, method }) {
-        const act = await this.domain_.get(type, id);
+        const act = await this.domain_.localGet(type, id);
         if (act) {
             act.unsubscribe({
                 event,

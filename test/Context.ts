@@ -2,10 +2,12 @@ import test from "ava";
 
 import { Actor, Domain, Action, Changer, Mutation } from "../src/main";
 
-import * as M from "pouchdb-adapter-memory";
-import * as PouchDB from "pouchdb";
-
+import M from "pouchdb-adapter-memory";
+import PouchDB from "pouchdb";
+import sleep from "sleep-promise";
 PouchDB.plugin(M);
+
+
 
 // process.on("unhandledRejection",e=>console.log(e))
 
@@ -40,13 +42,12 @@ class Log extends Actor {
   @Action()
   async listen() {
     if (this.recoding) return;
-    const r = await this.$cxt.subscribe({
+    await this.$cxt.subscribe({
       type: "User",
       id: this.userId,
       event: "change",
       method: "record"
     });
-
     this.$cxt.apply("start listen", []);
   }
 
@@ -61,15 +62,15 @@ class Log extends Actor {
   }
 }
 
-test("Context", async function(t) {
+test("Context", async function (t) {
+
   var domain = new Domain({ name: "test4", db });
   domain.reg(User);
   domain.reg(Log);
 
   const u = await domain.create<User>("User", []);
   const log = await domain.create<Log>("Log", [u._id]);
-  log.listen();
-
+  await log.listen();
   u.changeName("leo");
   u.changeName("leo2");
   u.changeName("leo3");
