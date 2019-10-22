@@ -16,7 +16,6 @@ const sleep_promise_1 = __importDefault(require("sleep-promise"));
 const shortid_1 = __importDefault(require("shortid"));
 const publish_1 = require("./publish");
 const updater_1 = require("./updater");
-const rootkey = Symbol.for("root");
 if (!env_1.isBrowser) {
     var lockfile = require("proper-lockfile");
     var { writeFileSync, mkdirSync, readdirSync, readFileSync } = require("fs");
@@ -259,8 +258,19 @@ class Domain {
         const ob = new ob_1.Observer(actor, "cqrs");
         ob.use(ob_middle_change_1.Change);
         ob.use(ob_middle_sync_1.Sync);
-        const proto = actor[rootkey] || actor;
+        const proto = actor.clone();
         const unsubscribe = ob.proxy.$sync(updater_1.updater(proto, data => {
+            const e = {
+                id: shortid_1.default(),
+                type: "$change",
+                data,
+                actorId: data._id,
+                actorType: data.$type,
+                actorVersion: data.$version,
+                actorRev: data._rev,
+                createTime: Date.now()
+            };
+            publish_1.publish([e], this.localBus);
         }));
         return ob.proxy;
     }

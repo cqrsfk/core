@@ -6,9 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const immutability_helper_1 = __importDefault(require("immutability-helper"));
 const lodash_1 = require("lodash");
 function updater(obj, cb) {
-    cb = lodash_1.throttle(cb);
+    obj = lodash_1.cloneDeep(obj);
+    cb = lodash_1.debounce(cb);
+    cb(obj);
     return function (changer) {
         const { isDelete, isFun, isSet, isMap, isArray, key, parentPath, argv, root, path, newValue } = changer;
+        const parentKey = path.split(".")[0];
+        if (["_", "$"].includes(parentKey[0]))
+            return;
         if (isArray) {
             switch (key) {
                 case "push":

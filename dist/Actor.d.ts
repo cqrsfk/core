@@ -25,6 +25,7 @@ export declare class Actor {
     static parse(json: any): any;
     readonly statics: typeof Actor;
     readonly json: any;
+    clone(): any;
     beforeSave: any;
     afterSave: any;
     save(force?: boolean): Promise<PouchDB.Core.Response | void>;

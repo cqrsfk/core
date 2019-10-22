@@ -17,6 +17,7 @@ const lodash_1 = require("lodash");
 const Changer_1 = require("./decorators/Changer");
 const sleep_promise_1 = __importDefault(require("sleep-promise"));
 const History_1 = require("./History");
+const rootkey = Symbol.for("root");
 require("reflect-metadata");
 class Actor {
     constructor(...argv) {
@@ -46,6 +47,10 @@ class Actor {
     }
     get json() {
         return this.statics.json(this);
+    }
+    clone() {
+        const proto = this[rootkey] || this;
+        return lodash_1.cloneDeep(proto);
     }
     async save(force = false) {
         if (!force && !this.$events.length)

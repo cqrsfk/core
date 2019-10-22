@@ -54,7 +54,7 @@ class Context {
     async subscribe({ event, type, id, method }) {
         const act = await this.domain_.localGet(type, id);
         if (act) {
-            act.subscribe({
+            await act.subscribe({
                 event,
                 type: this.actor.$type,
                 id: this.actor._id,
