@@ -2,7 +2,7 @@ import update from "immutability-helper";
 import { get, set, debounce, cloneDeep } from "lodash";
 
 export function updater(obj, cb: (obj: any) => void) {
-    
+
     obj = cloneDeep(obj);
     cb = debounce(cb);
     cb(obj);
@@ -78,6 +78,7 @@ export function updater(obj, cb: (obj: any) => void) {
             const opt = parentPath ? set({}, parentPath, { $unset: [key] }) : { $unset: [key] };
             obj = update(obj, opt);
         } else {
+            console.log
             obj = update(obj, set({}, path, { $set: newValue }))
         }
 

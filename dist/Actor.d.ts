@@ -23,8 +23,8 @@ export declare class Actor {
     static version: number;
     static json(actor: any): any;
     static parse(json: any): any;
-    readonly statics: typeof Actor;
-    readonly json: any;
+    statics(): typeof Actor;
+    json(): any;
     clone(): any;
     beforeSave: any;
     afterSave: any;

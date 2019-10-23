@@ -26,8 +26,8 @@ export class Actor {
   $cxt: Context;
 
   constructor(...argv: any[]) {
-    this.$type = this.statics.type;
-    this.$version = this.statics.version;
+    this.$type = this.statics().type;
+    this.$version = this.statics().version;
   }
 
   static beforeCreate?(argv: any[]) { }
@@ -51,12 +51,12 @@ export class Actor {
     return json;
   }
 
-  get statics() {
+  statics() {
     return <typeof Actor>this.constructor;
   }
 
-  get json() {
-    return this.statics.json(this);
+  json() {
+    return this.statics().json(this);
   }
 
   clone() {
@@ -90,7 +90,7 @@ export class Actor {
       }
     }
 
-    const json = this.json;
+    const json = this.json();
     let result = await this.$cxt.db.put(json);
 
     this._rev = result.rev;
@@ -167,7 +167,7 @@ export class Actor {
           rev: i + 1 + "-" + ids[i]
         });
         events.push(...item.$events);
-        if (i === 0) protoActor = this.statics.parse(item);
+        if (i === 0) protoActor = this.statics().parse(item);
       }
     }
     events.push(...this.$events);
@@ -180,7 +180,7 @@ export class Actor {
     const latestJSON = await this.$cxt.db.get(this._id);
     if (latestJSON._rev === this._rev) return;
 
-    const latestActor = this.statics.parse(latestJSON);
+    const latestActor = this.statics().parse(latestJSON);
     for (let k in latestActor) {
       if (latestActor.hasOwnProperty(k)) {
         this[k] = latestActor[k];

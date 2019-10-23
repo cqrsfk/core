@@ -72,6 +72,7 @@ function updater(obj, cb) {
             obj = immutability_helper_1.default(obj, opt);
         }
         else {
+            console.log;
             obj = immutability_helper_1.default(obj, lodash_1.set({}, path, { $set: newValue }));
         }
         cb(obj);
