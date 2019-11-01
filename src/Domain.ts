@@ -308,7 +308,7 @@ export class Domain {
   ) {
     const ob = new Observer<T>(actor);
     const { proxy, use } = ob;
-    const cxt = new Context(this.db, proxy, this);
+    const cxt = new Context(this.TypeDBMap.get(actor.$type) || this.db, proxy, this);
     use(new OBMiddle(cxt, holderId, recoverEventId));
     return proxy;
   }
@@ -390,10 +390,13 @@ export class Domain {
     type: string,
     params: PouchDB.Find.FindRequest<{}>
   ): Promise<any[]> {
+
+    const newParams = { ...params, selector: { ...params.selector, $type: type } };
+
     const Type = this.TypeMap.get(type);
     if (Type) {
       const db = this.TypeDBMap.get(Type.type) || this.db;
-      const { docs } = await db.find(params);
+      const { docs } = await db.find(newParams);
       return docs;
     } else throw new Error(type + " type no exist ! ");
   }

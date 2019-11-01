@@ -233,7 +233,7 @@ class Domain {
     observe(actor, holderId, recoverEventId = "") {
         const ob = new ob_1.Observer(actor);
         const { proxy, use } = ob;
-        const cxt = new Context_1.Context(this.db, proxy, this);
+        const cxt = new Context_1.Context(this.TypeDBMap.get(actor.$type) || this.db, proxy, this);
         use(new ob_middle_1.OBMiddle(cxt, holderId, recoverEventId));
         return proxy;
     }
@@ -291,10 +291,11 @@ class Domain {
             throw new Error(type + " type no exist ! ");
     }
     async findRows(type, params) {
+        const newParams = Object.assign(Object.assign({}, params), { selector: Object.assign(Object.assign({}, params.selector), { $type: type }) });
         const Type = this.TypeMap.get(type);
         if (Type) {
             const db = this.TypeDBMap.get(Type.type) || this.db;
-            const { docs } = await db.find(params);
+            const { docs } = await db.find(newParams);
             return docs;
         }
         else
