@@ -295,6 +295,15 @@ class Domain {
         const Type = this.TypeMap.get(type);
         if (Type) {
             const db = this.TypeDBMap.get(Type.type) || this.db;
+            let fields;
+            if (newParams.sort) {
+                fields = newParams.sort.map(p => typeof p === "string" ? p : Object.keys(p)[0]);
+            }
+            fields && await db.createIndex({
+                index: {
+                    fields
+                }
+            });
             const { docs } = await db.find(newParams);
             return docs;
         }
